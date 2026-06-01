@@ -1,0 +1,42 @@
+{
+  "webrtc_revision": "a3553f1c82a5580c91ad1f82baab4b11ed4b34b6",
+  "apk_sha256": "91530c464e80e2ab11f0aa440df871c332768827dc1ca993baa977cf6736bed0",
+  "scope": "LAN synthetic video plus DataChannel echo; not desktop or latency acceptance",
+  "runs": [
+    {
+      "run_id": "4f9fb2d94cf5425988cdcf4f580d659c",
+      "sender_exit_code": 0,
+      "first_frame_rendered": true,
+      "echo_received": true,
+      "passed": true,
+      "last_inbound_sample": {
+        "frameWidth": 640.0,
+        "frameHeight": 360.0,
+        "framesDecoded": 884.0,
+        "framesPerSecond": 31.0,
+        "framesDropped": 0.0,
+        "packetsLost": 0.0,
+        "freezeCount": 0.0
+      },
+      "decoder_implementation": "libvpx"
+    },
+    {
+      "run_id": "62aeb2a0c3754b7d962d83dfac9342b4",
+      "sender_exit_code": 0,
+      "first_frame_rendered": true,
+      "echo_received": true,
+      "passed": true,
+      "last_inbound_sample": {
+        "frameWidth": 640.0,
+        "frameHeight": 360.0,
+        "framesDecoded": 846.0,
+        "framesPerSecond": 29.0,
+        "framesDropped": 0.0,
+        "packetsLost": 13.0,
+        "freezeCount": 1.0
+      },
+      "decoder_implementation": "libvpx"
+    }
+  ],
+  "sender_sha256": "9d9e6e413dcf845f14cbb2ebb7f654c17d3584a9883ae66614a202ceaaf78d42"
+}

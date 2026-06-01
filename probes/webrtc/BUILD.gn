@@ -1,0 +1,52 @@
+import("//webrtc.gni")
+
+if (is_android) {
+  import("//build/config/android/rules.gni")
+  rtc_android_library("receiver_java") {
+    sources = [ "android/dev/remotedesktop/probe/ProbeActivity.java" ]
+    deps = [
+      "//sdk/android:base_java",
+      "//sdk/android:default_video_codec_factory_java",
+      "//sdk/android:peerconnection_java",
+      "//sdk/android:surfaceviewrenderer_java",
+      "//sdk/android:video_api_java",
+      "//sdk/android:video_java",
+    ]
+  }
+  rtc_android_apk("receiver") {
+    apk_name = "RemoteDesktopProbe"
+    android_manifest = "android/AndroidManifest.xml"
+    min_sdk_version = 26
+    target_sdk_version = 36
+    deps = [ ":receiver_java" ]
+    shared_libraries = [ "//sdk/android:libjingle_peerconnection_so" ]
+  }
+}
+
+# Copy this directory to <webrtc src>/remote_desktop_probe, then use
+# gn gen ... --root-target=//remote_desktop_probe:sender.
+rtc_executable("sender") {
+  sources = [ "sender.cpp" ]
+  deps = [
+    "//api:create_modular_peer_connection_factory",
+    "//api:data_channel_interface",
+    "//api:enable_media_with_defaults",
+    "//api:jsep",
+    "//api:make_ref_counted",
+    "//api:media_stream_interface",
+    "//api:peer_connection_interface",
+    "//api:rtc_error",
+    "//api:scoped_refptr",
+    "//api:set_local_description_observer_interface",
+    "//api:set_remote_description_observer_interface",
+    "//api/video:video_broadcaster",
+    "//api/video:video_frame",
+    "//pc:video_track_source",
+    "//third_party/libyuv",
+    "//rtc_base:ssl_adapter",
+    "//rtc_base:threading",
+  ]
+  if (is_win) {
+    deps += [ "//rtc_base:win32_socket_init" ]
+  }
+}
