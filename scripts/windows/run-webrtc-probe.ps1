@@ -1,5 +1,6 @@
 param(
     [Parameter(Mandatory = $true)][string]$Sender,
+    [ValidateSet('pattern', 'desktop')][string]$Source = 'pattern',
     [string]$OutputRoot = 'D:\code\remote-desktop\build\interop'
 )
 $ErrorActionPreference = 'Stop'
@@ -19,7 +20,9 @@ try {
     # Preserve any previous answer for diagnosis, avoiding stale signaling.
     & adb -d shell "if [ -f $phoneAnswer ]; then mv $phoneAnswer $phoneAnswer.$runId.previous; fi"
     Check-Adb
-    $senderProcess = Start-Process -FilePath $Sender -ArgumentList "`"$offerPath`" `"$answerPath`"" `
+    $senderArguments = "`"$offerPath`" `"$answerPath`""
+    if ($Source -eq 'desktop') { $senderArguments += ' desktop' }
+    $senderProcess = Start-Process -FilePath $Sender -ArgumentList $senderArguments `
         -RedirectStandardOutput (Join-Path $runDirectory 'sender.log') `
         -RedirectStandardError (Join-Path $runDirectory 'sender-error.log') -PassThru
     $null = $senderProcess.Handle
@@ -48,6 +51,18 @@ try {
     & adb -d pull $phoneAnswer (Join-Path $runDirectory 'answer.pending')
     Check-Adb
     Move-Item (Join-Path $runDirectory 'answer.pending') $answerPath
+    if ($Source -eq 'desktop') {
+        # Screenshots are evidence for visual review, never a substitute for it.
+        foreach ($sample in 1..2) {
+            Start-Sleep -Seconds 7
+            if ($senderProcess.HasExited) { throw 'Sender exited before visual sampling.' }
+            $phoneImage = "/sdcard/Android/data/$package/files/desktop-$sample.png"
+            & adb -d shell screencap -p $phoneImage
+            Check-Adb
+            & adb -d pull $phoneImage (Join-Path $runDirectory "desktop-$sample.png")
+            Check-Adb
+        }
+    }
     if (!$senderProcess.WaitForExit(60000)) { throw 'Sender did not finish in time.' }
     $senderProcess.Refresh()
     $phoneLog = (& adb -d logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
@@ -55,15 +70,24 @@ try {
     [IO.File]::WriteAllText((Join-Path $runDirectory 'android.log'), $phoneLog)
     $rendered = $phoneLog.Contains('first_frame_rendered=true')
     $echoed = $phoneLog.Contains('data_received=echo:probe:1')
+    $senderLog = Get-Content (Join-Path $runDirectory 'sender.log') -Raw
+    $dimensions = [regex]::Match($senderLog, 'desktop_frame=true[^\r\n]*output_width=(\d+) output_height=(\d+)')
+    $desktopObserved = $Source -ne 'desktop' -or (
+        $senderLog.Contains('source=desktop') -and $dimensions.Success -and
+        $phoneLog.Contains(('frame_size={0}x{1} rotation=' -f $dimensions.Groups[1].Value, $dimensions.Groups[2].Value)))
+    $automatedPassed = $senderProcess.ExitCode -eq 0 -and $rendered -and $echoed -and $desktopObserved
     $result = [ordered]@{
         run_id = $runId
+        source = $Source
         sender_exit_code = $senderProcess.ExitCode
         first_frame_rendered = $rendered
         echo_received = $echoed
-        passed = ($senderProcess.ExitCode -eq 0 -and $rendered -and $echoed)
+        automated_checks_passed = $automatedPassed
+        visual_review = $(if ($Source -eq 'desktop') { 'required: compare desktop changes and terminal text in both screenshots' } else { 'not required for pattern smoke' })
+        passed = $(if ($Source -eq 'desktop' -and $automatedPassed) { $null } else { $automatedPassed })
     }
     $result | ConvertTo-Json | Tee-Object -FilePath (Join-Path $runDirectory 'result.json')
-    if (!$result.passed) { throw 'Interoperability criteria were not met. Inspect run logs.' }
+    if (!$automatedPassed) { throw 'Interoperability criteria were not met. Inspect run logs.' }
 } finally {
     if ($appPid) {
         $diagnosticLog = (& adb -d logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"

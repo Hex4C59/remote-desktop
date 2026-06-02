@@ -26,7 +26,7 @@ if (is_android) {
 # Copy this directory to <webrtc src>/remote_desktop_probe, then use
 # gn gen ... --root-target=//remote_desktop_probe:sender.
 rtc_executable("sender") {
-  sources = [ "sender.cpp" ]
+  sources = [ "sender.cpp", "frame_source.h", "pattern_source.cpp" ]
   deps = [
     "//api:create_modular_peer_connection_factory",
     "//api:data_channel_interface",
@@ -47,6 +47,8 @@ rtc_executable("sender") {
     "//rtc_base:threading",
   ]
   if (is_win) {
+    sources += [ "desktop_source.cpp" ]
+    libs = [ "d3d11.lib", "dxgi.lib" ]
     deps += [ "//rtc_base:win32_socket_init" ]
   }
 }

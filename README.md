@@ -1,6 +1,6 @@
 # Android → Windows 远程桌面
 
-面向 RTC 视频工程校招的一个月原型：在局域网内，通过 Android 查看 Windows 桌面视频并操作终端。已通过原生 WebRTC 两端构建及真机合成视频/消息回显验证，尚未实现完整远程桌面应用。
+面向 RTC 视频工程校招的一个月原型：在局域网内，通过 Android 查看 Windows 桌面视频并操作终端。已通过原生 WebRTC 两端构建及真机真实桌面视频、合成视频及消息回显验证，尚未实现完整远程桌面应用。
 
 ## 已有内容
 
@@ -9,6 +9,8 @@
 - Windows 桌面探针：验证构建、进程会话和 Desktop Duplication 单帧访问，不保存屏幕像素。
 - SSH 命令、文件上传下载和本地日志保存入口。
 - [WebRTC 合成视频与消息回显探针](docs/webrtc-probes.md)：Windows C++ 发送端、Android 接收端及构建/联调脚本。
+
+任务01已完成：[真实桌面验证记录](docs/task01-desktop-video.md)。目前仍使用开发联调入口，配对和远程输入尚未实现。
 
 ## Windows 桌面探针
 

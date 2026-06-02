@@ -82,6 +82,7 @@ public final class ProbeActivity extends Activity {
         report("frame_size=" + width + "x" + height + " rotation=" + rotation);
       }
     });
+    renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
     rtcThread.start();
     worker = new Handler(rtcThread.getLooper());
     String encodedOffer = getIntent().getStringExtra("offer_b64");
@@ -223,6 +224,7 @@ public final class ProbeActivity extends Activity {
     if (stopping || peer == null) return;
     peer.getStats(report -> report.getStatsMap().values().forEach(stat -> {
       if ("inbound-rtp".equals(stat.getType())) Log.i(TAG, "inbound_stats=" + stat);
+      if ("codec".equals(stat.getType())) Log.i(TAG, "codec_stats=" + stat);
     }));
     worker.postDelayed(() -> collectStats(), 2000);
   }

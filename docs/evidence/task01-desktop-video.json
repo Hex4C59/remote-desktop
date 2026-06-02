@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-22",
+  "desktop_run_id": "81fdd1c573804bb7a502b5752b250340",
+  "pattern_run_id": "9ad836b4f1f24d329c9aa257875e329f",
+  "capture_size": [
+    2560,
+    1440
+  ],
+  "display_size": [
+    1280,
+    720
+  ],
+  "configured_max_fps": 30,
+  "configured_max_bitrate_bps": 4000000,
+  "negotiated_codec": "video/VP8",
+  "receiver_decoder": "libvpx",
+  "sender_exit_code": 0,
+  "submitted_frames": 910,
+  "last_stats_frames_decoded": 878,
+  "last_stats_frames_dropped": 0,
+  "first_frame_rendered": true,
+  "echo_received": true,
+  "automated_checks_passed": true,
+  "visual_review": {
+    "passed": true,
+    "first_image": "PowerShell: desktop test 52 : 6 * 7 = 42 is readable in the unobscured lower-left area. Another window partly covers the terminal.",
+    "second_image": "Desktop has switched to the editor; visible content differs from the first image.",
+    "screenshots": [
+      {
+        "local_path": ".local/logs/task01-accepted-desktop-1.png",
+        "sha256": "051c5dd9a159f672993f1c37774f2f1ea5cae6b23767dcf88877c8b8eec3846f"
+      },
+      {
+        "local_path": ".local/logs/task01-accepted-desktop-2.png",
+        "sha256": "78459cc349cde41025351de64f696ba423714c88f156553c8385d9d2f33741d0"
+      }
+    ]
+  },
+  "pattern_regression_passed": true,
+  "ten_minute_performance_validated": false
+}

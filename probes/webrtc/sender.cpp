@@ -1,4 +1,4 @@
-// First interoperability probe: synthetic video and a test-message echo.
+// Development probe: selectable video source and a test-message echo.
 // SDP travels through local files during this probe, not a product signaling API.
 #include <atomic>
 #include <chrono>
@@ -22,7 +22,7 @@
 #include "api/video/video_broadcaster.h"
 #include "api/video/video_frame.h"
 #include "pc/video_track_source.h"
-#include "third_party/libyuv/include/libyuv/planar_functions.h"
+#include "remote_desktop_probe/frame_source.h"
 #include "rtc_base/ssl_adapter.h"
 #include "rtc_base/thread.h"
 #if defined(WEBRTC_WIN)
@@ -32,19 +32,11 @@
 namespace {
 using Clock = std::chrono::steady_clock;
 
-class PatternSource : public webrtc::VideoTrackSource {
+class SubmittedVideoSource : public webrtc::VideoTrackSource {
  public:
-  PatternSource() : VideoTrackSource(false) {}
-  void Push(int index) {
-    constexpr int width = 640, height = 360;
-    auto buffer = webrtc::I420Buffer::Create(width, height);
-    webrtc::I420Buffer::SetBlack(buffer.get());
-    // libyuv owns plane addressing; the moving rectangle stays within all planes.
-    const int left = (index * 4) % (width - 120);
-    libyuv::I420Rect(buffer->MutableDataY(), buffer->StrideY(),
-                    buffer->MutableDataU(), buffer->StrideU(),
-                    buffer->MutableDataV(), buffer->StrideV(),
-                    left, 0, 120, height, 180, 90, 180);
+  explicit SubmittedVideoSource(bool desktop) : VideoTrackSource(false), desktop_(desktop) {}
+  bool is_screencast() const override { return desktop_; }
+  void Push(const webrtc::scoped_refptr<webrtc::I420Buffer>& buffer) {
     const auto now = std::chrono::duration_cast<std::chrono::microseconds>(
         Clock::now().time_since_epoch()).count();
     broadcaster_.OnFrame(webrtc::VideoFrame::Builder()
@@ -56,6 +48,7 @@ class PatternSource : public webrtc::VideoTrackSource {
     return &broadcaster_;
   }
  private:
+  const bool desktop_;
   webrtc::VideoBroadcaster broadcaster_;
 };
 
@@ -130,7 +123,15 @@ class Sender : public webrtc::PeerConnectionObserver,
       signaling_->Stop();
     }
   }
-  int Run(const std::string& offer_path, const std::string& answer_path) {
+  int Run(const std::string& offer_path, const std::string& answer_path, bool desktop) {
+    auto framesource = desktop_probe::CreatePatternSource();
+#if defined(WEBRTC_WIN)
+    if (desktop) framesource = desktop_probe::CreateDesktopSource();
+#else
+    if (desktop) { std::cerr << "desktop_error=windows_required\n"; return 2; }
+#endif
+    if (!framesource->Initialize()) return 1;
+    webrtc::scoped_refptr<webrtc::I420Buffer> latest;
     if (!signaling_->Start()) return 1;
     signaling_started_ = true;
     webrtc::PeerConnectionFactoryDependencies dependencies;
@@ -144,9 +145,22 @@ class Sender : public webrtc::PeerConnectionObserver,
         config, webrtc::PeerConnectionDependencies(this));
     if (!peer.ok()) { std::cerr << peer.error().message() << '\n'; return 1; }
     pc_ = peer.MoveValue();
-    source_ = webrtc::make_ref_counted<PatternSource>();
-    auto track = factory_->CreateVideoTrack(source_, "test-pattern");
-    if (!pc_->AddTrack(track, {"probe-stream"}).ok()) return 1;
+    source_ = webrtc::make_ref_counted<SubmittedVideoSource>(desktop);
+    auto track = factory_->CreateVideoTrack(source_, desktop ? "desktop" : "test-pattern");
+    auto added = pc_->AddTrack(track, {"probe-stream"});
+    if (!added.ok()) return 1;
+    if (desktop) {
+      auto parameters = added.value()->GetParameters();
+      parameters.degradation_preference = webrtc::DegradationPreference::MAINTAIN_RESOLUTION;
+      for (auto& encoding : parameters.encodings) {
+        encoding.max_framerate = 30;
+        encoding.max_bitrate_bps = 4000000;
+      }
+      auto configured = added.value()->SetParameters(parameters);
+      if (!configured.ok()) { std::cerr << configured.message() << '\n'; return 1; }
+      std::cout << "encoder_config=max_fps:30,max_bitrate_bps:4000000,maintain_resolution"
+                << " codec=negotiated_receiver_stats" << std::endl;
+    }
     webrtc::DataChannelInit channel_config;
     auto channel = pc_->CreateDataChannelOrError("probe", &channel_config);
     if (!channel.ok()) return 1;
@@ -187,7 +201,8 @@ class Sender : public webrtc::PeerConnectionObserver,
       }
       if (state_->answer_applied) {
         if (connected_at == Clock::time_point::max()) connected_at = Clock::now();
-        source_->Push(frames++);
+        if (!framesource->Capture(latest)) return 1;
+        if (latest) { source_->Push(latest); ++frames; }
         if (Clock::now() - connected_at > std::chrono::seconds(30)) break;
       }
       next_frame += std::chrono::milliseconds(33);
@@ -227,26 +242,31 @@ class Sender : public webrtc::PeerConnectionObserver,
   webrtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory_;
   webrtc::scoped_refptr<webrtc::PeerConnectionInterface> pc_;
   webrtc::scoped_refptr<webrtc::DataChannelInterface> channel_;
-  webrtc::scoped_refptr<PatternSource> source_;
+  webrtc::scoped_refptr<SubmittedVideoSource> source_;
 };
 }
 
 int main(int argc, char** argv) {
-  if (argc != 3) {
-    std::cerr << "Usage: sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp (use fresh paths)\n";
+  if (argc != 3 && argc != 4) {
+    std::cerr << "Usage: sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp [pattern|desktop] (use fresh paths)\n";
     return 2;
   }
 #if defined(WEBRTC_WIN)
   webrtc::WinsockInitializer winsock;
 #endif
-  // The C++ entry-point contract supplies argc valid argv entries; argc == 3
+  // The C++ entry-point contract supplies argc valid argv entries; argc is 3 or 4
   // was checked above. Confine the raw C ABI boundary to this span creation.
 #pragma clang unsafe_buffer_usage begin
   const std::span<char*> arguments(argv, static_cast<size_t>(argc));
 #pragma clang unsafe_buffer_usage end
+  const std::string mode = argc == 4 ? arguments[3] : "pattern";
+  if (mode != "pattern" && mode != "desktop") {
+    std::cerr << "Unknown source mode\n";
+    return 2;
+  }
   if (!webrtc::InitializeSSL()) return 1;
   int result;
-  { Sender sender; result = sender.Run(arguments[1], arguments[2]); }
+  { Sender sender; result = sender.Run(arguments[1], arguments[2], mode == "desktop"); }
   webrtc::CleanupSSL();
   return result;
 }
