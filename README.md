@@ -51,3 +51,5 @@ python3 scripts/windows-remote.py --download D:/code/remote-desktop/build/window
 ## 第一阶段状态
 
 见[验证记录](docs/phase-one-status.md)。Ubuntu 上的 C++ 工具存在不代表 Windows 功能可用；构建通过也不代表媒体互通已经完成。
+
+历史验证记录中的提交编号对应关系见[GitHub 提交映射](docs/git-history.md)。
