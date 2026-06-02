@@ -12,6 +12,14 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Button;
+import android.text.InputType;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayDeque;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,7 +42,7 @@ import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoTrack;
 
-/** Development-only probe. SDP is injected by ADB; no desktop input is sent. */
+/** LAN desktop receiver with an optional file-signaling development probe. */
 public final class ProbeActivity extends Activity {
   private static final String TAG = "RemoteDesktopProbe";
   private final HandlerThread rtcThread = new HandlerThread("probe-rtc");
@@ -48,7 +56,15 @@ public final class ProbeActivity extends Activity {
   private VideoTrack video;
   private DataChannel channel;
   private volatile boolean stopping;
+  private final AtomicBoolean cleanupStarted = new AtomicBoolean();
   private boolean probeSent;
+  private PairingConnection pairing;
+  private final AtomicInteger pendingSignals = new AtomicInteger();
+  private boolean authorized, remoteReady;
+  private final ArrayDeque<IceCandidate> pendingIce = new ArrayDeque<>();
+  private EditText addressInput, codeInput;
+  private Button connectButton;
+  private LinearLayout connectionForm;
   private boolean answerPublished;
   private final Runnable publishAnswer = () -> writeAnswer();
 
@@ -58,7 +74,28 @@ public final class ProbeActivity extends Activity {
     LinearLayout layout = new LinearLayout(this);
     layout.setOrientation(LinearLayout.VERTICAL);
     status = new TextView(this);
-    status.setText("等待测试连接");
+    status.setText("输入电脑地址和临时配对口令");
+    connectionForm = new LinearLayout(this);
+    connectionForm.setOrientation(LinearLayout.VERTICAL);
+    addressInput = new EditText(this);
+    addressInput.setHint("电脑 IPv4 地址，例如 192.168.1.2:18443");
+    addressInput.setSingleLine(true);
+    addressInput.setImeOptions(EditorInfo.IME_ACTION_NEXT | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+    addressInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    codeInput = new EditText(this);
+    codeInput.setHint("Windows 显示的临时配对口令（64 位）");
+    codeInput.setSingleLine(true);
+    codeInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+    codeInput.setSaveEnabled(false);
+    codeInput.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+    codeInput.setOnEditorActionListener((view, action, event) -> { startPairing(); return true; });
+    connectButton = new Button(this);
+    connectButton.setText("连接");
+    connectionForm.addView(addressInput);
+    connectionForm.addView(codeInput);
+    connectionForm.addView(connectButton);
+    layout.addView(connectionForm);
+    connectButton.setOnClickListener(view -> startPairing());
     renderer = new SurfaceViewRenderer(this);
     layout.addView(status);
     layout.addView(renderer, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -86,7 +123,8 @@ public final class ProbeActivity extends Activity {
     rtcThread.start();
     worker = new Handler(rtcThread.getLooper());
     String encodedOffer = getIntent().getStringExtra("offer_b64");
-    if (encodedOffer == null) { report("missing_offer=true"); return; }
+    if (encodedOffer == null) return;
+    connectionForm.setVisibility(android.view.View.GONE);
     try {
       String offer = new String(Base64.decode(encodedOffer, Base64.DEFAULT), StandardCharsets.UTF_8);
       worker.post(() -> connect(offer));
@@ -95,9 +133,72 @@ public final class ProbeActivity extends Activity {
     }
   }
 
+  private void startPairing() {
+    if (worker == null || stopping || pairing != null) return;
+    String address = addressInput.getText().toString().trim();
+    String code = codeInput.getText().toString().trim();
+    codeInput.setText("");
+    getSystemService(InputMethodManager.class).hideSoftInputFromWindow(codeInput.getWindowToken(), 0);
+    connectButton.setEnabled(false);
+    Log.i(TAG, "pairing_attempt_started=true");
+    report("正在配对…");
+    pairing = new PairingConnection(new PairingConnection.Listener() {
+      @Override public void onMessage(String message) {
+        if (pendingSignals.incrementAndGet() > 128) { pairing.close(); return; }
+        worker.post(() -> { pendingSignals.decrementAndGet(); receiveSignal(message); });
+      }
+      @Override public void onClosed() {
+        Log.i(TAG, "pairing_transport_closed=true");
+        worker.post(() -> {
+          if (!stopping) {
+            report("连接已结束或配对失败，请检查地址和口令后重新打开应用");
+            stopSession();
+          }
+        });
+      }
+    });
+    pairing.start(address, code);
+  }
+
+  private void receiveSignal(String message) {
+    if (stopping) return;
+    if (message.equals("denied") || message.equals("busy")) {
+      Log.i(TAG, message.equals("busy") ? "pairing_busy=true" : "pairing_denied=true");
+      report(message.equals("busy") ? "电脑已有连接，请稍后重试" : "配对失败：口令错误或过期");
+      stopSession(); return;
+    }
+    if (message.equals("accepted") && !authorized) {
+      authorized = true;
+      report("pairing_authorized=true");
+      runOnUiThread(() -> connectionForm.setVisibility(android.view.View.GONE));
+    } else if (authorized && message.startsWith("offer\n") && peer == null) {
+      connect(message.substring(6));
+    } else if (authorized && message.startsWith("ice\n")) {
+      String[] parts = message.substring(4).split("\n", 3);
+      try {
+        if (parts.length != 3 || pendingIce.size() >= 128) throw new IllegalArgumentException();
+        IceCandidate candidate = new IceCandidate(parts[0], Integer.parseInt(parts[1]), parts[2]);
+        if (remoteReady) addCandidate(candidate); else pendingIce.add(candidate);
+      } catch (IllegalArgumentException error) { stopSession(); }
+    } else { stopSession(); }
+  }
+
+  private void addCandidate(IceCandidate candidate) {
+    if (!peer.addIceCandidate(candidate)) { report("remote_ice_failed=true"); stopSession(); }
+    else report("remote_ice_added=true");
+  }
+
   private void report(String message) {
     Log.i(TAG, message);
-    runOnUiThread(() -> status.setText(message));
+    String display = message;
+    if (pairing != null && message.contains("=")) {
+      if (message.equals("pairing_authorized=true")) display = "配对成功，正在连接桌面…";
+      else if (message.equals("first_frame_rendered=true")) display = "已连接";
+      else if (message.startsWith("frame_size=")) display = "已连接 · " + message.substring(11).split(" ")[0];
+      else return;
+    }
+    final String text = display;
+    runOnUiThread(() -> status.setText(text));
   }
 
   private abstract class DescriptionObserver implements SdpObserver {
@@ -125,10 +226,11 @@ public final class ProbeActivity extends Activity {
       }
       @Override public void onIceConnectionReceivingChange(boolean receiving) {}
       @Override public void onIceGatheringChange(PeerConnection.IceGatheringState state) {
-        if (state == PeerConnection.IceGatheringState.COMPLETE) scheduleAnswer();
+        if (pairing == null && state == PeerConnection.IceGatheringState.COMPLETE) scheduleAnswer();
       }
       @Override public void onIceCandidate(IceCandidate candidate) {
-        scheduleAnswer();
+        if (pairing != null) pairing.send("ice\n" + candidate.sdpMid + "\n" + candidate.sdpMLineIndex + "\n" + candidate.sdp);
+        else scheduleAnswer();
       }
       @Override public void onIceCandidatesRemoved(IceCandidate[] candidates) {}
       @Override public void onAddStream(MediaStream stream) {}
@@ -143,6 +245,9 @@ public final class ProbeActivity extends Activity {
       @Override public void onSetSuccess() {
         worker.post(() -> {
           if (stopping) return;
+          remoteReady = true;
+          while (!pendingIce.isEmpty() && !stopping) addCandidate(pendingIce.remove());
+          if (stopping) return;
           // Call once: getReceivers() disposes wrappers from its previous call.
           for (RtpReceiver receiver : peer.getReceivers()) {
             MediaStreamTrack track = receiver.track();
@@ -155,7 +260,11 @@ public final class ProbeActivity extends Activity {
           peer.createAnswer(new DescriptionObserver() {
             @Override public void onCreateSuccess(SessionDescription answer) {
               worker.post(() -> {
-                if (!stopping) peer.setLocalDescription(new DescriptionObserver() {}, answer);
+                if (!stopping) peer.setLocalDescription(new DescriptionObserver() {
+                  @Override public void onSetSuccess() {
+                    if (pairing != null) pairing.send("answer\n" + answer.description);
+                  }
+                }, answer);
               });
             }
           }, new MediaConstraints());
@@ -232,13 +341,18 @@ public final class ProbeActivity extends Activity {
   @Override public void onStop() {
     super.onStop();
     report("activity_stopped=true");
-    if (stopping) return;
+    stopSession();
+  }
+
+  private void stopSession() {
+    if (!cleanupStarted.compareAndSet(false, true)) return;
     stopping = true;
     if (worker == null) {
       if (connectivity != null) connectivity.bindProcessToNetwork(null);
       return;
     }
     worker.post(() -> {
+      if (pairing != null) pairing.close();
       if (video != null) video.removeSink(renderer);
       if (channel != null) { channel.unregisterObserver(); channel.close(); channel.dispose(); }
       if (peer != null) peer.dispose();

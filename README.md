@@ -10,7 +10,7 @@
 - SSH 命令、文件上传下载和本地日志保存入口。
 - [WebRTC 合成视频与消息回显探针](docs/webrtc-probes.md)：Windows C++ 发送端、Android 接收端及构建/联调脚本。
 
-任务01已完成：[真实桌面验证记录](docs/task01-desktop-video.md)。目前仍使用开发联调入口，配对和远程输入尚未实现。
+任务01已完成：[真实桌面验证记录](docs/task01-desktop-video.md)。任务02提供[地址与临时口令连接](docs/pairing-protocol.md)，正常使用不再交换SDP文件。远程输入尚未实现。
 
 ## Windows 桌面探针
 

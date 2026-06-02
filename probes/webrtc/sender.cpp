@@ -1,7 +1,9 @@
 // Development probe: selectable video source and a test-message echo.
-// SDP travels through local files during this probe, not a product signaling API.
+// --serve uses authenticated TLS signaling; file mode remains a developer probe.
 #include <atomic>
 #include <chrono>
+#include <charconv>
+#include <deque>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -23,6 +25,7 @@
 #include "api/video/video_frame.h"
 #include "pc/video_track_source.h"
 #include "remote_desktop_probe/frame_source.h"
+#include "remote_desktop_probe/pairing_server.h"
 #include "rtc_base/ssl_adapter.h"
 #include "rtc_base/thread.h"
 #if defined(WEBRTC_WIN)
@@ -55,6 +58,7 @@ class SubmittedVideoSource : public webrtc::VideoTrackSource {
 struct ProbeState {
   std::atomic<bool> failed{false};
   std::atomic<bool> gathered{false};
+  std::atomic<bool> local_ready{false};
   std::atomic<bool> answer_applied{false};
   std::atomic<int> echoed{0};
 };
@@ -63,6 +67,7 @@ class LocalObserver : public webrtc::SetLocalDescriptionObserverInterface {
  public:
   explicit LocalObserver(std::shared_ptr<ProbeState> state) : state_(std::move(state)) {}
   void OnSetLocalDescriptionComplete(webrtc::RTCError error) override {
+    state_->local_ready = error.ok();
     if (!error.ok()) {
       std::cerr << "set_local_failed=" << error.message() << std::endl;
       state_->failed = true;
@@ -123,7 +128,8 @@ class Sender : public webrtc::PeerConnectionObserver,
       signaling_->Stop();
     }
   }
-  int Run(const std::string& offer_path, const std::string& answer_path, bool desktop) {
+  int Run(const std::string& offer_path, const std::string& answer_path, bool desktop, desktop_probe::PairingServer* pairing = nullptr) {
+    pairing_ = pairing;
     auto framesource = desktop_probe::CreatePatternSource();
 #if defined(WEBRTC_WIN)
     if (desktop) framesource = desktop_probe::CreateDesktopSource();
@@ -174,18 +180,23 @@ class Sender : public webrtc::PeerConnectionObserver,
     auto next_frame = started;
     auto connected_at = Clock::time_point::max();
     int frames = 0;
-    while (!state_->failed && Clock::now() - started < std::chrono::minutes(3)) {
-      if (state_->gathered && !offer_written) {
+    std::deque<std::string> pending_ice;
+    while (!state_->failed && (pairing_ ? !pairing_->Ended() : Clock::now() - started < std::chrono::minutes(3))) {
+      if ((pairing_ ? state_->local_ready.load() : state_->gathered.load()) && !offer_written) {
         std::string sdp;
         signaling_->BlockingCall([&] { pc_->local_description()->ToString(&sdp); });
+        if (pairing_) {
+          if (!pairing_->Send("offer\n" + sdp)) return 1;
+        } else {
         std::ofstream output(offer_path, std::ios::binary);
         output << sdp;
         output.close();
         if (!output) { std::cerr << "offer_write_failed\n"; return 1; }
-        offer_written = true;
         std::cout << "offer_ready=" << offer_path << std::endl;
+        }
+        offer_written = true;
       }
-      if (offer_written && !answer_submitted) {
+      if (!pairing_ && offer_written && !answer_submitted) {
         std::ifstream input(answer_path, std::ios::binary);
         if (input) {
           const std::string sdp((std::istreambuf_iterator<char>(input)), {});
@@ -199,11 +210,39 @@ class Sender : public webrtc::PeerConnectionObserver,
           }
         }
       }
+      if (pairing_) {
+        std::string message;
+        while (pairing_->Receive(message)) {
+          if (message.starts_with("answer\n") && !answer_submitted) {
+            auto answer = webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, message.substr(7));
+            if (!answer) return 1;
+            pc_->SetRemoteDescription(std::move(answer), webrtc::make_ref_counted<RemoteObserver>(state_));
+            answer_submitted = true;
+          } else if (message.starts_with("ice\n") && pending_ice.size() < 128) {
+            pending_ice.push_back(message.substr(4));
+          } else { return 1; }
+        }
+        if (state_->answer_applied) {
+          while (!pending_ice.empty()) {
+            const std::string ice = std::move(pending_ice.front()); pending_ice.pop_front();
+            size_t mid_end = ice.find('\n'), index_end = ice.find('\n', mid_end + 1);
+            if (mid_end == std::string::npos || index_end == std::string::npos) return 1;
+            int index = -1;
+            const auto index_text = std::string_view(ice).substr(mid_end + 1, index_end - mid_end - 1);
+            auto parsed = std::from_chars(index_text.data(), index_text.substr(index_text.size()).data(), index);
+            if (parsed.ec != std::errc() || parsed.ptr != index_text.substr(index_text.size()).data() || index < 0) return 1;
+            std::unique_ptr<webrtc::IceCandidate> candidate(webrtc::CreateIceCandidate(ice.substr(0, mid_end), index, ice.substr(index_end + 1), nullptr));
+            if (!candidate || !pc_->AddIceCandidate(candidate.get())) return 1;
+            std::cout << "remote_ice_added=true" << std::endl;
+          }
+        }
+        if (!state_->answer_applied && Clock::now() - started > std::chrono::seconds(30)) return 1;
+      }
       if (state_->answer_applied) {
         if (connected_at == Clock::time_point::max()) connected_at = Clock::now();
         if (!framesource->Capture(latest)) return 1;
         if (latest) { source_->Push(latest); ++frames; }
-        if (Clock::now() - connected_at > std::chrono::seconds(30)) break;
+        if (!pairing_ && Clock::now() - connected_at > std::chrono::seconds(30)) break;
       }
       next_frame += std::chrono::milliseconds(33);
       std::this_thread::sleep_until(next_frame);
@@ -214,7 +253,14 @@ class Sender : public webrtc::PeerConnectionObserver,
   }
   void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState) override {}
   void OnDataChannel(webrtc::scoped_refptr<webrtc::DataChannelInterface>) override {}
-  void OnIceCandidate(const webrtc::IceCandidate*) override {}
+  void OnIceCandidate(const webrtc::IceCandidate* candidate) override {
+    if (pairing_) {
+      std::string sdp;
+      candidate->ToString(&sdp);
+      pairing_->Send("ice\n" + candidate->sdp_mid() + "\n" +
+          std::to_string(candidate->sdp_mline_index()) + "\n" + sdp);
+    }
+  }
   void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState state) override {
     if (state == webrtc::PeerConnectionInterface::kIceGatheringComplete) state_->gathered = true;
   }
@@ -236,6 +282,7 @@ class Sender : public webrtc::PeerConnectionObserver,
     });
   }
  private:
+  desktop_probe::PairingServer* pairing_ = nullptr;
   std::shared_ptr<ProbeState> state_;
   std::unique_ptr<webrtc::Thread> signaling_;
   bool signaling_started_ = false;
@@ -247,18 +294,32 @@ class Sender : public webrtc::PeerConnectionObserver,
 }
 
 int main(int argc, char** argv) {
-  if (argc != 3 && argc != 4) {
-    std::cerr << "Usage: sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp [pattern|desktop] (use fresh paths)\n";
+  if (argc != 2 && argc != 3 && argc != 4) {
+    std::cerr << "Usage: sender --serve OR sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp [pattern|desktop]\n";
     return 2;
   }
 #if defined(WEBRTC_WIN)
   webrtc::WinsockInitializer winsock;
 #endif
-  // The C++ entry-point contract supplies argc valid argv entries; argc is 3 or 4
+  // The C++ entry-point contract supplies argc valid argv entries; argc is 2, 3 or 4
   // was checked above. Confine the raw C ABI boundary to this span creation.
 #pragma clang unsafe_buffer_usage begin
   const std::span<char*> arguments(argv, static_cast<size_t>(argc));
 #pragma clang unsafe_buffer_usage end
+  if (argc == 2) {
+    if (std::string(arguments[1]) != "--serve" || !webrtc::InitializeSSL()) return 2;
+    int result = 1;
+    {
+      desktop_probe::PairingServer pairing;
+      if (!pairing.Start()) { std::cerr << "pairing_start_failed=true\n"; }
+      else {
+        while (!pairing.Authorized() && !pairing.Ended()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        if (pairing.Authorized() && !pairing.Ended()) { Sender sender; result = sender.Run("", "", true, &pairing); }
+      }
+    }
+    webrtc::CleanupSSL();
+    return result;
+  }
   const std::string mode = argc == 4 ? arguments[3] : "pattern";
   if (mode != "pattern" && mode != "desktop") {
     std::cerr << "Unknown source mode\n";
