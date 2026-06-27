@@ -47,7 +47,7 @@ rtc_executable("sender") {
     "//rtc_base:threading",
   ]
   if (is_win) {
-    sources += [ "desktop_source.cpp", "pairing_server.cpp" ]
+    sources += [ "desktop_source.cpp", "pairing_server.cpp", "pointer_input.cpp", "pointer_input.h" ]
     libs = [ "d3d11.lib", "dxgi.lib", "ws2_32.lib", "user32.lib" ]
     deps += [ "//rtc_base:win32_socket_init", "//rtc_base:ssl", "//third_party/boringssl" ]
   }

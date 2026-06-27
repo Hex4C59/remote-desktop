@@ -1,0 +1,140 @@
+{
+  "wrong_pairing_no_video_or_input": true,
+  "terminal_focus_changed": true,
+  "terminal_click": true,
+  "actual_down_up_pair": true,
+  "second_scaled_target": true,
+  "letterbox_margins_rejected": 2,
+  "drag_rejected": true,
+  "unfinished_touch_did_not_press": true,
+  "background_session_ended": true,
+  "stale_view_no_input": true,
+  "android_process_survived": true,
+  "left_button_released": true,
+  "first_target": [
+    957,
+    732
+  ],
+  "second_target": [
+    1586,
+    578
+  ],
+  "observed_second_pointer": [
+    1587,
+    578
+  ],
+  "real_console_events": 4,
+  "captured_primary_display": [
+    2560,
+    1440
+  ],
+  "video_bounds": [
+    298.1666666666665,
+    62,
+    2058.666666666667,
+    1158
+  ],
+  "visual_review": {
+    "passed": true,
+    "observation": "Phone screenshots show the actual dedicated Windows terminal changing from INACTIVE to ACTIVE, then displaying independent Windows DOWN/UP events at both observed pointer positions.",
+    "screenshots": [
+      {
+        "local_path": ".local/logs/task03-final/before-click.png",
+        "sha256": "89c71ef7c35ba715f542c8a4d0505cf0634f2ac7d2ab3708a774cd205a4988fd"
+      },
+      {
+        "local_path": ".local/logs/task03-final/after-focus.png",
+        "sha256": "fcc8601922d9a8060fdc038faa7ac153c9b79384b428925516e462428d91c1ec"
+      },
+      {
+        "local_path": ".local/logs/task03-final/after-click.png",
+        "sha256": "744833995f9cb99ce94dd233755497440f553d4fa379348df7263cd1f704955b"
+      },
+      {
+        "local_path": ".local/logs/task03-final/second-target.png",
+        "sha256": "ee11394d5851e1ecd54c955ec029953c86aa6d35dcf77951893e565c5a5eaa61"
+      }
+    ]
+  },
+  "date": "2026-09-26",
+  "run_id": "bdbf5def0f5f4c59994d10c0cfddb838",
+  "source_base_commit": "3b3acc2003d314d3441ff19bc6c4df1a4e802844",
+  "sender_exit_code": 0,
+  "video_size": [
+    1280,
+    720
+  ],
+  "actual_renderer_bounds": [
+    298,
+    62,
+    2059,
+    1158
+  ],
+  "first_observed_pointer": [
+    957,
+    733
+  ],
+  "apk_sha256": "39bded270d1e935b7b4292766e83cbaedc936ffc5127319d7e6335b32d1ce57e",
+  "sender_sha256": "f39260729083522ce85987c38655f98f7cdfffe631b6ba3a70cb21cd53eefaed",
+  "baseline": {
+    "run_id": "0b98d92b2f5a466b9ada5c0481eeea45",
+    "old_sender_new_apk": true,
+    "authorized_video_rendered": true,
+    "visible_terminal_target_confirmed": true,
+    "test_passed": false,
+    "observed_pointer": [
+      5,
+      5
+    ],
+    "failure": "Touch did not focus the terminal or move the Windows pointer."
+  },
+  "pairing_regression": {
+    "wrong_identity_rejected": true,
+    "wrong_code_rejected": true,
+    "authorized_video_rendered": true,
+    "echo_received": true,
+    "second_connection_rejected": true,
+    "background_disconnect_no_java_crash": true,
+    "background_process_survived": true,
+    "plaintext_code_in_app_log": false,
+    "visual_review": "Touch session screenshots provide desktop/input visual acceptance; pairing regression checks are automated.",
+    "run_id": "bc0fedcb8de844b680959898c7d193ef"
+  },
+  "pattern_regression": {
+    "run_id": "7eff93ee6a6e49ce931a549e7389ae01",
+    "source": "pattern",
+    "sender_exit_code": 0,
+    "first_frame_rendered": true,
+    "echo_received": true,
+    "automated_checks_passed": true,
+    "visual_review": "not required for pattern smoke",
+    "passed": true
+  },
+  "checks": {
+    "windows_build": true,
+    "android_build": true,
+    "windows_gn_header_dependencies": true,
+    "powershell_syntax": true,
+    "shell_syntax": true,
+    "git_diff_whitespace": true,
+    "android_static_analysis": "disabled by existing build configuration"
+  },
+  "source_sha256": {
+    "probes/webrtc/BUILD.gn": "a2ccd3048cda7648afef4094382bdc2b8c1bb5dcedc0c20c5d6e3ee07a9046dd",
+    "probes/webrtc/sender.cpp": "a1dc7af398aadf48f63177e7781634aa0aa349d8ffd1cbebd9c248040d087c0d",
+    "probes/webrtc/frame_source.h": "9bc1c63c93f1944c18440aac2a07080f578317bb002aa89acf9c37590751a093",
+    "probes/webrtc/desktop_source.cpp": "e856a7d39ac3455c0f109a659d4038f16b9c50198216ef904f1c4bde68eeaff1",
+    "probes/webrtc/pointer_input.h": "7604f90fb2aefd1aae1ed6ba244a8e051172fbb5b3ddbbb2512442927307f878",
+    "probes/webrtc/pointer_input.cpp": "b0e430e94d96891958d2810c6eb73ddac01707c3906f1b159184620db7273f23",
+    "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java": "df595da7d26afcd3b37ec989ceafeb85ee408de6e48feb2d8619fb923cce9ceb",
+    "scripts/windows/test-touch-pointer.ps1": "60fd0201ddf7f051bef289217ed2b88efd5046db3049afc1daf9247626bc8cc2",
+    "scripts/windows/show-pointer-fixture.ps1": "284ed60d9e46417a38811f68f8b6709c1281b25c6ef3cbe3e4a862263a747244"
+  },
+  "not_validated": [
+    "nonprimary/rotated monitors and other Windows DPI settings",
+    "injected SendInput partial failure",
+    "automated multi-touch gesture",
+    "all network loss/cleanup interleavings",
+    "ten-minute performance and end-to-end latency"
+  ]
+}

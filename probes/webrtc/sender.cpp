@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <span>
 #include <string>
 #include <thread>
@@ -29,6 +30,7 @@
 #include "rtc_base/ssl_adapter.h"
 #include "rtc_base/thread.h"
 #if defined(WEBRTC_WIN)
+#include "remote_desktop_probe/pointer_input.h"
 #include "rtc_base/win32_socket_init.h"
 #endif
 
@@ -57,6 +59,7 @@ class SubmittedVideoSource : public webrtc::VideoTrackSource {
 
 struct ProbeState {
   std::atomic<bool> failed{false};
+  std::atomic<bool> ended{false};
   std::atomic<bool> gathered{false};
   std::atomic<bool> local_ready{false};
   std::atomic<bool> answer_applied{false};
@@ -116,6 +119,7 @@ class Sender : public webrtc::PeerConnectionObserver,
   Sender() : state_(std::make_shared<ProbeState>()),
              signaling_(webrtc::Thread::CreateWithSocketServer()) {}
   ~Sender() {
+    input_enabled_ = false;
     if (signaling_started_) {
       signaling_->BlockingCall([this] {
         if (channel_) { channel_->UnregisterObserver(); channel_->Close(); }
@@ -137,6 +141,15 @@ class Sender : public webrtc::PeerConnectionObserver,
     if (desktop) { std::cerr << "desktop_error=windows_required\n"; return 2; }
 #endif
     if (!framesource->Initialize()) return 1;
+#if defined(WEBRTC_WIN)
+    // Input is owned by the authenticated session, never by file probe mode.
+    std::unique_ptr<desktop_probe::PointerInput> pointer;
+    if (pairing_ && pairing_->Authorized() && !pairing_->Ended()) {
+      if (auto bounds = framesource->InputBounds()) {
+        pointer = std::make_unique<desktop_probe::PointerInput>(*bounds);
+      }
+    }
+#endif
     webrtc::scoped_refptr<webrtc::I420Buffer> latest;
     if (!signaling_->Start()) return 1;
     signaling_started_ = true;
@@ -181,7 +194,7 @@ class Sender : public webrtc::PeerConnectionObserver,
     auto connected_at = Clock::time_point::max();
     int frames = 0;
     std::deque<std::string> pending_ice;
-    while (!state_->failed && (pairing_ ? !pairing_->Ended() : Clock::now() - started < std::chrono::minutes(3))) {
+    while (!state_->failed && !state_->ended && (pairing_ ? !pairing_->Ended() : Clock::now() - started < std::chrono::minutes(3))) {
       if ((pairing_ ? state_->local_ready.load() : state_->gathered.load()) && !offer_written) {
         std::string sdp;
         signaling_->BlockingCall([&] { pc_->local_description()->ToString(&sdp); });
@@ -242,6 +255,22 @@ class Sender : public webrtc::PeerConnectionObserver,
         if (connected_at == Clock::time_point::max()) connected_at = Clock::now();
         if (!framesource->Capture(latest)) return 1;
         if (latest) { source_->Push(latest); ++frames; }
+#if defined(WEBRTC_WIN)
+        if (pointer && latest) {
+          input_enabled_ = true;
+          std::deque<PendingClick> clicks;
+          {
+            std::lock_guard lock(input_mutex_);
+            clicks.swap(pending_clicks_);
+          }
+          for (const auto& click : clicks) {
+            // Recheck at execution, including queued work after transport loss.
+            if (state_->failed || state_->ended || pairing_->Ended() || !pairing_->Authorized()) break;
+            if (Clock::now() - click.received > std::chrono::milliseconds(500)) continue;
+            if (!pointer->Click(click.message)) { state_->failed = true; break; }
+          }
+        }
+#endif
         if (!pairing_ && Clock::now() - connected_at > std::chrono::seconds(30)) break;
       }
       next_frame += std::chrono::milliseconds(33);
@@ -266,11 +295,35 @@ class Sender : public webrtc::PeerConnectionObserver,
   }
   void OnConnectionChange(webrtc::PeerConnectionInterface::PeerConnectionState state) override {
     std::cout << "peer_state=" << static_cast<int>(state) << std::endl;
+    if (pairing_ && (state == webrtc::PeerConnectionInterface::PeerConnectionState::kDisconnected ||
+                     state == webrtc::PeerConnectionInterface::PeerConnectionState::kFailed ||
+                     state == webrtc::PeerConnectionInterface::PeerConnectionState::kClosed)) {
+      input_enabled_ = false;
+      if (state == webrtc::PeerConnectionInterface::PeerConnectionState::kFailed) state_->failed = true;
+      state_->ended = true;
+    }
   }
-  void OnStateChange() override {}
+  void OnStateChange() override {
+    if (pairing_ && channel_ &&
+        (channel_->state() == webrtc::DataChannelInterface::kClosing ||
+         channel_->state() == webrtc::DataChannelInterface::kClosed)) {
+      input_enabled_ = false;
+      state_->ended = true;
+    }
+  }
   void OnMessage(const webrtc::DataBuffer& buffer) override {
     if (buffer.binary || buffer.data.size() > 1024) return;
     std::string message(buffer.data.cdata<char>(), buffer.data.size());
+    if (message.starts_with("pointer:")) {
+      if (!input_enabled_ || state_->failed || state_->ended || !pairing_ ||
+          !pairing_->Authorized() || pairing_->Ended()) return;
+      std::lock_guard lock(input_mutex_);
+      if (pending_clicks_.size() >= 32) { state_->failed = true; return; }
+      pending_clicks_.push_back({std::move(message), Clock::now()});
+      return;
+    }
+    // Keep the existing diagnostic echo without reflecting arbitrary input.
+    if (message != "probe:1") return;
     auto channel = channel_;
     auto state = state_;
     signaling_->PostTask([channel, state, message = std::move(message)] {
@@ -282,6 +335,13 @@ class Sender : public webrtc::PeerConnectionObserver,
     });
   }
  private:
+  struct PendingClick {
+    std::string message;
+    Clock::time_point received;
+  };
+  std::atomic<bool> input_enabled_{false};
+  std::mutex input_mutex_;
+  std::deque<PendingClick> pending_clicks_;
   desktop_probe::PairingServer* pairing_ = nullptr;
   std::shared_ptr<ProbeState> state_;
   std::unique_ptr<webrtc::Thread> signaling_;

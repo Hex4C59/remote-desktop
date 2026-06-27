@@ -86,3 +86,5 @@ FrameSource的构造、初始化、取帧、销毁都由发送主循环线程负
 每次成功AcquireNextFrame都在退出路径释放，映射纹理在转换后解除映射。结束或出错时释放帧源和媒体对象。显示模式变化、采集访问丢失会报错退出，需要重新启动；任务01不处理锁屏、安全桌面或自动恢复。DXGI独立鼠标指针尚未合成，鼠标交互留待后续任务；旋转路径已有实现，但真机证据仅覆盖当前横屏设备。
 
 DXGI画面格式、旋转和独立指针行为依据[Microsoft Desktop Duplication说明](https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/desktop-dup-api)。
+
+任务03已为正常配对会话增加[触屏定位和点击](pointer-input.md)，文件联调模式仍不接受输入。独立鼠标光标尚未叠加，当前通过终端焦点和内容变化反馈点击结果。

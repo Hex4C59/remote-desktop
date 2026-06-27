@@ -9,7 +9,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
@@ -67,6 +71,13 @@ public final class ProbeActivity extends Activity {
   private LinearLayout connectionForm;
   private boolean answerPublished;
   private final Runnable publishAnswer = () -> writeAnswer();
+  private volatile boolean firstFrameRendered, pointerChannelReady;
+  private final AtomicInteger pendingClicks = new AtomicInteger();
+  private volatile int pointerGeometry;
+  // Gesture state and renderer dimensions belong to the UI thread.
+  private int displayedWidth, displayedHeight, tapPointerId, touchSlop;
+  private float tapX, tapY;
+  private boolean tapActive;
 
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -97,8 +108,27 @@ public final class ProbeActivity extends Activity {
     layout.addView(connectionForm);
     connectButton.setOnClickListener(view -> startPairing());
     renderer = new SurfaceViewRenderer(this);
+    renderer.setContentDescription("远程桌面画面");
+    renderer.setClickable(true);
+    touchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
+    renderer.setOnTouchListener((view, event) -> onDesktopTouch(event));
+    renderer.addOnLayoutChangeListener((view, left, top, right, bottom,
+        oldLeft, oldTop, oldRight, oldBottom) -> {
+      tapActive = false;
+      pointerGeometry++;
+      if (displayedWidth == 0 || displayedHeight == 0) return;
+      int[] location = new int[2];
+      renderer.getLocationOnScreen(location);
+      Log.i(TAG, "pointer_viewport=" + location[0] + "," + location[1] + ","
+          + renderer.getWidth() + "," + renderer.getHeight() + " frame="
+          + displayedWidth + "x" + displayedHeight);
+    });
+    FrameLayout desktop = new FrameLayout(this);
+    // FIT must be allowed to measure both dimensions. Exact full-width/full-height
+    // constraints override SurfaceViewRenderer's aspect-fit measurement and crop.
+    desktop.addView(renderer, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
     layout.addView(status);
-    layout.addView(renderer, new LinearLayout.LayoutParams(-1, 0, 1));
+    layout.addView(desktop, new LinearLayout.LayoutParams(-1, 0, 1));
     setContentView(layout);
     connectivity = getSystemService(ConnectivityManager.class);
     boolean wifiBound = false;
@@ -114,8 +144,17 @@ public final class ProbeActivity extends Activity {
         .builder(this).createInitializationOptions());
     egl = EglBase.create();
     renderer.init(egl.getEglBaseContext(), new RendererCommon.RendererEvents() {
-      @Override public void onFirstFrameRendered() { report("first_frame_rendered=true"); }
+      @Override public void onFirstFrameRendered() {
+        firstFrameRendered = true;
+        report("first_frame_rendered=true");
+      }
       @Override public void onFrameResolutionChanged(int width, int height, int rotation) {
+        runOnUiThread(() -> {
+          tapActive = false;
+          pointerGeometry++;
+          displayedWidth = rotation == 0 || rotation == 180 ? width : height;
+          displayedHeight = rotation == 0 || rotation == 180 ? height : width;
+        });
         report("frame_size=" + width + "x" + height + " rotation=" + rotation);
       }
     });
@@ -131,6 +170,84 @@ public final class ProbeActivity extends Activity {
     } catch (IllegalArgumentException error) {
       report("invalid_offer=" + error.getMessage());
     }
+  }
+
+  private boolean insideDesktop(float x, float y) {
+    int width = renderer.getWidth(), height = renderer.getHeight();
+    if (displayedWidth <= 0 || displayedHeight <= 0 || width <= 1 || height <= 1) return false;
+    // Reject gestures while a new frame aspect ratio is waiting for UI layout.
+    if (Math.abs((long) width * displayedHeight - (long) height * displayedWidth)
+        > Math.max(displayedWidth, displayedHeight)) return false;
+    return x >= 0 && y >= 0 && x < width && y < height;
+  }
+
+  private boolean onDesktopTouch(MotionEvent event) {
+    if (stopping || !firstFrameRendered || !pointerChannelReady || worker == null) {
+      tapActive = false;
+      return true;
+    }
+    int action = event.getActionMasked();
+    if (action == MotionEvent.ACTION_DOWN) {
+      tapX = event.getX();
+      tapY = event.getY();
+      tapPointerId = event.getPointerId(0);
+      tapActive = event.getPointerCount() == 1 && insideDesktop(tapX, tapY);
+    } else if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
+      float x = event.getX(), y = event.getY();
+      if (event.getPointerCount() != 1 || event.getPointerId(0) != tapPointerId
+          || !withinTap(x, y)) {
+        tapActive = false;
+      }
+      // Android may batch motion samples: an excursion outside and back in
+      // still cancels the gesture even when the newest sample is inside.
+      for (int i = 0; tapActive && i < event.getHistorySize(); i++) {
+        if (!withinTap(event.getHistoricalX(i), event.getHistoricalY(i))) tapActive = false;
+      }
+      if (action == MotionEvent.ACTION_UP) {
+        if (tapActive) {
+          int normalizedX = Math.min(65535, Math.round(x * 65535 / (renderer.getWidth() - 1)));
+          int normalizedY = Math.min(65535, Math.round(y * 65535 / (renderer.getHeight() - 1)));
+          queuePointerClick(normalizedX, normalizedY);
+          renderer.performClick();
+        }
+        tapActive = false;
+      }
+    } else {
+      // Multi-touch and cancelled gestures must never become desktop clicks.
+      tapActive = false;
+    }
+    return true;
+  }
+
+  private boolean withinTap(float x, float y) {
+    float dx = x - tapX, dy = y - tapY;
+    return insideDesktop(x, y) && dx * dx + dy * dy <= touchSlop * touchSlop;
+  }
+
+  private void queuePointerClick(int x, int y) {
+    if (pendingClicks.incrementAndGet() > 8) {
+      pendingClicks.decrementAndGet();
+      Log.i(TAG, "pointer_rejected=queue_full");
+      return;
+    }
+    int geometry = pointerGeometry;
+    if (!worker.post(() -> {
+      try {
+        if (stopping || !authorized || pairing == null || !firstFrameRendered
+            || geometry != pointerGeometry || channel == null
+            || channel.state() != DataChannel.State.OPEN) return;
+        // Do not turn congestion into delayed desktop actions.
+        if (channel.bufferedAmount() != 0) {
+          Log.i(TAG, "pointer_rejected=channel_busy");
+          return;
+        }
+        boolean sent = channel.send(new DataChannel.Buffer(ByteBuffer.wrap(
+            ("pointer:click:" + x + ":" + y).getBytes(StandardCharsets.UTF_8)), false));
+        Log.i(TAG, "pointer_sent=" + sent + " x=" + x + " y=" + y);
+      } finally {
+        pendingClicks.decrementAndGet();
+      }
+    })) pendingClicks.decrementAndGet();
   }
 
   private void startPairing() {
@@ -306,11 +423,11 @@ public final class ProbeActivity extends Activity {
   }
 
   private void attachChannel(DataChannel incoming) {
-    if (stopping) { incoming.dispose(); return; }
+    if (stopping || channel != null) { incoming.dispose(); return; }
     channel = incoming;
     channel.registerObserver(new DataChannel.Observer() {
       @Override public void onBufferedAmountChange(long previous) {}
-      @Override public void onStateChange() { worker.post(() -> sendProbe()); }
+      @Override public void onStateChange() { worker.post(() -> updateChannelState()); }
       @Override public void onMessage(DataChannel.Buffer buffer) {
         if (buffer.binary || buffer.data.remaining() > 1024) return;
         byte[] copied = new byte[buffer.data.remaining()];
@@ -319,6 +436,13 @@ public final class ProbeActivity extends Activity {
         report("data_received=" + text);
       }
     });
+    updateChannelState();
+  }
+
+  private void updateChannelState() {
+    if (stopping) return;
+    pointerChannelReady = authorized && pairing != null && channel != null
+        && channel.state() == DataChannel.State.OPEN;
     sendProbe();
   }
 
@@ -347,6 +471,7 @@ public final class ProbeActivity extends Activity {
   private void stopSession() {
     if (!cleanupStarted.compareAndSet(false, true)) return;
     stopping = true;
+    pointerChannelReady = false;
     if (worker == null) {
       if (connectivity != null) connectivity.bindProcessToNetwork(null);
       return;

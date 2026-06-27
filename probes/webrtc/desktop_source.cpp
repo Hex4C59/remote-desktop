@@ -66,6 +66,10 @@ class DesktopSource final : public FrameSource {
         hr = output->GetDesc(&description);
         if (FAILED(hr)) return Failed("GetDesc", hr);
         if (!description.AttachedToDesktop) continue;
+        const RECT& bounds = description.DesktopCoordinates;
+        bounds_ = DesktopBounds{static_cast<int>(bounds.left), static_cast<int>(bounds.top),
+                                static_cast<int>(bounds.right - bounds.left),
+                                static_cast<int>(bounds.bottom - bounds.top)};
         hr = D3D11CreateDevice(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
                               D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0,
                               D3D11_SDK_VERSION, &device_, nullptr, &context_);
@@ -89,11 +93,15 @@ class DesktopSource final : public FrameSource {
                   << " rotation=" << static_cast<int>(rotation_)
                   << " target_max_width=1280 target_max_height=720"
                   << " pointer_overlay=not_composited" << std::endl;
+        std::cout << "desktop_bounds left=" << bounds_->left << " top=" << bounds_->top
+                  << " width=" << bounds_->width << " height=" << bounds_->height << std::endl;
         return true;
       }
     }
     return Failed("NoAttachedOutput", DXGI_ERROR_NOT_FOUND);
   }
+
+  std::optional<DesktopBounds> InputBounds() const override { return bounds_; }
 
   bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest) override {
     DXGI_OUTDUPL_FRAME_INFO info{};
@@ -174,6 +182,7 @@ class DesktopSource final : public FrameSource {
     return true;
   }
  private:
+  std::optional<DesktopBounds> bounds_;
   ComPtr<ID3D11Device> device_;
   ComPtr<ID3D11DeviceContext> context_;
   ComPtr<IDXGIOutputDuplication> duplication_;
