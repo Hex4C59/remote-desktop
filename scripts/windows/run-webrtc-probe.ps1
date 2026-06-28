@@ -1,9 +1,11 @@
 param(
     [Parameter(Mandatory = $true)][string]$Sender,
     [ValidateSet('pattern', 'desktop')][string]$Source = 'pattern',
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\interop'
+    [string]$OutputRoot = 'D:\code\remote-desktop\build\interop',
+    [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 $ErrorActionPreference = 'Stop'
+$adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 $runId = [Guid]::NewGuid().ToString('N')
 $runDirectory = Join-Path $OutputRoot $runId
 New-Item -ItemType Directory -Path $runDirectory -Force | Out-Null
@@ -15,10 +17,10 @@ $senderProcess = $null
 $appPid = $null
 function Check-Adb { if ($LASTEXITCODE -ne 0) { throw "ADB failed: $LASTEXITCODE" } }
 try {
-    & adb -d shell am force-stop $package
+    & adb @adbTarget shell am force-stop $package
     Check-Adb
     # Preserve any previous answer for diagnosis, avoiding stale signaling.
-    & adb -d shell "if [ -f $phoneAnswer ]; then mv $phoneAnswer $phoneAnswer.$runId.previous; fi"
+    & adb @adbTarget shell "if [ -f $phoneAnswer ]; then mv $phoneAnswer $phoneAnswer.$runId.previous; fi"
     Check-Adb
     $senderArguments = "`"$offerPath`" `"$answerPath`""
     if ($Source -eq 'desktop') { $senderArguments += ' desktop' }
@@ -35,20 +37,20 @@ try {
     # The producer closes the small SDP file immediately after writing it.
     Start-Sleep -Milliseconds 200
     $offer = [Convert]::ToBase64String([IO.File]::ReadAllBytes($offerPath))
-    & adb -d shell am start -W -n "$package/.ProbeActivity" --es offer_b64 $offer
+    & adb @adbTarget shell am start -W -n "$package/.ProbeActivity" --es offer_b64 $offer
     Check-Adb
-    $appPid = (& adb -d shell pidof $package).Trim()
+    $appPid = (& adb @adbTarget shell pidof $package).Trim()
     Check-Adb
     if ($appPid -notmatch '^\d+$') { throw 'No single Android probe process found.' }
     $deadline = (Get-Date).AddSeconds(60)
     while ($true) {
-        $phoneLog = (& adb -d logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
+        $phoneLog = (& adb @adbTarget logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
         Check-Adb
         if ($phoneLog.Contains('answer_ready=true')) { break }
         if ((Get-Date) -gt $deadline) { throw 'Timed out waiting for Android answer.' }
         Start-Sleep -Milliseconds 500
     }
-    & adb -d pull $phoneAnswer (Join-Path $runDirectory 'answer.pending')
+    & adb @adbTarget pull $phoneAnswer (Join-Path $runDirectory 'answer.pending')
     Check-Adb
     Move-Item (Join-Path $runDirectory 'answer.pending') $answerPath
     if ($Source -eq 'desktop') {
@@ -57,15 +59,15 @@ try {
             Start-Sleep -Seconds 7
             if ($senderProcess.HasExited) { throw 'Sender exited before visual sampling.' }
             $phoneImage = "/sdcard/Android/data/$package/files/desktop-$sample.png"
-            & adb -d shell screencap -p $phoneImage
+            & adb @adbTarget shell screencap -p $phoneImage
             Check-Adb
-            & adb -d pull $phoneImage (Join-Path $runDirectory "desktop-$sample.png")
+            & adb @adbTarget pull $phoneImage (Join-Path $runDirectory "desktop-$sample.png")
             Check-Adb
         }
     }
     if (!$senderProcess.WaitForExit(60000)) { throw 'Sender did not finish in time.' }
     $senderProcess.Refresh()
-    $phoneLog = (& adb -d logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
+    $phoneLog = (& adb @adbTarget logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
     Check-Adb
     [IO.File]::WriteAllText((Join-Path $runDirectory 'android.log'), $phoneLog)
     $rendered = $phoneLog.Contains('first_frame_rendered=true')
@@ -90,10 +92,10 @@ try {
     if (!$automatedPassed) { throw 'Interoperability criteria were not met. Inspect run logs.' }
 } finally {
     if ($appPid) {
-        $diagnosticLog = (& adb -d logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
+        $diagnosticLog = (& adb @adbTarget logcat -d "--pid=$appPid" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"
         [IO.File]::WriteAllText((Join-Path $runDirectory 'android.log'), $diagnosticLog)
     }
     Write-Output "run_directory=$runDirectory"
     if ($senderProcess -and !$senderProcess.HasExited) { Stop-Process -Id $senderProcess.Id }
-    & adb -d shell am force-stop $package
+    & adb @adbTarget shell am force-stop $package
 }

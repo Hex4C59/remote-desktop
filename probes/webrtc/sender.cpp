@@ -31,6 +31,7 @@
 #include "rtc_base/thread.h"
 #if defined(WEBRTC_WIN)
 #include "remote_desktop_probe/pointer_input.h"
+#include "remote_desktop_probe/keyboard_input.h"
 #include "rtc_base/win32_socket_init.h"
 #endif
 
@@ -144,6 +145,7 @@ class Sender : public webrtc::PeerConnectionObserver,
 #if defined(WEBRTC_WIN)
     // Input is owned by the authenticated session, never by file probe mode.
     std::unique_ptr<desktop_probe::PointerInput> pointer;
+    desktop_probe::KeyboardInput keyboard;
     if (pairing_ && pairing_->Authorized() && !pairing_->Ended()) {
       if (auto bounds = framesource->InputBounds()) {
         pointer = std::make_unique<desktop_probe::PointerInput>(*bounds);
@@ -258,16 +260,27 @@ class Sender : public webrtc::PeerConnectionObserver,
 #if defined(WEBRTC_WIN)
         if (pointer && latest) {
           input_enabled_ = true;
-          std::deque<PendingClick> clicks;
+          std::deque<PendingInput> inputs;
           {
             std::lock_guard lock(input_mutex_);
-            clicks.swap(pending_clicks_);
+            inputs.swap(pending_inputs_);
           }
-          for (const auto& click : clicks) {
+          for (const auto& input : inputs) {
             // Recheck at execution, including queued work after transport loss.
             if (state_->failed || state_->ended || pairing_->Ended() || !pairing_->Authorized()) break;
-            if (Clock::now() - click.received > std::chrono::milliseconds(500)) continue;
-            if (!pointer->Click(click.message)) { state_->failed = true; break; }
+            const bool click = input.message.starts_with("pointer:");
+            if (Clock::now() - input.received > std::chrono::milliseconds(500)) {
+              if (click) continue;
+              // Never discard text and then execute a later Enter on a partial
+              // command. A stalled keyboard queue revokes the whole session.
+              std::cerr << "keyboard_input_expired=true" << std::endl;
+              state_->failed = true;
+              break;
+            }
+            if (!(click ? pointer->Click(input.message) : keyboard.Execute(input.message))) {
+              state_->failed = true;
+              break;
+            }
           }
         }
 #endif
@@ -314,12 +327,13 @@ class Sender : public webrtc::PeerConnectionObserver,
   void OnMessage(const webrtc::DataBuffer& buffer) override {
     if (buffer.binary || buffer.data.size() > 1024) return;
     std::string message(buffer.data.cdata<char>(), buffer.data.size());
-    if (message.starts_with("pointer:")) {
+    if (message.starts_with("pointer:") || message.starts_with("text:") ||
+        message.starts_with("key:")) {
       if (!input_enabled_ || state_->failed || state_->ended || !pairing_ ||
           !pairing_->Authorized() || pairing_->Ended()) return;
       std::lock_guard lock(input_mutex_);
-      if (pending_clicks_.size() >= 32) { state_->failed = true; return; }
-      pending_clicks_.push_back({std::move(message), Clock::now()});
+      if (pending_inputs_.size() >= 32) { state_->failed = true; return; }
+      pending_inputs_.push_back({std::move(message), Clock::now()});
       return;
     }
     // Keep the existing diagnostic echo without reflecting arbitrary input.
@@ -335,13 +349,13 @@ class Sender : public webrtc::PeerConnectionObserver,
     });
   }
  private:
-  struct PendingClick {
+  struct PendingInput {
     std::string message;
     Clock::time_point received;
   };
   std::atomic<bool> input_enabled_{false};
   std::mutex input_mutex_;
-  std::deque<PendingClick> pending_clicks_;
+  std::deque<PendingInput> pending_inputs_;
   desktop_probe::PairingServer* pairing_ = nullptr;
   std::shared_ptr<ProbeState> state_;
   std::unique_ptr<webrtc::Thread> signaling_;

@@ -1,12 +1,14 @@
 param(
     [Parameter(Mandatory=$true)][string]$Address,
     [Parameter(Mandatory=$true)][string]$Sender,
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\touch-tests'
+    [string]$OutputRoot = 'D:\code\remote-desktop\build\touch-tests',
+    [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 # Run in the logged-in interactive Windows session (a scheduled task using
 # LogonType Interactive also works), with one USB-authorized Android device.
 # ADB operates only the normal UI. The terminal is an independent OS observer.
 $ErrorActionPreference = 'Stop'
+$adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 Add-Type @'
 using System;
 using System.Text;
@@ -37,8 +39,8 @@ $senderProcess = $null; $fixtureProcess = $null; $phoneProcess = $null; $geometr
 $script:ownsPhone = $false
 function Check-Adb { if ($LASTEXITCODE -ne 0) { throw 'ADB operation failed.' } }
 function Read-Ui {
-    & adb -d shell uiautomator dump /sdcard/touch-ui.xml | Out-Null; Check-Adb
-    & adb -d pull /sdcard/touch-ui.xml (Join-Path $run 'ui.xml') | Out-Null; Check-Adb
+    & adb @adbTarget shell uiautomator dump /sdcard/touch-ui.xml | Out-Null; Check-Adb
+    & adb @adbTarget pull /sdcard/touch-ui.xml (Join-Path $run 'ui.xml') | Out-Null; Check-Adb
     return [xml][IO.File]::ReadAllText((Join-Path $run 'ui.xml'))
 }
 function Read-Bounds($node) {
@@ -46,36 +48,36 @@ function Read-Bounds($node) {
     if ($values.Count -ne 4) { throw 'Android element bounds unavailable.' }
     return @{ left=[int]$values[0].Value; top=[int]$values[1].Value; right=[int]$values[2].Value; bottom=[int]$values[3].Value }
 }
-function Tap([int]$x,[int]$y) { & adb -d shell input tap $x $y | Out-Null; Check-Adb }
+function Tap([int]$x,[int]$y) { & adb @adbTarget shell input tap $x $y | Out-Null; Check-Adb }
 function Tap-Node($node) {
     $bounds=Read-Bounds $node
     Tap (($bounds.left+$bounds.right)/2) (($bounds.top+$bounds.bottom)/2)
 }
 function Connect-Phone([string]$credential) {
     $script:ownsPhone = $true
-    & adb -d shell am force-stop $package | Out-Null; Check-Adb
-    & adb -d shell am start -W -n "$package/.ProbeActivity" | Out-Null; Check-Adb
+    & adb @adbTarget shell am force-stop $package | Out-Null; Check-Adb
+    & adb @adbTarget shell am start -W -n "$package/.ProbeActivity" | Out-Null; Check-Adb
     Start-Sleep -Seconds 1
     $ui=Read-Ui
     $fields=$ui.SelectNodes('//node[@class="android.widget.EditText"]')
     if ($fields.Count -ne 2) { throw 'Expected normal address and pairing-code fields.' }
     Tap-Node $fields[0]
-    & adb -d shell input text $Address | Out-Null; Check-Adb
-    & adb -d shell input keyevent 61 | Out-Null; Check-Adb
-    & adb -d shell input text $credential *> $null; Check-Adb
-    & adb -d shell input keyevent 66 | Out-Null; Check-Adb
-    $androidPid=((& adb -d shell pidof $package) -join '').Trim(); Check-Adb
+    & adb @adbTarget shell input text $Address | Out-Null; Check-Adb
+    & adb @adbTarget shell input keyevent 61 | Out-Null; Check-Adb
+    & adb @adbTarget shell input text $credential *> $null; Check-Adb
+    & adb @adbTarget shell input keyevent 66 | Out-Null; Check-Adb
+    $androidPid=((& adb @adbTarget shell pidof $package) -join '').Trim(); Check-Adb
     if ($androidPid -notmatch '^\d+$') { throw 'Android process missing.' }
     return $androidPid
 }
 function Read-PhoneLog {
-    $lines=(& adb -d logcat -d "--pid=$phoneProcess" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"; Check-Adb
+    $lines=(& adb @adbTarget logcat -d "--pid=$phoneProcess" -s 'RemoteDesktopProbe:I' '*:S') -join "`n"; Check-Adb
     if (($code -and $lines.Contains($code)) -or ($wrong -and $lines.Contains($wrong))) { throw 'Pairing credential appeared in application logs.' }
     return $lines
 }
 function Save-PhoneImage([string]$name) {
-    & adb -d shell screencap -p /sdcard/touch-desktop.png | Out-Null; Check-Adb
-    & adb -d pull /sdcard/touch-desktop.png (Join-Path $run "$name.png") | Out-Null; Check-Adb
+    & adb @adbTarget shell screencap -p /sdcard/touch-desktop.png | Out-Null; Check-Adb
+    & adb @adbTarget pull /sdcard/touch-desktop.png (Join-Path $run "$name.png") | Out-Null; Check-Adb
 }
 function Read-ConsoleEvents { return @(Import-Csv (Join-Path $run 'console-events.csv')) }
 function Assert-NoInput([string]$scenario,[int]$expectedEvents,[int]$expectedX,[int]$expectedY) {
@@ -136,7 +138,7 @@ try {
     do {
         Start-Sleep -Milliseconds 500
         $phoneLog=Read-PhoneLog
-    } until ($phoneLog.Contains('first_frame_rendered=true') -or (Get-Date) -gt $deadline)
+    } until (($phoneLog.Contains('first_frame_rendered=true') -and $phoneLog -match 'frame_size=\d+x\d+ rotation=0') -or (Get-Date) -gt $deadline)
     if (!$phoneLog.Contains('first_frame_rendered=true')) { throw 'Authorized desktop was not rendered.' }
     $senderLog=Get-Content (Join-Path $run 'sender.log') -Raw
     $capture=[regex]::Match($senderLog,'desktop_frame=true capture_width=(\d+) capture_height=(\d+)')
@@ -224,15 +226,15 @@ try {
     Assert-NoInput 'First letterbox margin' $expectedEvents $expectedX $expectedY
     Tap $borderB[0] $borderB[1]
     Assert-NoInput 'Second letterbox margin' $expectedEvents $expectedX $expectedY
-    & adb -d shell input swipe $phoneX $phoneY $secondPhoneX $secondPhoneY 400 | Out-Null; Check-Adb
+    & adb @adbTarget shell input swipe $phoneX $phoneY $secondPhoneX $secondPhoneY 400 | Out-Null; Check-Adb
     Assert-NoInput 'Drag gesture' $expectedEvents $expectedX $expectedY
     # Leave a contact unfinished. A tap is atomic at touch-up, so this must not
     # hold a remote button, and backgrounding must revoke the entire session.
-    & adb -d shell input motionevent DOWN $phoneX $phoneY | Out-Null; Check-Adb
+    & adb @adbTarget shell input motionevent DOWN $phoneX $phoneY | Out-Null; Check-Adb
     Assert-NoInput 'Unfinished touch contact' $expectedEvents $expectedX $expectedY
-    & adb -d shell input keyevent 3 | Out-Null; Check-Adb
+    & adb @adbTarget shell input keyevent 3 | Out-Null; Check-Adb
     Start-Sleep -Seconds 1
-    & adb -d shell input motionevent UP $phoneX $phoneY | Out-Null; Check-Adb
+    & adb @adbTarget shell input motionevent UP $phoneX $phoneY | Out-Null; Check-Adb
     $phoneLog=Read-PhoneLog
     if (!$phoneLog.Contains('activity_stopped=true') -or !$senderProcess.WaitForExit(10000)) { throw 'Backgrounding did not end the authorized session.' }
     $senderProcess.Refresh()
@@ -240,13 +242,13 @@ try {
     Assert-NoInput 'Background session end' $expectedEvents $expectedX $expectedY
     # Bring the same Activity back without force-stop or credentials. A stale
     # desktop surface must remain inert until an explicit new authorization.
-    & adb -d shell am start -W -n "$package/.ProbeActivity" | Out-Null; Check-Adb
-    $remainingProcess=((& adb -d shell pidof $package) -join '').Trim(); Check-Adb
+    & adb @adbTarget shell am start -W -n "$package/.ProbeActivity" | Out-Null; Check-Adb
+    $remainingProcess=((& adb @adbTarget shell pidof $package) -join '').Trim(); Check-Adb
     if ($remainingProcess -ne $phoneProcess) { throw 'Android process did not survive background cleanup.' }
     Tap $phoneX $phoneY
     Assert-NoInput 'Stale foreground view' $expectedEvents $expectedX $expectedY
     Save-PhoneImage 'after-session-end'
-    $crashes=(& adb -d logcat -d "--pid=$phoneProcess" -s 'AndroidRuntime:E' '*:S') -join "`n"; Check-Adb
+    $crashes=(& adb @adbTarget logcat -d "--pid=$phoneProcess" -s 'AndroidRuntime:E' '*:S') -join "`n"; Check-Adb
     if ($crashes.Contains('FATAL EXCEPTION')) { throw 'Android crashed during input/session cleanup.' }
     [ordered]@{
         wrong_pairing_no_video_or_input=$true; terminal_focus_changed=$true; terminal_click=$true
@@ -265,7 +267,7 @@ try {
         try { [IO.File]::WriteAllText((Join-Path $run 'android.log'),(Read-PhoneLog)) }
         catch { Write-Warning 'Could not collect final Android log.' }
     }
-    if ($script:ownsPhone) { & adb -d shell am force-stop $package | Out-Null }
+    if ($script:ownsPhone) { & adb @adbTarget shell am force-stop $package | Out-Null }
     if ($senderProcess -and !$senderProcess.HasExited) { Stop-Process -Id $senderProcess.Id }
     [IO.File]::WriteAllText((Join-Path $run 'stop-fixture'),'stop')
     if ($fixtureProcess -and !$fixtureProcess.WaitForExit(3000)) {

@@ -7,7 +7,8 @@
     <application android:label="RTC Probe" android:debuggable="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity android:name=".ProbeActivity" android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

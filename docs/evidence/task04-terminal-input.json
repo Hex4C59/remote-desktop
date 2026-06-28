@@ -1,0 +1,271 @@
+{
+  "text_ascii_exact": true,
+  "ascii_character_count": 95,
+  "enter_executed": true,
+  "remote_touch_focused": true,
+  "keys_released": true,
+  "known_text": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+  "psreadline": "2.4.5",
+  "tab_completed": true,
+  "left_right_backspace_edited": true,
+  "up_down_history": true,
+  "ctrl_c_interrupted_foreground": true,
+  "command_after_ctrl_c": true,
+  "wrong_pairing_no_video_or_input": true,
+  "background_session_ended": true,
+  "stale_view_no_input": true,
+  "android_process_survived": true,
+  "final_result_lines": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\r\nEDIT_ZYQ\r\nHISTORY_A\r\nHISTORY_B\r\nHISTORY_B\r\nAFTER_CTRL_C\r\n",
+  "date": "2026-09-26",
+  "run_id": "500e28bbb42140e08b779873f578a4fc",
+  "source_base_commit": "0c2821ba64da21fc82d664eeba85fece4ffc1d8a",
+  "sender_exit_code": 0,
+  "remaining_regression_wrapper_exit_code": 0,
+  "terminal_test_script_sha256": "214c9bb467e2e9ba8a3f2a3a777375b5800426ad4b4ce7be7e0a44aa01cdcd84",
+  "test_revision_note": "After the passing terminal run, terminal and touch scripts strengthened startup waiting to require both first-frame and frame-size log entries. Remaining regressions exercised that condition; product binaries were unchanged.",
+  "apk_sha256": "a4df31e728943df572a03afa8226bf4ea3c18911698a9c00e13f62bdd7b85796",
+  "sender_sha256": "f3b798d8e7cd69f29f2d5f009494033ab13e88c282d557d91d4981fc1fed3254",
+  "environment": {
+    "android_version": "16",
+    "android_api": 36,
+    "android_model": "25113PN0EC",
+    "windows_build": "26100",
+    "powershell_version": "5.1.26100.8115",
+    "psreadline_version": "2.4.5",
+    "primary_display": [
+      2560,
+      1440
+    ],
+    "video_size": [
+      1280,
+      720
+    ],
+    "console_font": "Consolas 32px",
+    "network": "Wi-Fi; cellular data observed disabled; agent did not change network settings",
+    "device_selection": "Original task03 phone explicitly selected while a second USB device was connected; private serial omitted"
+  },
+  "baseline": {
+    "run_id": "e4057c8f9d8b4c0ab40613fdbfedecfe",
+    "old_sender_new_apk": true,
+    "authorized_video_rendered": true,
+    "remote_touch_focused": true,
+    "test_passed": false,
+    "failure": "Known text result absent after normal Android text UI and Enter actions."
+  },
+  "right_button_regression": {
+    "red_run_id": "533e00f14f614d73ae4bd57fdf1dedd5",
+    "observed": "EDIT_ZQY",
+    "cause": "Right button overlapped Android system navigation gesture region; no click callback",
+    "green_run_id": "038c90015deb438a9dcc84d7db3fd3a7",
+    "expected": "EDIT_ZYQ"
+  },
+  "diagnostic_full_pass": {
+    "run_id": "0991aa6ae03b45c197fb67d9e04a3fc8",
+    "temporary_logs_removed_before_final_build": true
+  },
+  "failed_touch_regression": {
+    "run_id": "9ff0ca019c464ef8945a1f953c4eb3ad",
+    "failure": "Readiness snapshot contained first_frame_rendered before the adjacent frame_size entry; strengthened both input scripts to wait for both under the original deadline."
+  },
+  "failed_final_attempts": [
+    {
+      "run_id": "d0fb21fb41734621abd07ec9073d04ce",
+      "failure": "Tab output file absent despite successful input injection and live session; browser changed in screenshots, suggesting local foreground change. Added foreground guard before every test send; attribution remains an inference."
+    },
+    {
+      "run_id": "03ad92b0ce4d48f9b9c5a1ffb203c638",
+      "failure": "Wi-Fi roam; system destroyed original network TCP sockets at device log time 21:34:54.832; app reported transport closure at 21:34:54.833."
+    }
+  ],
+  "checks": {
+    "windows_build": true,
+    "android_build": true,
+    "windows_gn_header_dependencies": true,
+    "powershell_syntax": true,
+    "shell_syntax": true,
+    "git_diff_whitespace": true,
+    "android_static_analysis": "disabled by existing build configuration"
+  },
+  "review": {
+    "standards_hard_violations": 0,
+    "standards_nonblocking_suggestions": 1,
+    "standards_worst": "P3 possible Duplicated Code in acceptance UI helpers; deferred extraction",
+    "spec_findings": 0
+  },
+  "not_validated": [
+    "injected SendInput partial failure",
+    "other Android API levels and IMEs, including API 26-29 fallback",
+    "other Windows keyboard layouts, monitor configurations or DPI",
+    "full disconnect/exit/reconnect lifecycle matrix and all input cleanup interleavings (task05)",
+    "ten-minute performance, controlled weak-network comparisons and end-to-end latency"
+  ],
+  "touch_regression": {
+    "wrong_pairing_no_video_or_input": true,
+    "terminal_focus_changed": true,
+    "terminal_click": true,
+    "actual_down_up_pair": true,
+    "second_scaled_target": true,
+    "letterbox_margins_rejected": 2,
+    "drag_rejected": true,
+    "unfinished_touch_did_not_press": true,
+    "background_session_ended": true,
+    "stale_view_no_input": true,
+    "android_process_survived": true,
+    "left_button_released": true,
+    "first_target": [
+      957,
+      732
+    ],
+    "second_target": [
+      1586,
+      578
+    ],
+    "observed_second_pointer": [
+      1587,
+      579
+    ],
+    "real_console_events": 4,
+    "captured_primary_display": [
+      2560,
+      1440
+    ],
+    "video_bounds": [
+      807,
+      212.03125,
+      1191,
+      669.9375
+    ],
+    "run_id": "dbe42227b3444db6b3acc461e66a9603",
+    "visual_review": {
+      "passed": true,
+      "observation": "Final phone screenshots and enlarged private crops show terminal changing from INACTIVE to ACTIVE, then Windows DOWN/UP at both target positions; earlier stage images can precede video feedback.",
+      "screenshots": [
+        {
+          "local_path": ".local/logs/task04-final/touch/before-click.png",
+          "sha256": "34257c00b55edb54763235ded8b570b3754362ea06aeb512a93868da145d7510"
+        },
+        {
+          "local_path": ".local/logs/task04-final/touch/after-focus.png",
+          "sha256": "53f851245bd46843af8e6beca255cfd9f2c74d5abeb94e362f83b661531ab639"
+        },
+        {
+          "local_path": ".local/logs/task04-final/touch/second-target.png",
+          "sha256": "d3ad7c50429f22cb8137376c15ea15fc15ab3381afd76b9b9cede92be5f967b0"
+        }
+      ]
+    }
+  },
+  "pairing_regression": {
+    "wrong_identity_rejected": true,
+    "wrong_code_rejected": true,
+    "authorized_video_rendered": true,
+    "echo_received": true,
+    "second_connection_rejected": true,
+    "background_disconnect_no_java_crash": true,
+    "background_process_survived": true,
+    "plaintext_code_in_app_log": false,
+    "run_id": "3546f613b398480994b6f5d9aa92deb7",
+    "visual_review": {
+      "passed": true,
+      "observation": "Phone screenshot shows the real Windows desktop with editor content after normal authorized pairing.",
+      "screenshots": [
+        {
+          "local_path": ".local/logs/task04-final/pairing/desktop-2.png",
+          "sha256": "5f42cb46a9cad05942db1b6d161f2a68bdfbb6655acfbd7971fc6a7e4dbf8d92"
+        }
+      ]
+    }
+  },
+  "pattern_regression": {
+    "run_id": "3bbdfc87e6cb4a88a771749e2bdca3ba",
+    "source": "pattern",
+    "sender_exit_code": 0,
+    "first_frame_rendered": true,
+    "echo_received": true,
+    "automated_checks_passed": true,
+    "passed": true,
+    "visual_review": "not required for pattern smoke"
+  },
+  "source_sha256": {
+    "probes/webrtc/BUILD.gn": "3d4f83604dc4aae7c74efb12c5c58a7cc6a0220af5fb2244b540c1003ca87216",
+    "probes/webrtc/sender.cpp": "684fbbbfa8afe71d9310aa9711c3021893f3a9f3df0896b9e85e26927c6468c4",
+    "probes/webrtc/keyboard_input.cpp": "583130125354f7f9f4b59a08c68573514172728d93a715961a0fedaaf3397364",
+    "probes/webrtc/keyboard_input.h": "f8e59d62ed422bdc56731e73d463c336332b50a328ab673087dc3b2bbb2f86c7",
+    "probes/webrtc/android/AndroidManifest.xml": "29e75e39831cba627dbfd7c4c56e808bb7052241559952895266bb7ca1a4d80d",
+    "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java": "ca02f740a80d23c98e2395471bad4103f817de67dfe81a76bab4ad7f8c71d232",
+    "scripts/windows/test-terminal-input.ps1": "dea4e721eff737d88285327e798f7fd588471316c7679ad1c1c14e32915a1660",
+    "scripts/windows/show-terminal-fixture.ps1": "b3d3f6e30bd5c865a03ac5ca5c867503d5379cb044fd2e7a09450e7acc248f05",
+    "scripts/windows/test-touch-pointer.ps1": "09ce129867a344e992a025772edba39c42ec07e238b3474f1be715c9cf6708bd",
+    "scripts/windows/test-pairing.ps1": "04e5324b3559ee58edcc2c7f87130d6812cbe2737ac183fe17ec6551a326b68f",
+    "scripts/windows/run-webrtc-probe.ps1": "3d0377803c2fd576409b95eaedd0f4c15124c1c5115d1e768e17c8053aeaad1c"
+  },
+  "screenshots": [
+    {
+      "local_path": ".local/logs/task04-final/terminal/after-focus.png",
+      "sha256": "8421772b9b2a11f1188772f2cadd97b0ae715562d5575a0848b5cdc2601ba1f6"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/arrows-edited.png",
+      "sha256": "05d6c41104908bdd8d2207ee1fb31cb3c7fa37c3e172cfc194ed19b36d1b3cfc"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/before-focus.png",
+      "sha256": "d03fa3e5d1fd67f8b09dc2fea095174aaf8224b910cdfc3a304e30e79a8987a6"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/ctrl-c-recovered.png",
+      "sha256": "68590d304f4a6b99edd2b6ba2ecb4f098845e4677ff0dfdb01324349da79e9e1"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/draft-ime-open.png",
+      "sha256": "cefcaa9658d765c336bb6b4441e4a91140602d8a60a38042a74974f8c7ce2f88"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/final-state.png",
+      "sha256": "080f555bcb325e4a35da0a3ae4c44f171728920f1bc96050bf8156e860623901"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/foreground-running.png",
+      "sha256": "ad68b4fd2e72b6e810341cdf96af8617095069150c0fdbaa1f498757fb8e2bbc"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/history-selected.png",
+      "sha256": "075a3f3c24ef5b11515e77dfb194bd2262181766d7992819ff4729769bdf3be0"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/stale-view.png",
+      "sha256": "c42b7747d972f5325171a24da6861cfdb38b85a0befb71de27e19b415729aeaf"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/tab-completed.png",
+      "sha256": "7758e6ad65c3b54bee6c23521e607e565f0bf2b1f47849fc8f0756c17a87dd26"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/text-before-enter.png",
+      "sha256": "27d393e4be4b6d1e82767ab653775e426246cb1ee47dc9b854fd16875dc613c1"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/text-executed.png",
+      "sha256": "3ccf01bbc7a19526c6d0e7d6a1bc28eff0c64923c29996da854179e8e1314ebd"
+    },
+    {
+      "local_path": ".local/logs/task04-final/terminal/wrong-pairing.png",
+      "sha256": "fa675411caf15116d97f9890f07538f6dba96c9d0bb6e7a38a8cda24cd9e50d2"
+    }
+  ],
+  "visual_review": {
+    "passed": true,
+    "observations": [
+      "Draft and Send remain above the IME; desktop thumbnail remains visible, and full toolbar returns above navigation gestures after closing IME.",
+      "Later arrows/history screenshots show printable ASCII output, TAB_COMPLETED, edited EDIT_ZYQ and HISTORY_A/HISTORY_B/HISTORY_B commands.",
+      "Ctrl+C recovery screenshot shows FOREGROUND_RUNNING followed by the returned TASK04 PS prompt and a subsequent command.",
+      "Stale session screenshot shows black desktop and disabled input controls."
+    ],
+    "limitations": [
+      "Images are not synchronized to Windows command completion; some stage-named screenshots precede their video feedback.",
+      "The Ctrl+C recovery image does not yet show the AFTER_CTRL_C output line; the Windows file/process assertions establish exact output and process termination.",
+      "IME-open desktop thumbnail is about 334x188 pixels, enough for layout recognition, not reading terminal detail.",
+      "Stale session retains prior input-status wording; lifecycle status presentation remains for task05."
+    ]
+  }
+}

@@ -88,3 +88,5 @@ FrameSource的构造、初始化、取帧、销毁都由发送主循环线程负
 DXGI画面格式、旋转和独立指针行为依据[Microsoft Desktop Duplication说明](https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/desktop-dup-api)。
 
 任务03已为正常配对会话增加[触屏定位和点击](pointer-input.md)，文件联调模式仍不接受输入。独立鼠标光标尚未叠加，当前通过终端焦点和内容变化反馈点击结果。
+
+任务04增加[英文、数字、符号与终端按键](terminal-input.md)，在正常配对会话中通过手机文本框和工具栏操作 Windows 终端。

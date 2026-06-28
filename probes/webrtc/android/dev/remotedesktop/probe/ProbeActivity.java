@@ -1,20 +1,26 @@
 package dev.remotedesktop.probe;
 
 import android.app.Activity;
+import android.graphics.Insets;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Button;
@@ -24,6 +30,7 @@ import android.view.inputmethod.InputMethodManager;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -68,11 +75,16 @@ public final class ProbeActivity extends Activity {
   private final ArrayDeque<IceCandidate> pendingIce = new ArrayDeque<>();
   private EditText addressInput, codeInput;
   private Button connectButton;
-  private LinearLayout connectionForm;
+  private ScrollView connectionForm;
   private boolean answerPublished;
   private final Runnable publishAnswer = () -> writeAnswer();
-  private volatile boolean firstFrameRendered, pointerChannelReady;
-  private final AtomicInteger pendingClicks = new AtomicInteger();
+  private volatile boolean firstFrameRendered, inputChannelReady;
+  private final AtomicInteger pendingInputs = new AtomicInteger();
+  private LinearLayout terminalControls, terminalKeyRow;
+  private EditText terminalInput;
+  private Button sendTextButton;
+  private final ArrayList<Button> terminalKeys = new ArrayList<>();
+  private boolean textPending, dockedKeyboardVisible, statusBarsHidden;
   private volatile int pointerGeometry;
   // Gesture state and renderer dimensions belong to the UI thread.
   private int displayedWidth, displayedHeight, tapPointerId, touchSlop;
@@ -86,8 +98,9 @@ public final class ProbeActivity extends Activity {
     layout.setOrientation(LinearLayout.VERTICAL);
     status = new TextView(this);
     status.setText("输入电脑地址和临时配对口令");
-    connectionForm = new LinearLayout(this);
-    connectionForm.setOrientation(LinearLayout.VERTICAL);
+    connectionForm = new ScrollView(this);
+    LinearLayout connectionFields = new LinearLayout(this);
+    connectionFields.setOrientation(LinearLayout.VERTICAL);
     addressInput = new EditText(this);
     addressInput.setHint("电脑 IPv4 地址，例如 192.168.1.2:18443");
     addressInput.setSingleLine(true);
@@ -102,9 +115,10 @@ public final class ProbeActivity extends Activity {
     codeInput.setOnEditorActionListener((view, action, event) -> { startPairing(); return true; });
     connectButton = new Button(this);
     connectButton.setText("连接");
-    connectionForm.addView(addressInput);
-    connectionForm.addView(codeInput);
-    connectionForm.addView(connectButton);
+    connectionFields.addView(addressInput);
+    connectionFields.addView(codeInput);
+    connectionFields.addView(connectButton);
+    connectionForm.addView(connectionFields);
     layout.addView(connectionForm);
     connectButton.setOnClickListener(view -> startPairing());
     renderer = new SurfaceViewRenderer(this);
@@ -129,6 +143,8 @@ public final class ProbeActivity extends Activity {
     desktop.addView(renderer, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
     layout.addView(status);
     layout.addView(desktop, new LinearLayout.LayoutParams(-1, 0, 1));
+    createTerminalControls(layout);
+    configureWindowInsets(layout);
     setContentView(layout);
     connectivity = getSystemService(ConnectivityManager.class);
     boolean wifiBound = false;
@@ -147,6 +163,7 @@ public final class ProbeActivity extends Activity {
       @Override public void onFirstFrameRendered() {
         firstFrameRendered = true;
         report("first_frame_rendered=true");
+        updateInputControls();
       }
       @Override public void onFrameResolutionChanged(int width, int height, int rotation) {
         runOnUiThread(() -> {
@@ -182,7 +199,7 @@ public final class ProbeActivity extends Activity {
   }
 
   private boolean onDesktopTouch(MotionEvent event) {
-    if (stopping || !firstFrameRendered || !pointerChannelReady || worker == null) {
+    if (!inputReady()) {
       tapActive = false;
       return true;
     }
@@ -225,29 +242,195 @@ public final class ProbeActivity extends Activity {
   }
 
   private void queuePointerClick(int x, int y) {
-    if (pendingClicks.incrementAndGet() > 8) {
-      pendingClicks.decrementAndGet();
-      Log.i(TAG, "pointer_rejected=queue_full");
+    queueInput("pointer:click:" + x + ":" + y, pointerGeometry, sent -> {
+      Log.i(TAG, "pointer_sent=" + sent + " x=" + x + " y=" + y);
+    });
+  }
+
+  private void createTerminalControls(LinearLayout layout) {
+    terminalControls = new LinearLayout(this);
+    terminalControls.setOrientation(LinearLayout.VERTICAL);
+    terminalControls.setVisibility(android.view.View.GONE);
+    terminalControls.setFocusableInTouchMode(true);
+    LinearLayout textRow = new LinearLayout(this);
+    terminalInput = new EditText(this);
+    terminalInput.setContentDescription("Terminal text");
+    terminalInput.setHint("英文、数字和符号（最多 256 字符）");
+    terminalInput.setTextSize(14);
+    terminalInput.setSingleLine(true);
+    terminalInput.setSaveEnabled(false);
+    terminalInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+    terminalInput.setImeOptions(EditorInfo.IME_ACTION_NONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+    // Composing and editing stay local; only the explicit buttons send input.
+    terminalInput.setOnEditorActionListener((view, action, event) -> true);
+    textRow.addView(terminalInput, new LinearLayout.LayoutParams(0, inputRowHeight(), 1));
+    sendTextButton = new Button(this);
+    sendTextButton.setText("发送文本");
+    sendTextButton.setContentDescription("Send text");
+    sendTextButton.setOnClickListener(view -> sendTerminalText());
+    textRow.addView(sendTextButton, new LinearLayout.LayoutParams(-2, inputRowHeight()));
+    terminalControls.addView(textRow);
+    terminalKeyRow = new LinearLayout(this);
+    String[][] keys = {{"Enter", "enter"}, {"Tab", "tab"}, {"Left", "left"},
+        {"Right", "right"}, {"Up", "up"}, {"Down", "down"},
+        {"Backspace", "backspace"}, {"Ctrl+C", "ctrl+c"}};
+    for (String[] key : keys) {
+      Button button = new Button(this);
+      button.setText(key[0]);
+      button.setContentDescription(key[0]);
+      button.setAllCaps(false);
+      button.setTextSize(12);
+      button.setMinWidth(0);
+      button.setMinimumWidth(0);
+      button.setPadding(0, 0, 0, 0);
+      button.setOnClickListener(view -> queueInput("key:" + key[1], -1, sent -> {}));
+      terminalKeyRow.addView(button, new LinearLayout.LayoutParams(0, inputRowHeight(), 1));
+      terminalKeys.add(button);
+    }
+    terminalControls.addView(terminalKeyRow);
+    layout.addView(terminalControls);
+    updateInputControls();
+  }
+
+  private void configureWindowInsets(LinearLayout layout) {
+    if (Build.VERSION.SDK_INT >= 30) {
+      // SDK 35+ draws behind system UI. adjustResize delivers IME insets;
+      // apply them ourselves so the draft and Send stay above the keyboard.
+      getWindow().setDecorFitsSystemWindows(false);
+      layout.setOnApplyWindowInsetsListener((view, insets) -> {
+        Insets safe = insets.getInsets(WindowInsets.Type.systemBars()
+            | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+        view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+        dockedKeyboardVisible = insets.getInsets(WindowInsets.Type.ime()).bottom > 0;
+        updateKeyboardLayout();
+        return WindowInsets.CONSUMED;
+      });
+    } else {
+      layout.setFitsSystemWindows(true);
+    }
+  }
+
+  private void updateKeyboardLayout() {
+    boolean compact = dockedKeyboardVisible && terminalControls.getVisibility() == View.VISIBLE;
+    if (Build.VERSION.SDK_INT >= 30 && compact != statusBarsHidden) {
+      WindowInsetsController controller = getWindow().getInsetsController();
+      if (controller != null) {
+        statusBarsHidden = compact;
+        // Landscape keyboards can leave only a thin strip above the draft.
+        // Temporarily reclaim status-bar space while preserving cutout insets.
+        if (compact) controller.hide(WindowInsets.Type.statusBars());
+        else controller.show(WindowInsets.Type.statusBars());
+      }
+    }
+    status.setVisibility(compact ? View.GONE : View.VISIBLE);
+    terminalKeyRow.setVisibility(compact ? View.GONE : View.VISIBLE);
+    int textHeight = compact ? Math.round(36 * getResources().getDisplayMetrics().density)
+        : inputRowHeight();
+    for (View control : new View[] {terminalInput, sendTextButton}) {
+      android.view.ViewGroup.LayoutParams params = control.getLayoutParams();
+      if (params.height != textHeight) {
+        params.height = textHeight;
+        control.setLayoutParams(params);
+      }
+    }
+  }
+
+  private int inputRowHeight() {
+    return Math.round(44 * getResources().getDisplayMetrics().density);
+  }
+
+  private boolean inputReady() {
+    return !stopping && firstFrameRendered && inputChannelReady && worker != null;
+  }
+
+  private void updateInputControls() {
+    runOnUiThread(() -> {
+      boolean ready = inputReady();
+      terminalInput.setEnabled(ready);
+      sendTextButton.setEnabled(ready && !textPending);
+      for (Button key : terminalKeys) key.setEnabled(ready);
+    });
+  }
+
+  private void inputFeedback(String message) {
+    runOnUiThread(() -> status.setText(message));
+  }
+
+  private void sendTerminalText() {
+    if (textPending) return;
+    terminalControls.requestFocus();
+    getSystemService(InputMethodManager.class).hideSoftInputFromWindow(terminalInput.getWindowToken(), 0);
+    String text = terminalInput.getText().toString();
+    if (text.isEmpty() || text.length() > 256) {
+      inputFeedback("请输入 1–256 个英文、数字或符号字符；草稿已保留");
       return;
     }
-    int geometry = pointerGeometry;
-    if (!worker.post(() -> {
-      try {
-        if (stopping || !authorized || pairing == null || !firstFrameRendered
-            || geometry != pointerGeometry || channel == null
-            || channel.state() != DataChannel.State.OPEN) return;
-        // Do not turn congestion into delayed desktop actions.
-        if (channel.bufferedAmount() != 0) {
-          Log.i(TAG, "pointer_rejected=channel_busy");
-          return;
-        }
-        boolean sent = channel.send(new DataChannel.Buffer(ByteBuffer.wrap(
-            ("pointer:click:" + x + ":" + y).getBytes(StandardCharsets.UTF_8)), false));
-        Log.i(TAG, "pointer_sent=" + sent + " x=" + x + " y=" + y);
-      } finally {
-        pendingClicks.decrementAndGet();
+    for (int i = 0; i < text.length(); i++) {
+      if (text.charAt(i) < 0x20 || text.charAt(i) > 0x7e) {
+        inputFeedback("仅支持英文、数字、空格和 ASCII 符号；草稿已保留");
+        return;
       }
-    })) pendingClicks.decrementAndGet();
+    }
+    textPending = true;
+    updateInputControls();
+    queueInput("text:" + text, -1, sent -> {
+      textPending = false;
+      if (sent && terminalInput.getText().toString().equals(text)) terminalInput.setText("");
+      updateInputControls();
+    });
+  }
+
+  private interface InputResult { void complete(boolean sent); }
+
+  private void finishInput(InputResult result, boolean sent, String message) {
+    runOnUiThread(() -> {
+      result.complete(sent);
+      if (message != null) status.setText(message);
+    });
+  }
+
+  private void queueInput(String message, int geometry, InputResult result) {
+    if (!inputReady()) {
+      finishInput(result, false, "桌面尚未连接或会话已结束；未发送输入");
+      return;
+    }
+    if (pendingInputs.incrementAndGet() > 8) {
+      pendingInputs.decrementAndGet();
+      finishInput(result, false, "输入繁忙，请重试；文本草稿已保留");
+      return;
+    }
+    // All UI actions share the RTC handler and ordered DataChannel. Do not
+    // retry automatically: a delayed Enter or Ctrl+C could affect another task.
+    if (!worker.post(() -> {
+      boolean sent = false;
+      String feedback = "输入未发送，请重试；文本草稿已保留";
+      try {
+        if (!inputReady() || !authorized || pairing == null || channel == null
+            || channel.state() != DataChannel.State.OPEN) {
+          feedback = "会话已结束；未发送输入";
+        } else if (geometry >= 0 && geometry != pointerGeometry) {
+          feedback = "画面已调整，请重新点击";
+        } else {
+          byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+          long buffered = channel.bufferedAmount();
+          // Clicks keep the task03 no-backlog policy; keyboard bursts have a
+          // small bound and report rejection without discarding the draft.
+          if ((geometry >= 0 && buffered != 0) || buffered + bytes.length > 16384) {
+            feedback = "输入通道繁忙，请重试；文本草稿已保留";
+          } else {
+            sent = channel.send(new DataChannel.Buffer(ByteBuffer.wrap(bytes), false));
+            if (sent) feedback = geometry >= 0 ? null : "输入已发送";
+          }
+        }
+      } finally {
+        pendingInputs.decrementAndGet();
+        finishInput(result, sent, feedback);
+      }
+    })) {
+      pendingInputs.decrementAndGet();
+      finishInput(result, false, "会话已结束；未发送输入");
+    }
   }
 
   private void startPairing() {
@@ -287,7 +470,11 @@ public final class ProbeActivity extends Activity {
     if (message.equals("accepted") && !authorized) {
       authorized = true;
       report("pairing_authorized=true");
-      runOnUiThread(() -> connectionForm.setVisibility(android.view.View.GONE));
+      runOnUiThread(() -> {
+        connectionForm.setVisibility(android.view.View.GONE);
+        terminalControls.setVisibility(android.view.View.VISIBLE);
+        updateKeyboardLayout();
+      });
     } else if (authorized && message.startsWith("offer\n") && peer == null) {
       connect(message.substring(6));
     } else if (authorized && message.startsWith("ice\n")) {
@@ -433,7 +620,7 @@ public final class ProbeActivity extends Activity {
         byte[] copied = new byte[buffer.data.remaining()];
         buffer.data.get(copied);
         String text = new String(copied, StandardCharsets.UTF_8);
-        report("data_received=" + text);
+        if (text.equals("echo:probe:1")) report("data_received=echo:probe:1");
       }
     });
     updateChannelState();
@@ -441,8 +628,9 @@ public final class ProbeActivity extends Activity {
 
   private void updateChannelState() {
     if (stopping) return;
-    pointerChannelReady = authorized && pairing != null && channel != null
+    inputChannelReady = authorized && pairing != null && channel != null
         && channel.state() == DataChannel.State.OPEN;
+    updateInputControls();
     sendProbe();
   }
 
@@ -471,7 +659,8 @@ public final class ProbeActivity extends Activity {
   private void stopSession() {
     if (!cleanupStarted.compareAndSet(false, true)) return;
     stopping = true;
-    pointerChannelReady = false;
+    inputChannelReady = false;
+    updateInputControls();
     if (worker == null) {
       if (connectivity != null) connectivity.bindProcessToNetwork(null);
       return;

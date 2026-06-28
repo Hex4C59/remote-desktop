@@ -1,10 +1,12 @@
 param(
     [Parameter(Mandatory=$true)][string]$Address,
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\pairing-tests'
+    [string]$OutputRoot = 'D:\code\remote-desktop\build\pairing-tests',
+    [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 # Run on the interactive Windows desktop with a fresh sender --serve already
 # running. ADB drives normal visible fields; no SDP or credential Intent extras.
 $ErrorActionPreference = 'Stop'
+$adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 Add-Type @'
 using System;
 using System.Text;
@@ -33,9 +35,9 @@ if ($code -notmatch '^[A-Za-z0-9_-]{64}$') { throw 'Fresh interactive pairing wi
 $package='dev.remotedesktop.probe'
 function Adb-Check { if ($LASTEXITCODE -ne 0) { throw 'ADB operation failed.' } }
 function Read-Ui {
-    & adb -d shell uiautomator dump /sdcard/pairing-ui.xml | Out-Null
+    & adb @adbTarget shell uiautomator dump /sdcard/pairing-ui.xml | Out-Null
     Adb-Check
-    & adb -d pull /sdcard/pairing-ui.xml (Join-Path $run "ui.xml") | Out-Null
+    & adb @adbTarget pull /sdcard/pairing-ui.xml (Join-Path $run "ui.xml") | Out-Null
     Adb-Check
     try { return [xml][IO.File]::ReadAllText((Join-Path $run "ui.xml")) }
     catch { throw "Could not parse Android UI hierarchy." }
@@ -44,30 +46,30 @@ function Tap-Node($node) {
     $bounds = [regex]::Matches($node.bounds, '\d+')
     $x=([int]$bounds[0].Value+[int]$bounds[2].Value)/2
     $y=([int]$bounds[1].Value+[int]$bounds[3].Value)/2
-    & adb -d shell input tap ([int]$x) ([int]$y) | Out-Null
+    & adb @adbTarget shell input tap ([int]$x) ([int]$y) | Out-Null
     Adb-Check
 }
 function Connect-Phone([string]$credential) {
-    & adb -d shell am force-stop $package
-    & adb -d shell am start -W -n "$package/.ProbeActivity" | Out-Null
+    & adb @adbTarget shell am force-stop $package
+    & adb @adbTarget shell am start -W -n "$package/.ProbeActivity" | Out-Null
     Adb-Check
     Start-Sleep -Seconds 1
     $ui=Read-Ui
     $fields=$ui.SelectNodes('//node[@class="android.widget.EditText"]')
     if ($fields.Count -ne 2) { throw 'Expected address and pairing-code fields.' }
     Tap-Node $fields[0]
-    & adb -d shell input text $Address
-    & adb -d shell input keyevent 61
-    & adb -d shell input text $credential *> $null
+    & adb @adbTarget shell input text $Address
+    & adb @adbTarget shell input keyevent 61
+    & adb @adbTarget shell input text $credential *> $null
     Adb-Check
-    & adb -d shell input keyevent 66
-    $phoneProcess = (& adb -d shell pidof $package).Trim()
+    & adb @adbTarget shell input keyevent 66
+    $phoneProcess = (& adb @adbTarget shell pidof $package).Trim()
     Adb-Check
     if ($phoneProcess -notmatch '^\d+$') { throw 'Android process missing.' }
     return $phoneProcess
 }
 function Read-Log([string]$phoneProcess) {
-    return ((& adb -d logcat -d "--pid=$phoneProcess" -s 'RemoteDesktopProbe:I' '*:S') -join "`n")
+    return ((& adb @adbTarget logcat -d "--pid=$phoneProcess" -s 'RemoteDesktopProbe:I' '*:S') -join "`n")
 }
 try {
     $first = if ($code.StartsWith('A')) {'B'} else {'A'}
@@ -95,8 +97,8 @@ try {
     if (!$phoneLog.Contains('first_frame_rendered=true') -or !$phoneLog.Contains('data_received=echo:probe:1')) { throw 'Authorized desktop not rendered.' }
     foreach ($sample in 1..2) {
         Start-Sleep -Seconds 3
-        & adb -d shell screencap -p /sdcard/pairing-desktop.png
-        & adb -d pull /sdcard/pairing-desktop.png (Join-Path $run "desktop-$sample.png") | Out-Null
+        & adb @adbTarget shell screencap -p /sdcard/pairing-desktop.png
+        & adb @adbTarget pull /sdcard/pairing-desktop.png (Join-Path $run "desktop-$sample.png") | Out-Null
         Adb-Check
     }
     # Independent second control connection using the same valid code; it must
@@ -132,18 +134,18 @@ try {
     } finally { $ssl.Dispose(); $tcp.Dispose() }
     # Background the Activity while its TLS reader observes the close. Both
     # termination paths must be safe and leave the Android process uncrashed.
-    & adb -d shell input keyevent 3
+    & adb @adbTarget shell input keyevent 3
     Start-Sleep -Seconds 2
     $phoneLog=Read-Log $phoneProcess
-    $crashes=(& adb -d logcat -d "--pid=$phoneProcess" -s 'AndroidRuntime:E' '*:S') -join "`n"
-    $remainingProcess=((& adb -d shell pidof $package) -join '').Trim()
+    $crashes=(& adb @adbTarget logcat -d "--pid=$phoneProcess" -s 'AndroidRuntime:E' '*:S') -join "`n"
+    $remainingProcess=((& adb @adbTarget shell pidof $package) -join '').Trim()
     if ($remainingProcess -ne $phoneProcess -or !$phoneLog.Contains('activity_stopped=true') -or $crashes.Contains('FATAL EXCEPTION')) { throw 'Background/disconnect cleanup failed.' }
     [IO.File]::WriteAllText((Join-Path $run 'android.log'),$phoneLog)
     if ($phoneLog.Contains($code) -or $wrongLog.Contains($code) -or $wrongLog.Contains($wrong) -or $identityLog.Contains($badIdentity)) { throw 'Credential appeared in application log.' }
     [ordered]@{ wrong_identity_rejected=$true; wrong_code_rejected=$true; authorized_video_rendered=$true; echo_received=$true; second_connection_rejected=$true; background_disconnect_no_java_crash=$true; background_process_survived=$true; plaintext_code_in_app_log=$false; visual_review='required'; run_directory=$run } | ConvertTo-Json | Tee-Object -FilePath (Join-Path $run 'result.json')
 } finally {
     if ($phoneProcess) { [IO.File]::WriteAllText((Join-Path $run 'android-final.log'), (Read-Log $phoneProcess)) }
-    & adb -d shell am force-stop $package
+    & adb @adbTarget shell am force-stop $package
     $code=$null; $wrong=$null
     Write-Output "run_directory=$run"
 }
