@@ -267,5 +267,79 @@
       "IME-open desktop thumbnail is about 334x188 pixels, enough for layout recognition, not reading terminal detail.",
       "Stale session retains prior input-status wording; lifecycle status presentation remains for task05."
     ]
+  },
+  "tablet_follow_up": {
+    "date": "2026-09-26",
+    "status": "in_progress_device_unlock_required",
+    "source_base_commit": "834316c8b0a2388aaf2ce5885fe329af0a51ce7b",
+    "environment": {
+      "manufacturer": "HUAWEI",
+      "model": "MRO-W00",
+      "product_name": "HUAWEI MatePad Pro",
+      "system_version": "MRO-W00 6.1.0.135(SP9C00E125R1P4)",
+      "openharmony_version": "OpenHarmony-6.1.1.120",
+      "harmony_api": 24,
+      "abi": "arm64-v8a",
+      "capture_resolution": [
+        2800,
+        1840
+      ],
+      "compatibility_bundle": "com.droi.tong",
+      "compatibility_version": "1.0.10.34",
+      "android_runtime_version": null,
+      "device_selection": "Windows ADB inventory empty; Huawei USB HDC target explicitly selected with -t after inventory; private serial omitted"
+    },
+    "deployment": {
+      "adb_available": false,
+      "hdc_connected": true,
+      "hdc_version": "3.2.0b",
+      "apk_staged_in_download": true,
+      "apk_bytes": 14365892,
+      "apk_installed": false,
+      "apk_sha256": "a4df31e728943df572a03afa8226bf4ea3c18911698a9c00e13f62bdd7b85796",
+      "compatibility_execution_verified": false
+    },
+    "acceptance": {
+      "normal_pairing": "not_run",
+      "terminal_input": "not_run",
+      "unauthorized_and_stale_input": "not_run",
+      "readability_ime_touch_targets": "not_run",
+      "touch_pairing_pattern_regressions": "not_run"
+    },
+    "test_preparation": {
+      "send_without_dismissing_ime": true,
+      "enabled_clickable_window_bounds_guard": true,
+      "before_after_send_layout_capture": true,
+      "terminal_test_script_sha256": "3a3b208434a9b6e36ce7cca5a41be8e618aea02a312daaf9dbf477f9a6751a17",
+      "android_build": true,
+      "windows_build": true,
+      "powershell_syntax": true,
+      "tablet_functional_regression": false
+    },
+    "raw_evidence": [
+      {
+        "local_path": ".local/logs/task04-tablet-hdc-inventory.log",
+        "sha256": "456a8b83ee5e56b2dbd4533a2bc35090d24633824f8e1199975724c00d177fb7"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc-metadata.log",
+        "sha256": "e51173626f11d96872f0460f886ea67d77be5c9ff67c3da7c0a47b62cfff3b2c"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-mtp-check.log",
+        "sha256": "9a428339409942134c6e08346032cfd7432ffbe1ec9be6dbacdfc534ab23fa88"
+      }
+    ],
+    "limitations": [
+      "Native Harmony HDC connectivity is not Android APK runtime compatibility or task04 acceptance.",
+      "Current tablet capture is a protected lock screen; user unlock is required before inspecting the APK installation UI.",
+      "Prior Android phone results above remain separate and do not establish tablet behavior.",
+      "Full disconnect/reconnect remains task05."
+    ],
+    "review": {
+      "scope": "Preparation changes only; tablet functional acceptance remains pending",
+      "standards_findings": 0,
+      "spec_findings": 0
+    }
   }
 }

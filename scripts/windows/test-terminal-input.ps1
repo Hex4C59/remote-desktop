@@ -97,6 +97,19 @@ function Assert-TerminalForeground {
 }
 function Tap-Control([string]$description) {
     $node=Find-Control $description
+    $bounds=Read-Bounds $node
+    if ($node.enabled -ne 'true' -or $node.clickable -ne 'true' -or
+        $bounds.right -le $bounds.left -or $bounds.bottom -le $bounds.top -or
+        $node.GetAttribute('visible-to-user') -eq 'false') {
+        throw "Normal Android UI control is not enabled and visible: $description"
+    }
+    $window=$node
+    while ($window.ParentNode.Name -eq 'node') { $window=$window.ParentNode }
+    $windowBounds=Read-Bounds $window
+    if ($bounds.left -lt $windowBounds.left -or $bounds.top -lt $windowBounds.top -or
+        $bounds.right -gt $windowBounds.right -or $bounds.bottom -gt $windowBounds.bottom) {
+        throw "Normal Android UI control is outside its visible window: $description"
+    }
     Assert-TerminalForeground
     Tap-Node $node
 }
@@ -132,16 +145,24 @@ function Send-TerminalText([string]$value) {
     $draft=$draftUi.SelectSingleNode('//node[@content-desc="Terminal text"]')
     if (!$draft -or $draft.enabled -ne 'true') { throw 'Authorized session ended or terminal input became disabled while typing the Android draft.' }
     if ($draft.text -cne $value) { throw 'Android terminal draft differs from the requested printable ASCII text.' }
-    if (!$script:checkedIme) {
+    $captureDraftLayout = !$script:capturedDraftLayout
+    if ($captureDraftLayout) {
         $draftSurface=$draftUi.SelectSingleNode('//node[@content-desc="Remote desktop video" or contains(@class,"SurfaceView")]')
         if (!$draftSurface) { throw 'Desktop disappeared while typing in the Android draft.' }
         $draftBounds=Read-Bounds $draftSurface
-        if ($draftBounds.bottom-$draftBounds.top -lt 100) { throw 'Android IME obscures the desktop.' }
+        if ($draftBounds.bottom-$draftBounds.top -lt 100) { throw 'Desktop is too small while editing the Android draft.' }
+        $draftUi.Save((Join-Path $run 'draft-before-send.xml'))
         Save-PhoneImage 'draft-ime-open'
-        $script:checkedIme=$true
     }
-    & adb @adbTarget shell input keyevent 4 | Out-Null; Check-Adb
+    # Send must be reachable without using Back to dismiss the real keyboard.
+    # Screenshots establish whether an IME was actually visible on this device.
     Tap-Control 'Send text'
+    if ($captureDraftLayout) {
+        $sentUi=Read-Ui
+        $sentUi.Save((Join-Path $run 'draft-after-send.xml'))
+        Save-PhoneImage 'draft-after-send'
+        $script:capturedDraftLayout=$true
+    }
 }
 function Read-ResultLines { return [IO.File]::ReadAllText((Join-Path $geometry.work_directory 'result-lines.txt')) }
 function Wait-Result([string]$value) {
@@ -266,7 +287,7 @@ try {
     if ((Read-ResultLines) -cne ($known+"`r`n")) { throw 'Windows shell result does not exactly match all 95 printable ASCII characters.' }
     Assert-Released
     Save-PhoneImage 'text-executed'
-    $result=[ordered]@{text_ascii_exact=$true;ascii_character_count=95;enter_executed=$true;remote_touch_focused=$true;keys_released=$true;known_text=$known;psreadline=$geometry.psreadline;run_directory=$run;visual_review='required: inspect Android screenshots, including draft-ime-open and text-executed'}
+    $result=[ordered]@{text_ascii_exact=$true;ascii_character_count=95;enter_executed=$true;remote_touch_focused=$true;keys_released=$true;known_text=$known;psreadline=$geometry.psreadline;run_directory=$run;visual_review='required: inspect draft-ime-open and draft-after-send for actual IME visibility, draft/Send reachability and restored keys; inspect text-executed for remote output'}
     if (!$TextOnly) {
         Send-TerminalText 'Get-Content .\task04_comp'
         Tap-Control 'Tab'
