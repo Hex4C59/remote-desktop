@@ -31,8 +31,12 @@ public static class TerminalTestWindows {
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int command);
     [DllImport("user32.dll")] public static extern IntPtr WindowFromPhysicalPoint(Point point);
     [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr h,uint flags);
+    [DllImport("user32.dll")] public static extern bool IsProcessDPIAware();
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
 }
 '@
+# Match the fixture's physical coordinate observations on the primary display.
+if (![TerminalTestWindows]::IsProcessDPIAware() -and ![TerminalTestWindows]::SetProcessDPIAware()) { throw 'Cannot establish DPI-aware input observation.' }
 $run = Join-Path $OutputRoot ([Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 $package = 'dev.remotedesktop.probe'
@@ -248,7 +252,10 @@ try {
     $capture=[regex]::Match($senderLog,'desktop_frame=true capture_width=(\d+) capture_height=(\d+)')
     if (!$capture.Success -or [int]$capture.Groups[1].Value -ne $geometry.screen_width -or [int]$capture.Groups[2].Value -ne $geometry.screen_height) { throw 'Fixture requires capture of the primary monitor.' }
     $desktopBounds=[regex]::Match($senderLog,'desktop_bounds left=(-?\d+) top=(-?\d+) width=(\d+) height=(\d+)')
-    if ($desktopBounds.Success -and ([int]$desktopBounds.Groups[1].Value -ne 0 -or [int]$desktopBounds.Groups[2].Value -ne 0)) { throw 'Fixture requires primary display origin (0,0).' }
+    if (!$desktopBounds.Success -or [int]$desktopBounds.Groups[1].Value -ne 0 -or [int]$desktopBounds.Groups[2].Value -ne 0 -or
+        [int]$desktopBounds.Groups[3].Value -ne $geometry.screen_width -or [int]$desktopBounds.Groups[4].Value -ne $geometry.screen_height) {
+        throw 'Fixture requires physical input bounds matching the captured primary display at (0,0).'
+    }
     Start-Sleep -Seconds 1
     $ui=Read-Ui
     $surface=$ui.SelectSingleNode('//node[@content-desc="Remote desktop video" or contains(@class,"SurfaceView")]')

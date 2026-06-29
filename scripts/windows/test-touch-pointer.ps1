@@ -30,8 +30,12 @@ public static class TouchTestWindows {
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int command);
     [DllImport("user32.dll")] public static extern IntPtr WindowFromPhysicalPoint(Point point);
     [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr h,uint flags);
+    [DllImport("user32.dll")] public static extern bool IsProcessDPIAware();
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
 }
 '@
+# Match the fixture's physical coordinate observations on the primary display.
+if (![TouchTestWindows]::IsProcessDPIAware() -and ![TouchTestWindows]::SetProcessDPIAware()) { throw 'Cannot establish DPI-aware input observation.' }
 $run = Join-Path $OutputRoot ([Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 $package = 'dev.remotedesktop.probe'
@@ -146,8 +150,9 @@ try {
         throw 'This fixture requires the captured monitor to be the primary display.'
     }
     $desktopBounds=[regex]::Match($senderLog,'desktop_bounds left=(-?\d+) top=(-?\d+) width=(\d+) height=(\d+)')
-    if ($desktopBounds.Success -and ([int]$desktopBounds.Groups[1].Value -ne 0 -or [int]$desktopBounds.Groups[2].Value -ne 0)) {
-        throw 'This fixture requires capture at the primary display origin (0,0).'
+    if (!$desktopBounds.Success -or [int]$desktopBounds.Groups[1].Value -ne 0 -or [int]$desktopBounds.Groups[2].Value -ne 0 -or
+        [int]$desktopBounds.Groups[3].Value -ne $geometry.screen_width -or [int]$desktopBounds.Groups[4].Value -ne $geometry.screen_height) {
+        throw 'This fixture requires physical input bounds matching the captured primary display at (0,0).'
     }
     Start-Sleep -Seconds 1
     $ui=Read-Ui

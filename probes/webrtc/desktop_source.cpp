@@ -1,4 +1,5 @@
 #include "remote_desktop_probe/frame_source.h"
+#include "remote_desktop_probe/physical_coordinates.h"
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
@@ -41,6 +42,10 @@ class AcquiredFrame {
 class DesktopSource final : public FrameSource {
  public:
   bool Initialize() override {
+    PhysicalCoordinates physical;
+    if (!physical.valid()) {
+      return Failed("SetThreadDpiAwarenessContext", HRESULT_FROM_WIN32(GetLastError()));
+    }
     DWORD session = 0;
     if (!ProcessIdToSessionId(GetCurrentProcessId(), &session)) {
       return Failed("ProcessIdToSessionId", HRESULT_FROM_WIN32(GetLastError()));

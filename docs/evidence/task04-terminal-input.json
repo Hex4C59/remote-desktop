@@ -270,7 +270,7 @@
   },
   "tablet_follow_up": {
     "date": "2026-09-26",
-    "status": "in_progress_device_unlock_required",
+    "status": "awaiting_idle_windows_for_full_regression",
     "source_base_commit": "834316c8b0a2388aaf2ce5885fe329af0a51ce7b",
     "environment": {
       "manufacturer": "HUAWEI",
@@ -295,14 +295,18 @@
       "hdc_version": "3.2.0b",
       "apk_staged_in_download": true,
       "apk_bytes": 14365892,
-      "apk_installed": false,
+      "apk_installed": true,
       "apk_sha256": "a4df31e728943df572a03afa8226bf4ea3c18911698a9c00e13f62bdd7b85796",
-      "compatibility_execution_verified": false
+      "compatibility_execution_verified": true,
+      "diagnostic_apk_sha256": "4a28d49fd4abdf7d25e8c971bf053386a8fd184d3fb1982388f261e577c9ff06",
+      "diagnostics_removed_before_final_build": true,
+      "final_apk_rebuilt_and_reinstalled": true,
+      "windows_sender_sha256": "d1d109f91c012f85f0f74972e1b27792570d7987868d0390c44dfd9e07fa3d81"
     },
     "acceptance": {
-      "normal_pairing": "not_run",
-      "terminal_input": "not_run",
-      "unauthorized_and_stale_input": "not_run",
+      "normal_pairing": "passed_on_final_android_build_and_updated_windows_sender",
+      "terminal_input": "english_local_draft_exact_remote_execution_pending",
+      "unauthorized_and_stale_input": "wrong_pairing_rejection_passed_stale_pending",
       "readability_ime_touch_targets": "not_run",
       "touch_pairing_pattern_regressions": "not_run"
     },
@@ -310,7 +314,7 @@
       "send_without_dismissing_ime": true,
       "enabled_clickable_window_bounds_guard": true,
       "before_after_send_layout_capture": true,
-      "terminal_test_script_sha256": "3a3b208434a9b6e36ce7cca5a41be8e618aea02a312daaf9dbf477f9a6751a17",
+      "terminal_test_script_sha256": "6a06a335603f2926cebf4dc31524e7beb2d623392c4e3b49bec990c7a886046c",
       "android_build": true,
       "windows_build": true,
       "powershell_syntax": true,
@@ -328,18 +332,241 @@
       {
         "local_path": ".local/logs/task04-tablet-mtp-check.log",
         "sha256": "9a428339409942134c6e08346032cfd7432ffbe1ec9be6dbacdfc534ab23fa88"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-final-android-build.log",
+        "sha256": "153de5eff4098798e68d308b4e9c82a9e123e9886511f7635a94adf31a116e9d"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/final-installed.png",
+        "sha256": "42cc25adf2d45fdac886ce457264e1e364c559d41c727e6719d375654906dc1d"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/final-probe-entry.png",
+        "sha256": "035f80049ac49d7d881e2c38aecb9828fadaec18783dff1845dabc8dae1ad323"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/hotspot-firewall-probe-result.png",
+        "sha256": "3ae589dc0524a7c19374ba35a9f2d413bcd0c4c06ba7376af0f08e55ae476c75"
+      },
+      {
+        "local_path": ".local/logs/task04-hotspot-firewall-test.log",
+        "sha256": "853c503a8cdeae80573efaca291eb2b6c7aaff140190727b1f62c14c8b787565"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/draft-diagnostic.json",
+        "sha256": "6fb7de8f060789f5c49ed87fa165a1fae5f0dec5cc2b07f30de56ee3acb49165"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/draft-sample-5.png",
+        "sha256": "5de5a1f08cd3bcc09dba94d51efa0d08aa3cbfb40ae2c7c102276ed465e3d9ff"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/english-first-sender.log",
+        "sha256": "8e5a7734c4071157eff0a805315a6eb77e24de39b19be5f2cf2eecb5193cbb92"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/english-first-fixture.json",
+        "sha256": "1cabc6f8479d1947bc3cb2fdb171b95240af1cca343b72dcb459cc9c5efb114f"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/dpi-first-sender.log",
+        "sha256": "5104bb9e69f20d30fbc3cf041315a0d885b16e5d6a8177dbbd7eb5ac241a53c7"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/dpi-first-fixture.json",
+        "sha256": "5e3a178d60b4057fa258a45b7ec22433f438153d562a7f31d3ff68ec80c810aa"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/dpi-first-final-state.png",
+        "sha256": "aac86702ca1115a32bc6180df88740a2aa3689426aabe54e418a339ee9347cb5"
+      },
+      {
+        "local_path": ".local/logs/task04-dpi-build.log",
+        "sha256": "1ab8ecc1db1a03e59b31043f55d01a90426752769a07a101650788cc05ee06a8"
+      },
+      {
+        "local_path": ".local/logs/task04-dpi-checks.log",
+        "sha256": "b0c2960f568b453a16750187a09e01b0ff048ed62655a42b455beff7bdebf74b"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-post-dpi-android-build.log",
+        "sha256": "c3f4e6b6eb2e779f4bdb002c94a585846d11f0a503fcd15e416f1b9392eaf8e4"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-post-dpi-syntax.log",
+        "sha256": "2db70564e1a78cf30c1377af516010d46fa3fb1a2f69781bf8489619411794bc"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/english-draft-diagnostic.json",
+        "sha256": "1ad039cc3d005e5317118a7031f12787ed24d19cad46324745884a09cf1c4811"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/english-second-ime-after-language-toggle.png",
+        "sha256": "1047729eea7316e9c1cacbd07dd8f16ab373bc3f26cae01127a98f5dd6182c12"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/full-first-foreground-loss.json",
+        "sha256": "a3a292a2079ef1aa1b250957e01a93c12f2bd6bf75329ccdde86658d2dd53ac1"
+      },
+      {
+        "local_path": ".local/task04-hdc-terminal-driver.ps1",
+        "sha256": "5099c8c93a15f3328267246e68d02a80edc936082dd1d8bd969d2cd9a09386ee"
+      },
+      {
+        "local_path": ".local/task04-hdc-pointer-regression.ps1",
+        "sha256": "e09c69df650d389fe96a6af4ceffcff2e307b193585c4b82b98f3897d1a9e39e"
+      },
+      {
+        "local_path": ".local/task04-hdc-ui.ps1",
+        "sha256": "982a58c4b7dd91b6bd920671bdbb3e84bff2342469b7fcfb4588e53265ee4c5a"
+      },
+      {
+        "local_path": ".local/task04-hdc-terminal-job.ps1",
+        "sha256": "b42f01803f670a6ca8dbecc1034c603f7d57f1d02950f6e64e002de7f830cad0"
+      },
+      {
+        "local_path": ".local/task04-hdc-terminal-wrapper.ps1",
+        "sha256": "4037aa2f524489304f40eb792bf54547dcd235ade4169aced9d3a5758e0c69f1"
+      },
+      {
+        "local_path": ".local/logs/task04-hotspot-stop-final.log",
+        "sha256": "d09fc8c5bdbc5871758728f34ba33d0678163efcc8c355e724a272fedcda4ead"
+      },
+      {
+        "local_path": ".local/logs/task04-final-cleanup-observe.log",
+        "sha256": "6bc37a3d6aadd39898c00eabe5a8424492e7874be9e59919d1dd1bffdb90fbd6"
+      },
+      {
+        "local_path": ".local/logs/task04-remove-owned-tasks.log",
+        "sha256": "90770b30fb2cdac8b5d17007f86eb4df2db0ef9993fd84433541f031d4a1ad16"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/cleanup-wlan-final.png",
+        "sha256": "93f903a86f994c1e042653b2e03e3ed7653577bbc80077820026f02cdd0a1f32"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/cleanup-wlan-final.json",
+        "sha256": "b02924cb7a1e1eeea515a1db60dea6abb8a7f96a5fc3788a87886fb8d067b84b"
       }
     ],
     "limitations": [
-      "Native Harmony HDC connectivity is not Android APK runtime compatibility or task04 acceptance.",
-      "Current tablet capture is a protected lock screen; user unlock is required before inspecting the APK installation UI.",
+      "This specific HarmonyOS device runs the Android APK through the observed compatibility layer; no general HarmonyOS compatibility claim.",
       "Prior Android phone results above remain separate and do not establish tablet behavior.",
-      "Full disconnect/reconnect remains task05."
+      "Full disconnect/reconnect remains task05.",
+      "Android runtime API, Android PID/same-Activity survival and logcat crash evidence are not independently available through native HDC."
     ],
     "review": {
-      "scope": "Preparation changes only; tablet functional acceptance remains pending",
-      "standards_findings": 0,
-      "spec_findings": 0
+      "scope": "Since 834316c8b0a2388aaf2ce5885fe329af0a51ce7b, including preparation commit and current follow-up changes",
+      "standards_findings": 1,
+      "standards_hard_violations": 0,
+      "standards_suggestions": [
+        {
+          "priority": "P3",
+          "kind": "possible Duplicated Code",
+          "detail": "Input scripts repeat DPI initialization and physical-bounds assertions; defer shared observer extraction until needed"
+        }
+      ],
+      "spec_findings": 1,
+      "spec_implementation_findings": 0,
+      "spec_acceptance_gaps": [
+        "Complete uninterrupted tablet-to-Windows terminal, stale-input, pointer and final visual acceptance is pending"
+      ],
+      "spec_documentation_findings_resolved": [
+        "Append current installed/paired progress while preserving history",
+        "Refresh terminal script hash and archive English-mode draft result and screenshot"
+      ]
+    },
+    "network_diagnosis": {
+      "failure_stage": "tcp_connect",
+      "failure_type": "SocketTimeoutException",
+      "native_browser_same_endpoint_timed_out": true,
+      "temporary_windows_hotspot": true,
+      "scoped_inbound_rule_enabled_pairing_and_video": true,
+      "rule_scope": [
+        "sender executable",
+        "TCP 18443",
+        "hotspot interface",
+        "host hotspot address",
+        "selected tablet address",
+        "Profile Any"
+      ],
+      "original_cross_subnet_connectivity": "not established",
+      "pktmon_zero_packet_events": "limited capture coverage; not proof that packets never reached Windows",
+      "usb_port_forwarding_used": false,
+      "cleanup_verified": true,
+      "final_regression_rule_interface_scope": "Exact local address verified to belong to only the hotspot interface; legacy COM explicit hidden-interface name unsupported."
+    },
+    "console_observer_fix": {
+      "red_run_id": "1d2569de686d401b984127cbd2b116d6",
+      "observed_snapshot_length": 469,
+      "expected_counted_snapshot_length": 468,
+      "unexpected_tail_codepoint": "U+343E",
+      "fix": "Counted Unicode char array instead of NUL-terminated StringBuilder; require a complete read; retain exact full snapshot comparison",
+      "unauthorized_snapshot_green_run_id": "fe1210c26bfd43259f9a1e3068ee81a2",
+      "fixture_sha256": "3666d8a553a98685bfc6722d1405eab1efc8f169c65a11f1c5a66092dd0dc79b"
+    },
+    "dpi_adaptation": {
+      "red_run_id": "c85a3e524d1c4c31963b2646db3b52d8",
+      "red_virtualized_bounds": [
+        1960,
+        1231
+      ],
+      "physical_capture": [
+        2940,
+        1846
+      ],
+      "video": [
+        1146,
+        720
+      ],
+      "fix": "Share physical thread DPI context between DXGI initialization and pointer injection; retain display consistency guard",
+      "post_fix_bounds_match": true,
+      "pointer_accuracy_regression": "pending_uninterrupted_interactive_desktop",
+      "test_observers": "DPI awareness established before coordinate observation; no scale-factor compensation"
+    },
+    "input_method_diagnosis": {
+      "input_method": "Huawei Xiaoyi native soft keyboard",
+      "chinese_mode_run_id": "91ce7608e19b47dd8e4afd42186506a3",
+      "observed_auto_pairing": {
+        "(": "()",
+        "[": "[]"
+      },
+      "windows_console_unchanged": true,
+      "english_mode_run_id": "6aca966ab2c5495c9ca1bed5197d9f97",
+      "english_six_samples_and_full_ascii_command_exact": true,
+      "mode_changed_via_normal_keyboard_button": true,
+      "android_product_changed_for_ime": false
+    },
+    "interrupted_runs": [
+      {
+        "run_id": "0ceccb01d6254ac2bd311679247c68a1",
+        "reason": "Foreground moved away from dedicated Windows fixture after initial successful remote focus; input guard aborted before Send",
+        "counts_as_pass": false
+      }
+    ],
+    "checks_after_dpi_change": {
+      "windows_build": true,
+      "windows_gn_header_dependencies": true,
+      "android_build": true,
+      "android_apk_unchanged": true,
+      "tracked_and_private_powershell_syntax": true,
+      "shell_syntax": true,
+      "git_diff_check": true,
+      "json_parse": true,
+      "full_tablet_behavior_regression": false
+    },
+    "cleanup": {
+      "temporary_hotspot_off": true,
+      "windows_persistent_hotspot_configuration_unchanged": true,
+      "windows_hotspot_timeout_unchanged": true,
+      "own_sender_processes_remaining": 0,
+      "own_fixture_windows_remaining": 0,
+      "own_firewall_rules_remaining": 0,
+      "own_scheduled_tasks_remaining": 0,
+      "tablet_original_wlan_reconnected_ui_verified": true,
+      "tablet_screen_timeout_restored": true,
+      "tablet_saved_temporary_wlan_profile_removal_verified": false
     }
   }
 }

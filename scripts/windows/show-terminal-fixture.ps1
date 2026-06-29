@@ -24,7 +24,7 @@ public static class TerminalFixture {
     [DllImport("kernel32.dll")] public static extern bool GetConsoleMode(IntPtr h,out uint mode);
     [DllImport("kernel32.dll")] public static extern bool SetConsoleMode(IntPtr h,uint mode);
     [DllImport("kernel32.dll")] static extern bool GetConsoleScreenBufferInfo(IntPtr h,out BufferInfo info);
-    [DllImport("kernel32.dll",CharSet=CharSet.Unicode)] static extern bool ReadConsoleOutputCharacter(IntPtr h,StringBuilder value,uint count,Coord origin,out uint read);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode)] static extern bool ReadConsoleOutputCharacter(IntPtr h,[Out] char[] value,uint count,Coord origin,out uint read);
     [DllImport("kernel32.dll",CharSet=CharSet.Unicode)] static extern bool SetCurrentConsoleFontEx(IntPtr h,bool maximum,ref FontInfo info);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h,out Rect rect);
@@ -49,9 +49,10 @@ public static class TerminalFixture {
                     BufferInfo info;
                     if (!GetConsoleScreenBufferInfo(output,out info)) throw new Exception("Cannot observe console output.");
                     uint length=(uint)(info.Size.X*(info.Cursor.Y+1));
-                    StringBuilder text=new StringBuilder((int)length); uint read;
-                    if (!ReadConsoleOutputCharacter(output,text,length,new Coord(),out read)) throw new Exception("Cannot read console output.");
-                    string current=text.ToString();
+                    char[] text=new char[(int)length]; uint read;
+                    if (!ReadConsoleOutputCharacter(output,text,length,new Coord(),out read) || read!=length) throw new Exception("Cannot read complete console output.");
+                    // The console API returns counted characters, not a NUL-terminated string.
+                    string current=new string(text,0,(int)read);
                     if (current!=previous) {
                         File.WriteAllText(pending,current);
                         if (File.Exists(path)) File.Replace(pending,path,null); else File.Move(pending,path);

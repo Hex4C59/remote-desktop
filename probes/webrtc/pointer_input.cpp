@@ -1,4 +1,5 @@
 #include "remote_desktop_probe/pointer_input.h"
+#include "remote_desktop_probe/physical_coordinates.h"
 
 #include <windows.h>
 
@@ -16,17 +17,6 @@ bool Coordinate(std::string_view text, int& value) {
          value >= 0 && value <= 65535;
 }
 
-// GetMonitorInfo/GetSystemMetrics must use the same physical coordinates as
-// Desktop Duplication, regardless of the user's Windows display scaling.
-class PhysicalCoordinates {
- public:
-  PhysicalCoordinates()
-      : previous_(SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {}
-  ~PhysicalCoordinates() { if (previous_) SetThreadDpiAwarenessContext(previous_); }
-  bool valid() const { return previous_ != nullptr; }
- private:
-  DPI_AWARENESS_CONTEXT previous_;
-};
 }  // namespace
 
 PointerInput::~PointerInput() {
