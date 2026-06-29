@@ -270,7 +270,7 @@
   },
   "tablet_follow_up": {
     "date": "2026-09-26",
-    "status": "awaiting_idle_windows_for_full_regression",
+    "status": "awaiting_unlocked_windows_for_full_regression",
     "source_base_commit": "834316c8b0a2388aaf2ce5885fe329af0a51ce7b",
     "environment": {
       "manufacturer": "HUAWEI",
@@ -410,11 +410,11 @@
         "sha256": "a3a292a2079ef1aa1b250957e01a93c12f2bd6bf75329ccdde86658d2dd53ac1"
       },
       {
-        "local_path": ".local/task04-hdc-terminal-driver.ps1",
+        "local_path": ".local/logs/task04-tablet-pre-idle-harness/task04-hdc-terminal-driver.ps1",
         "sha256": "5099c8c93a15f3328267246e68d02a80edc936082dd1d8bd969d2cd9a09386ee"
       },
       {
-        "local_path": ".local/task04-hdc-pointer-regression.ps1",
+        "local_path": ".local/logs/task04-tablet-pre-idle-harness/task04-hdc-pointer-regression.ps1",
         "sha256": "e09c69df650d389fe96a6af4ceffcff2e307b193585c4b82b98f3897d1a9e39e"
       },
       {
@@ -448,6 +448,70 @@
       {
         "local_path": ".local/logs/task04-tablet-hdc/cleanup-wlan-final.json",
         "sha256": "b02924cb7a1e1eeea515a1db60dea6abb8a7f96a5fc3788a87886fb8d067b84b"
+      },
+      {
+        "local_path": ".local/task04-hdc-terminal-driver.ps1",
+        "sha256": "6b98af8e5020bbf69746b5210f3d64d969575406d2b7e3eba08449d27ad6bec5"
+      },
+      {
+        "local_path": ".local/task04-hdc-pointer-regression.ps1",
+        "sha256": "d6d2ac5fe90417796795fdd3dbe0fb7ac0bf2cc483db4cea2bd68f545a9d3b5d"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-devices-resume.log",
+        "sha256": "bbfcc7239a6f1be3544814ebdc6bcc9b66bf5b1f0b03baa3340808f19265a630"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-idle-syntax.log",
+        "sha256": "2db70564e1a78cf30c1377af516010d46fa3fb1a2f69781bf8489619411794bc"
+      },
+      {
+        "local_path": ".local/logs/task04-desktop-lock-observe.log",
+        "sha256": "58c57c7399f3b51d113e2244bce05adadf6158375265d0736ca5606f11cb1e57"
+      },
+      {
+        "local_path": ".local/logs/task04-hotspot-stop-resume.log",
+        "sha256": "813c19a2d9a73d18c1345a5a2a81a68a32703af2bac7a2846afdaf622dc02ca1"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/4726056628204881b5b6cd73d2606147/connected-desktop.png",
+        "sha256": "0d657547eec4d05388d65b0e6cbab4e8b2903fe01fe4643e3edbdab6547d1287"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/4726056628204881b5b6cd73d2606147/connected-desktop.json",
+        "sha256": "e67f99ecc231758578955ac8b60a2cb88a6f4dc1fd8f458da777fc36bcf10f84"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/4726056628204881b5b6cd73d2606147/wrong-pairing.png",
+        "sha256": "210d56e2b94a52bb05c481e442c91b10fd2cfa364aabe60924d95d854a5948b9"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/4726056628204881b5b6cd73d2606147/fixture.json",
+        "sha256": "854191bbd738015f3ecebb1a68412e7cc0c3cb4c6454acf523d3468ad2adb85b"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/launcher-ae9af924c5de43f19c65ca4c273e5607/job-result.json",
+        "sha256": "f7deb27342112f2670ba98b94d31696bb396986d64c86fb8138b1021837b8d87"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-runs/launcher-ae9af924c5de43f19c65ca4c273e5607/cleanup.json",
+        "sha256": "36ee9f9c49d22c0b55d44248bae59090731c245cd55a1416b9cf145d6ff7a8ab"
+      },
+      {
+        "local_path": ".local/logs/task04-final-cleanup-resume.log",
+        "sha256": "6bc37a3d6aadd39898c00eabe5a8424492e7874be9e59919d1dd1bffdb90fbd6"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/resume-original-wlan-verified.png",
+        "sha256": "f63171a7091735936009588b562e8197c1f3fb3a9eb58dbfa269c39b8947be5d"
+      },
+      {
+        "local_path": ".local/logs/task04-tablet-hdc/resume-original-wlan-verified.json",
+        "sha256": "e27cb9adf6e5acf364d60a503f61df74ed8551e740074c9ddbce3188ef8bb5f3"
+      },
+      {
+        "local_path": ".local/logs/task04-restore-tablet-wlan-verified.log",
+        "sha256": "f078cb6a49bf2f4899711ce00dcfabda2f25e5f2082d81722c9cba43e4ee899c"
       }
     ],
     "limitations": [
@@ -470,12 +534,13 @@
       "spec_findings": 1,
       "spec_implementation_findings": 0,
       "spec_acceptance_gaps": [
-        "Complete uninterrupted tablet-to-Windows terminal, stale-input, pointer and final visual acceptance is pending"
+        "Complete tablet-to-Windows terminal, stale-input, pointer and final visual acceptance is pending; latest attempt stopped on the observed Windows lock screen before input"
       ],
       "spec_documentation_findings_resolved": [
         "Append current installed/paired progress while preserving history",
         "Refresh terminal script hash and archive English-mode draft result and screenshot"
-      ]
+      ],
+      "latest_review_scope": "Current tablet follow-up since 834316c, including the lock-screen-blocked run and archived historical/current private harness versions"
     },
     "network_diagnosis": {
       "failure_stage": "tcp_connect",
@@ -543,6 +608,23 @@
         "run_id": "0ceccb01d6254ac2bd311679247c68a1",
         "reason": "Foreground moved away from dedicated Windows fixture after initial successful remote focus; input guard aborted before Send",
         "counts_as_pass": false
+      },
+      {
+        "run_id": "4726056628204881b5b6cd73d2606147",
+        "reason": "Actual tablet video showed Windows lock screen after normal pairing; owned-terminal occlusion guard aborted before any remote terminal input",
+        "counts_as_pass": false,
+        "windows_physical_capture": [
+          2560,
+          1440
+        ],
+        "video": [
+          1280,
+          720
+        ],
+        "wrong_pairing_rejection_and_console_unchanged": true,
+        "normal_correct_pairing": true,
+        "terminal_input_sent": false,
+        "launcher_run_id": "ae9af924c5de43f19c65ca4c273e5607"
       }
     ],
     "checks_after_dpi_change": {
@@ -566,7 +648,15 @@
       "own_scheduled_tasks_remaining": 0,
       "tablet_original_wlan_reconnected_ui_verified": true,
       "tablet_screen_timeout_restored": true,
-      "tablet_saved_temporary_wlan_profile_removal_verified": false
+      "tablet_saved_temporary_wlan_profile_removal_verified": false,
+      "latest_attempt_run_id": "4726056628204881b5b6cd73d2606147"
+    },
+    "harness_follow_up": {
+      "drag_oracle": "Drag now ends at the first point while cursor starts at the second point, so an erroneous endpoint click cannot leave the cursor unchanged",
+      "foreground_process_cleanup": "Clear recorded foreground child PID immediately after independently observing its Ctrl+C exit to avoid cleaning a reused PID",
+      "read_only_review_verified": true,
+      "seven_powershell_parsers_passed": true,
+      "full_run_reached_new_pointer_and_terminal_assertions": false
     }
   }
 }
