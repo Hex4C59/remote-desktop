@@ -5,6 +5,7 @@ import android.graphics.Insets;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
@@ -74,7 +75,9 @@ public final class ProbeActivity extends Activity {
   private boolean authorized, remoteReady;
   private final ArrayDeque<IceCandidate> pendingIce = new ArrayDeque<>();
   private EditText addressInput, codeInput;
-  private Button connectButton;
+  private Button connectButton, sessionButton;
+  private ConnectivityManager.NetworkCallback wifiCallback;
+  private boolean cleanupComplete;
   private ScrollView connectionForm;
   private boolean answerPublished;
   private final Runnable publishAnswer = () -> writeAnswer();
@@ -104,6 +107,7 @@ public final class ProbeActivity extends Activity {
     addressInput = new EditText(this);
     addressInput.setHint("电脑 IPv4 地址，例如 192.168.1.2:18443");
     addressInput.setSingleLine(true);
+    addressInput.setText(getIntent().getStringExtra("manual_address"));
     addressInput.setImeOptions(EditorInfo.IME_ACTION_NEXT | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
     addressInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     codeInput = new EditText(this);
@@ -141,21 +145,47 @@ public final class ProbeActivity extends Activity {
     // FIT must be allowed to measure both dimensions. Exact full-width/full-height
     // constraints override SurfaceViewRenderer's aspect-fit measurement and crop.
     desktop.addView(renderer, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
-    layout.addView(status);
+    LinearLayout sessionRow = new LinearLayout(this);
+    sessionRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+    sessionButton = new Button(this);
+    sessionButton.setText("结束会话");
+    sessionButton.setVisibility(View.GONE);
+    sessionButton.setOnClickListener(view -> {
+      if (!stopping) stopSession("会话已结束");
+      else if (cleanupComplete) {
+        sessionButton.setEnabled(false);
+        // A manual reconnect gets new handlers, observers and queues. Never
+        // revive this instance: late callbacks remain attached to the old view.
+        getIntent().removeExtra("offer_b64");
+        getIntent().putExtra("manual_address", addressInput.getText().toString());
+        recreate();
+      }
+    });
+    sessionRow.addView(sessionButton);
+    layout.addView(sessionRow);
     layout.addView(desktop, new LinearLayout.LayoutParams(-1, 0, 1));
     createTerminalControls(layout);
     configureWindowInsets(layout);
     setContentView(layout);
     connectivity = getSystemService(ConnectivityManager.class);
     boolean wifiBound = false;
+    Network selectedWifi = null;
     for (Network network : connectivity.getAllNetworks()) {
       NetworkCapabilities capabilities = connectivity.getNetworkCapabilities(network);
       if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
         wifiBound = connectivity.bindProcessToNetwork(network);
-        if (wifiBound) break;
+        if (wifiBound) { selectedWifi = network; break; }
       }
     }
-    if (!wifiBound) { report("wifi_binding_failed=true"); return; }
+    if (!wifiBound) { stopSession("未连接 Wi-Fi；请连接网络后手动重连"); return; }
+    final Network sessionWifi = selectedWifi;
+    wifiCallback = new ConnectivityManager.NetworkCallback() {
+      @Override public void onLost(Network network) {
+        if (network.equals(sessionWifi)) runOnUiThread(() -> stopSession("Wi-Fi 已断开，会话已结束"));
+      }
+    };
+    connectivity.registerNetworkCallback(new NetworkRequest.Builder()
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(), wifiCallback);
     PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
         .builder(this).createInitializationOptions());
     egl = EglBase.create();
@@ -312,7 +342,7 @@ public final class ProbeActivity extends Activity {
   }
 
   private void updateKeyboardLayout() {
-    boolean compact = dockedKeyboardVisible && terminalControls.getVisibility() == View.VISIBLE;
+    boolean compact = !stopping && dockedKeyboardVisible && terminalControls.getVisibility() == View.VISIBLE;
     if (Build.VERSION.SDK_INT >= 30 && compact != statusBarsHidden) {
       WindowInsetsController controller = getWindow().getInsetsController();
       if (controller != null) {
@@ -354,11 +384,11 @@ public final class ProbeActivity extends Activity {
   }
 
   private void inputFeedback(String message) {
-    runOnUiThread(() -> status.setText(message));
+    runOnUiThread(() -> { if (!stopping) status.setText(message); });
   }
 
   private void sendTerminalText() {
-    if (textPending) return;
+    if (textPending || !inputReady()) return;
     terminalControls.requestFocus();
     getSystemService(InputMethodManager.class).hideSoftInputFromWindow(terminalInput.getWindowToken(), 0);
     String text = terminalInput.getText().toString();
@@ -385,8 +415,8 @@ public final class ProbeActivity extends Activity {
 
   private void finishInput(InputResult result, boolean sent, String message) {
     runOnUiThread(() -> {
-      result.complete(sent);
-      if (message != null) status.setText(message);
+      result.complete(sent && !stopping);
+      if (!stopping && message != null) status.setText(message);
     });
   }
 
@@ -440,6 +470,7 @@ public final class ProbeActivity extends Activity {
     codeInput.setText("");
     getSystemService(InputMethodManager.class).hideSoftInputFromWindow(codeInput.getWindowToken(), 0);
     connectButton.setEnabled(false);
+    sessionButton.setVisibility(View.VISIBLE);
     Log.i(TAG, "pairing_attempt_started=true");
     report("正在配对…");
     pairing = new PairingConnection(new PairingConnection.Listener() {
@@ -451,8 +482,7 @@ public final class ProbeActivity extends Activity {
         Log.i(TAG, "pairing_transport_closed=true");
         worker.post(() -> {
           if (!stopping) {
-            report("连接已结束或配对失败，请检查地址和口令后重新打开应用");
-            stopSession();
+            stopSession("连接已结束或配对失败；请检查网络、地址和口令");
           }
         });
       }
@@ -464,13 +494,14 @@ public final class ProbeActivity extends Activity {
     if (stopping) return;
     if (message.equals("denied") || message.equals("busy")) {
       Log.i(TAG, message.equals("busy") ? "pairing_busy=true" : "pairing_denied=true");
-      report(message.equals("busy") ? "电脑已有连接，请稍后重试" : "配对失败：口令错误或过期");
-      stopSession(); return;
+      stopSession(message.equals("busy") ? "电脑已有连接，请稍后重试" : "配对失败：口令错误或过期");
+      return;
     }
     if (message.equals("accepted") && !authorized) {
       authorized = true;
       report("pairing_authorized=true");
       runOnUiThread(() -> {
+        if (stopping) return;
         connectionForm.setVisibility(android.view.View.GONE);
         terminalControls.setVisibility(android.view.View.VISIBLE);
         updateKeyboardLayout();
@@ -502,7 +533,7 @@ public final class ProbeActivity extends Activity {
       else return;
     }
     final String text = display;
-    runOnUiThread(() -> status.setText(text));
+    runOnUiThread(() -> { if (!stopping) status.setText(text); });
   }
 
   private abstract class DescriptionObserver implements SdpObserver {
@@ -527,6 +558,11 @@ public final class ProbeActivity extends Activity {
       @Override public void onSignalingChange(PeerConnection.SignalingState state) {}
       @Override public void onIceConnectionChange(PeerConnection.IceConnectionState state) {
         report("ice_state=" + state);
+        if (pairing != null && (state == PeerConnection.IceConnectionState.DISCONNECTED
+            || state == PeerConnection.IceConnectionState.FAILED
+            || state == PeerConnection.IceConnectionState.CLOSED)) {
+          stopSession("桌面连接已断开，会话已结束");
+        }
       }
       @Override public void onIceConnectionReceivingChange(boolean receiving) {}
       @Override public void onIceGatheringChange(PeerConnection.IceGatheringState state) {
@@ -544,7 +580,7 @@ public final class ProbeActivity extends Activity {
         worker.post(() -> attachChannel(incoming));
       }
     });
-    if (peer == null) { report("peer_creation_failed=true"); return; }
+    if (peer == null) { stopSession("桌面连接失败，会话已结束"); return; }
     peer.setRemoteDescription(new DescriptionObserver() {
       @Override public void onSetSuccess() {
         worker.post(() -> {
@@ -628,6 +664,11 @@ public final class ProbeActivity extends Activity {
 
   private void updateChannelState() {
     if (stopping) return;
+    if (pairing != null && channel != null && (channel.state() == DataChannel.State.CLOSING
+        || channel.state() == DataChannel.State.CLOSED)) {
+      stopSession("输入连接已断开，会话已结束");
+      return;
+    }
     inputChannelReady = authorized && pairing != null && channel != null
         && channel.state() == DataChannel.State.OPEN;
     updateInputControls();
@@ -653,16 +694,33 @@ public final class ProbeActivity extends Activity {
   @Override public void onStop() {
     super.onStop();
     report("activity_stopped=true");
-    stopSession();
+    stopSession("应用已离开前台，会话已结束");
   }
 
-  private void stopSession() {
+  private void stopSession() { stopSession("会话已结束"); }
+
+  private void stopSession(String reason) {
     if (!cleanupStarted.compareAndSet(false, true)) return;
     stopping = true;
     inputChannelReady = false;
     updateInputControls();
+    runOnUiThread(() -> {
+      tapActive = false;
+      // EGL release can overtake an asynchronously posted clearImage. Hide the
+      // surface immediately so an ended session never retains its last desktop.
+      renderer.setVisibility(View.INVISIBLE);
+      codeInput.setText("");
+      getSystemService(InputMethodManager.class).hideSoftInputFromWindow(terminalInput.getWindowToken(), 0);
+      status.setText(reason + "；点击重新连接建立新会话");
+      sessionButton.setText("重新连接");
+      sessionButton.setVisibility(View.VISIBLE);
+      sessionButton.setEnabled(false);
+      updateKeyboardLayout();
+    });
+    if (wifiCallback != null) connectivity.unregisterNetworkCallback(wifiCallback);
     if (worker == null) {
       if (connectivity != null) connectivity.bindProcessToNetwork(null);
+      runOnUiThread(() -> { cleanupComplete = true; sessionButton.setEnabled(true); });
       return;
     }
     worker.post(() -> {
@@ -672,7 +730,12 @@ public final class ProbeActivity extends Activity {
       if (peer != null) peer.dispose();
       if (factory != null) factory.dispose();
       connectivity.bindProcessToNetwork(null);
-      runOnUiThread(() -> { renderer.release(); egl.release(); });
+      runOnUiThread(() -> {
+        renderer.release();
+        egl.release();
+        cleanupComplete = true;
+        sessionButton.setEnabled(true);
+      });
       rtcThread.quitSafely();
     });
   }

@@ -25,6 +25,7 @@ final class PairingConnection implements AutoCloseable {
   private final Listener listener;
   private volatile SSLSocket socket;
   private volatile boolean closed;
+  private volatile long lastReceived;
   PairingConnection(Listener listener) { this.listener = listener; }
   void start(String address, String code) {
     new Thread(() -> run(address, code), "pairing-tls").start();
@@ -82,6 +83,17 @@ final class PairingConnection implements AutoCloseable {
       socket.connect(new InetSocketAddress(parts[0], port), 5000);
       socket.setSoTimeout(5000);
       socket.startHandshake();
+      lastReceived = System.nanoTime();
+      // SO_TIMEOUT only bounds reads. A separate watchdog also closes a blocked
+      // TLS write on a dead link; there is no reconnect or keepalive service.
+      Thread watchdog = new Thread(() -> {
+        while (!closed) {
+          if (System.nanoTime() - lastReceived > 20_000_000_000L) { close(); break; }
+          try { Thread.sleep(100); }
+          catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); break; }
+        }
+      }, "pairing-deadline");
+      watchdog.start();
       DataOutputStream output = new DataOutputStream(socket.getOutputStream());
       InputStream input = socket.getInputStream();
       write(output, "auth\n" + code);
@@ -90,7 +102,7 @@ final class PairingConnection implements AutoCloseable {
       byte[] header = new byte[4];
       byte[] body = null;
       int offset = 0;
-      long lastReceived = System.nanoTime(), lastPing = lastReceived, frameStarted = 0;
+      long lastPing = lastReceived, frameStarted = 0;
       while (!closed) {
         String pending = outgoing.poll();
         if (pending != null) write(output, pending);
