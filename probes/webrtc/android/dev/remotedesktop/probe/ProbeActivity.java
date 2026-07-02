@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -62,6 +64,20 @@ public final class ProbeActivity extends Activity {
   private EglBase egl;
   private SurfaceViewRenderer renderer;
   private TextView status;
+  private TextView statisticsView;
+  private final VideoStatistics statistics = new VideoStatistics();
+  private final Handler ui = new Handler(Looper.getMainLooper());
+  private final Runnable statisticsPoll = () -> collectStats();
+  // Display/receipt state belongs to the UI thread; sampling belongs to worker.
+  private long statisticsObservedNs, statisticsSequence, statisticsSaved;
+  private String statisticsDisplay;
+  private final Runnable statisticsFreshness = new Runnable() {
+    @Override public void run() {
+      if (stopping) return;
+      updateStatisticsText();
+      ui.postDelayed(this, 1000);
+    }
+  };
   private ConnectivityManager connectivity;
   private PeerConnectionFactory factory;
   private PeerConnection peer;
@@ -163,6 +179,11 @@ public final class ProbeActivity extends Activity {
     });
     sessionRow.addView(sessionButton);
     layout.addView(sessionRow);
+    statisticsView = new TextView(this);
+    statisticsView.setTextSize(12);
+    statisticsView.setMaxLines(3);
+    statisticsView.setText("视频统计 · 尚未配对，暂无样本");
+    layout.addView(statisticsView);
     layout.addView(desktop, new LinearLayout.LayoutParams(-1, 0, 1));
     createTerminalControls(layout);
     configureWindowInsets(layout);
@@ -354,6 +375,7 @@ public final class ProbeActivity extends Activity {
       }
     }
     status.setVisibility(compact ? View.GONE : View.VISIBLE);
+    statisticsView.setVisibility(compact ? View.GONE : View.VISIBLE);
     terminalKeyRow.setVisibility(compact ? View.GONE : View.VISIBLE);
     int textHeight = compact ? Math.round(36 * getResources().getDisplayMetrics().density)
         : inputRowHeight();
@@ -608,7 +630,13 @@ public final class ProbeActivity extends Activity {
               });
             }
           }, new MediaConstraints());
-          worker.postDelayed(() -> collectStats(), 2000);
+          runOnUiThread(() -> {
+            if (stopping) return;
+            statisticsObservedNs = SystemClock.elapsedRealtimeNanos();
+            statisticsView.setText("视频统计 · 等待视频样本");
+            ui.post(statisticsFreshness);
+          });
+          collectStats();
         });
       }
     }, new SessionDescription(SessionDescription.Type.OFFER, offer));
@@ -657,6 +685,18 @@ public final class ProbeActivity extends Activity {
         buffer.data.get(copied);
         String text = new String(copied, StandardCharsets.UTF_8);
         if (text.equals("echo:probe:1")) report("data_received=echo:probe:1");
+        String prefix = "stats-saved:" + statistics.session + ":";
+        if (text.startsWith(prefix)) {
+          try {
+            long saved = Long.parseLong(text.substring(prefix.length()));
+            runOnUiThread(() -> {
+              if (!stopping && saved > statisticsSaved && saved <= statisticsSequence) {
+                statisticsSaved = saved;
+                updateStatisticsText();
+              }
+            });
+          } catch (NumberFormatException ignored) { /* Not a receipt for a sampled sequence. */ }
+        }
       }
     });
     updateChannelState();
@@ -684,11 +724,53 @@ public final class ProbeActivity extends Activity {
 
   private void collectStats() {
     if (stopping || peer == null) return;
-    peer.getStats(report -> report.getStatsMap().values().forEach(stat -> {
-      if ("inbound-rtp".equals(stat.getType())) Log.i(TAG, "inbound_stats=" + stat);
-      if ("codec".equals(stat.getType())) Log.i(TAG, "codec_stats=" + stat);
+    final long requestedNs = SystemClock.elapsedRealtimeNanos();
+    // One request at a time. A missing callback makes the independent UI timer
+    // mark data stale instead of accumulating unbounded getStats requests.
+    peer.getStats(report -> worker.post(() -> {
+      if (stopping) return;
+      long observedNs = SystemClock.elapsedRealtimeNanos();
+      if (observedNs - requestedNs <= 3_000_000_000L) {
+        try {
+          VideoStatistics.Sample sample = statistics.sample(report, observedNs);
+          runOnUiThread(() -> {
+            if (stopping) return;
+            statisticsObservedNs = observedNs;
+            statisticsSequence = sample.sequence;
+            statisticsDisplay = sample.text;
+            updateStatisticsText();
+          });
+          // Telemetry cannot fill the input channel's queue on a dead link.
+          // A successful send is only queued; the separate receipt confirms a flush.
+          if (authorized && channel != null && channel.state() == DataChannel.State.OPEN
+              && channel.bufferedAmount() == 0) {
+            byte[] bytes = ("stats:1:" + sample.json).getBytes(StandardCharsets.UTF_8);
+            if (bytes.length <= 8200) channel.send(new DataChannel.Buffer(ByteBuffer.wrap(bytes), false));
+          }
+        } catch (org.json.JSONException error) {
+          runOnUiThread(() -> {
+            if (!stopping) {
+              statisticsDisplay = null;
+              statisticsView.setText("视频统计 · 样本不可用");
+            }
+          });
+        }
+      }
+      worker.postDelayed(statisticsPoll, 1000);
     }));
-    worker.postDelayed(() -> collectStats(), 2000);
+  }
+
+  private void updateStatisticsText() {
+    if (stopping) {
+      statisticsView.setText("视频统计 · 会话已结束（非实时）· 最后样本 #" + statisticsSequence
+          + " · 电脑最后确认 #" + statisticsSaved);
+    } else if (SystemClock.elapsedRealtimeNanos() - statisticsObservedNs > 3_000_000_000L) {
+      statisticsView.setText("视频统计 · 采样已过期（非实时）· 最后样本 #" + statisticsSequence
+          + " · 电脑最后确认 #" + statisticsSaved);
+    } else if (statisticsDisplay != null) {
+      statisticsView.setText(statisticsDisplay + " · 电脑已存 #" + statisticsSaved
+          + (statisticsSaved < statisticsSequence ? "（当前样本未确认）" : ""));
+    }
   }
 
   @Override public void onStop() {
@@ -715,6 +797,8 @@ public final class ProbeActivity extends Activity {
       sessionButton.setText("重新连接");
       sessionButton.setVisibility(View.VISIBLE);
       sessionButton.setEnabled(false);
+      ui.removeCallbacks(statisticsFreshness);
+      updateStatisticsText();
       updateKeyboardLayout();
     });
     if (wifiCallback != null) connectivity.unregisterNetworkCallback(wifiCallback);
@@ -724,6 +808,7 @@ public final class ProbeActivity extends Activity {
       return;
     }
     worker.post(() -> {
+      worker.removeCallbacks(statisticsPoll);
       if (pairing != null) pairing.close();
       if (video != null) video.removeSink(renderer);
       if (channel != null) { channel.unregisterObserver(); channel.close(); channel.dispose(); }

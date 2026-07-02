@@ -27,6 +27,7 @@
 #include "pc/video_track_source.h"
 #include "remote_desktop_probe/frame_source.h"
 #include "remote_desktop_probe/pairing_server.h"
+#include "remote_desktop_probe/video_statistics_log.h"
 #include "rtc_base/ssl_adapter.h"
 #include "rtc_base/thread.h"
 #if defined(WEBRTC_WIN)
@@ -135,6 +136,9 @@ class Sender : public webrtc::PeerConnectionObserver,
   }
   int Run(const std::string& offer_path, const std::string& answer_path, bool desktop, desktop_probe::PairingServer* pairing = nullptr) {
     pairing_ = pairing;
+    if (pairing_ && pairing_->Authorized() && !pairing_->Ended()) {
+      statistics_ = std::make_unique<desktop_probe::VideoStatisticsLog>();
+    }
     auto framesource = desktop_probe::CreatePatternSource();
 #if defined(WEBRTC_WIN)
     if (desktop) framesource = desktop_probe::CreateDesktopSource();
@@ -325,8 +329,22 @@ class Sender : public webrtc::PeerConnectionObserver,
     }
   }
   void OnMessage(const webrtc::DataBuffer& buffer) override {
-    if (buffer.binary || buffer.data.size() > 1024) return;
+    if (buffer.binary || buffer.data.size() > 8200) return;
     std::string message(buffer.data.cdata<char>(), buffer.data.size());
+    if (message.starts_with("stats:1:")) {
+      if (!statistics_ || state_->failed || state_->ended || !pairing_ ||
+          !pairing_->Authorized() || pairing_->Ended()) return;
+      auto receipt = statistics_->Record(message.substr(8));
+      if (receipt) {
+        auto channel = channel_;
+        signaling_->PostTask([channel, receipt = std::move(*receipt)] {
+          if (channel && channel->state() == webrtc::DataChannelInterface::kOpen &&
+              channel->buffered_amount() < 16384) channel->Send(webrtc::DataBuffer(receipt));
+        });
+      }
+      return;
+    }
+    if (message.size() > 1024) return;
     if (message.starts_with("pointer:") || message.starts_with("text:") ||
         message.starts_with("key:")) {
       if (!input_enabled_ || state_->failed || state_->ended || !pairing_ ||
@@ -357,6 +375,7 @@ class Sender : public webrtc::PeerConnectionObserver,
   std::mutex input_mutex_;
   std::deque<PendingInput> pending_inputs_;
   desktop_probe::PairingServer* pairing_ = nullptr;
+  std::unique_ptr<desktop_probe::VideoStatisticsLog> statistics_;
   std::shared_ptr<ProbeState> state_;
   std::unique_ptr<webrtc::Thread> signaling_;
   bool signaling_started_ = false;
