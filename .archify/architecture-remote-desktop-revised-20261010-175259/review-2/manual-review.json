@@ -1,0 +1,13 @@
+{
+  "visual_review": "passed",
+  "artifact_sha256": "60a6826a865a84f1883cbca5cef1fbe633ee98cb95716e0601b9bd93b37ebdec",
+  "specification_sha256": "381934276ff0efd437f8ae21f9491b75b638dc3f86a4d9a44f8d70adafe8e253",
+  "correction_rounds": 1,
+  "reviewed_captures": [
+    "remote-desktop-overview.visual-check.1440x900.light.png",
+    "remote-desktop-overview.visual-check.1440x900.dark.png",
+    "remote-desktop-overview.visual-check.2048x1320.light.png",
+    "remote-desktop-overview.visual-check.2048x1320.dark.png"
+  ],
+  "observations": "Final light/dark captures at both sizes inspected. All nodes and key routes visible, no text clipping or toolbar overlap. Overview pairing path has three bends but remains unambiguous and unobstructed. Core video and logging labels use stronger emphasis styling."
+}

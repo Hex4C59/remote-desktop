@@ -25,5 +25,5 @@
 - 结束时禁用输入并隐藏旧桌面，清理后开放“重新连接”；修复结束后仍显示“输入已发送”。仅手动重连，无后台保活。Windows 正常会话均退出0；断网后约6.75秒观测退出，时限配置与采证上界分别记录。
 - 诊断运行 `bb2c6cb291b94a8db9c7b72c44b75ed7` 在真实 Ctrl DOWN 期间断网/Home、真实鼠标 DOWN 期间结束；独立 Windows 状态确认释放且未使用应急兜底。明确仅证明部分注入故障清理，不冒充普通产品自然长按或网络检测器直接释放的因果证据。
 - 原 WLAN 已恢复、临时热点已关闭且原配置未变；测试进程/窗口/规则/计划任务为0。保留 HDC 生命周期及保存的热点条目删除未独立确认的边界。原始敏感数据留在忽略目录。
-- 两端构建、相关检查及 Standards / Spec 独立双轴审查通过；基点仍为 `a2c0b51452f586347ec90f3d7f09f6125ce8eedf`，两个轴均无剩余发现。失败运行与修复、构建和源码版本、239项证据哈希见[任务05验收](../../../docs/task05-session-reconnect.md)及[结构化证据](../../../docs/evidence/task05-session-reconnect.json)。
+- 两端构建、相关检查及 Standards / Spec 独立双轴审查通过；基点仍为 `a2c0b51452f586347ec90f3d7f09f6125ce8eedf`，两个轴均无剩余发现。失败运行与修复、构建和源码版本、239项证据哈希见[任务05验收](../../../docs/validation/task05-session-reconnect.md)及[结构化证据](../../../docs/validation/evidence/task05-session-reconnect.json)。
 - 任务06及后续性能、弱网、延迟测量未扩大验收。

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "9bbd6790-9425-4bd9-9525-65563c908e2d",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/hex4c59/Code/personal/CPP/remote-desktop/.archify/architecture-remote-desktop-components-20261010-175259/candidate.json",
+  "output": "/Users/hex4c59/Code/personal/CPP/remote-desktop/.archify/architecture-remote-desktop-components-20261010-175259/remote-desktop-components.html",
+  "specification": {
+    "sha256": "7675a95c6289181375dbde10b750165a35ecdd0482bda91267583a545ea0e252",
+    "bytes": 12368
+  },
+  "artifact": {
+    "sha256": "fc022bc8d18529ac680c481f6fc0dedc8bf9f0c0ef24e6dc1fc3deebcdb0e4e9",
+    "bytes": 775165
+  }
+}

@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$manifest = Get-Content (Join-Path $SourceRoot 'docs\webrtc-build-candidate.json') -Raw | ConvertFrom-Json
+$manifest = Get-Content (Join-Path $SourceRoot 'docs\design\webrtc-build-candidate.json') -Raw | ConvertFrom-Json
 $revision = & git -C $WebRtcRoot rev-parse HEAD
 if ($LASTEXITCODE -ne 0 -or $revision -ne $manifest.webrtc.revision) {
     throw 'WebRTC checkout does not match the project revision.'
@@ -21,8 +21,14 @@ $depotTools = Join-Path (Split-Path (Split-Path $WebRtcRoot -Parent) -Parent) 'd
 $env:Path = "$depotTools;$env:Path"
 
 $overlay = Join-Path $WebRtcRoot 'remote_desktop_probe'
-New-Item -ItemType Directory -Force -Path $overlay | Out-Null
-Copy-Item (Join-Path $SourceRoot 'probes\webrtc\*') $overlay -Recurse -Force
+# Assemble the existing libwebrtc overlay from application and probe sources.
+$androidOverlay = Join-Path $overlay 'android'
+New-Item -ItemType Directory -Force -Path $androidOverlay | Out-Null
+Copy-Item (Join-Path $SourceRoot 'scripts\webrtc\BUILD.gn') (Join-Path $overlay 'BUILD.gn') -Force
+Copy-Item (Join-Path $SourceRoot 'apps\windows\src\*') $overlay -Force
+Copy-Item (Join-Path $SourceRoot 'probes\webrtc\pattern_source.cpp') $overlay -Force
+Copy-Item (Join-Path $SourceRoot 'apps\android\src\main\AndroidManifest.xml') $androidOverlay -Force
+Copy-Item (Join-Path $SourceRoot 'apps\android\src\main\java\*') $androidOverlay -Recurse -Force
 $outputDirectory = Join-Path $WebRtcRoot 'out\remote-desktop-win'
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 $gnArguments = @'

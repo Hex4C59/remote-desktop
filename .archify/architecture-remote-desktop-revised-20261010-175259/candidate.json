@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "远程桌面 · 系统概览与扩展规划",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-remote-desktop-revised-20261010-175259/remote-desktop-overview.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Hex4C59/remote-desktop.git",
+      "revision": "f08a12898a0dcfee4942cd4270d2db6591403371",
+      "provider": "github",
+      "link_mode": "web"
+    },
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "控制端"
+        },
+        "backend": {
+          "label": "被控端"
+        },
+        "security": {
+          "label": "应用内配对"
+        },
+        "external": {
+          "label": "用户、文件与规划"
+        },
+        "cloud": {
+          "label": "公网规划"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "remote-programmer",
+      "type": "external",
+      "label": "远程编程用户",
+      "sublabel": "查看桌面 · 操作终端",
+      "icon": "person",
+      "pos": [
+        20,
+        300
+      ],
+      "size": [
+        140,
+        90
+      ],
+      "sources": [
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 19,
+          "end_line": 23,
+          "label": "首版使用场景"
+        }
+      ]
+    },
+    {
+      "id": "android-controller",
+      "type": "frontend",
+      "label": "Android 控制端",
+      "sublabel": "视频显示 · 触屏与键盘",
+      "tag": "已有实现",
+      "pos": [
+        240,
+        300
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 490,
+          "end_line": 512,
+          "label": "正常配对入口"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 614,
+          "end_line": 618,
+          "label": "视频渲染"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 730,
+          "end_line": 748,
+          "label": "接收统计与回传"
+        }
+      ]
+    },
+    {
+      "id": "pairing-session",
+      "type": "security",
+      "label": "两端应用内配对",
+      "sublabel": "TLS · 口令与信令",
+      "tag": "非独立服务",
+      "pos": [
+        300,
+        80
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": "docs/pairing-protocol.md",
+          "line": 5,
+          "end_line": 17,
+          "label": "认证与媒体身份绑定"
+        },
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 402,
+          "end_line": 411,
+          "label": "授权后启动桌面会话"
+        }
+      ]
+    },
+    {
+      "id": "windows-host",
+      "type": "backend",
+      "label": "Windows 被控端",
+      "sublabel": "采集缩放 · 输入执行",
+      "tag": "已有实现",
+      "pos": [
+        600,
+        300
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 137,
+          "end_line": 175,
+          "label": "桌面源与媒体建立"
+        },
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 331,
+          "end_line": 354,
+          "label": "授权输入与统计接收"
+        },
+        {
+          "path": "probes/webrtc/desktop_source.cpp",
+          "line": 111,
+          "end_line": 155,
+          "label": "桌面采集与帧处理"
+        }
+      ]
+    },
+    {
+      "id": "session-evidence",
+      "type": "external",
+      "label": "Windows 本地日志",
+      "sublabel": "会话统计 · JSONL 文件",
+      "tag": "由被控端写入",
+      "pos": [
+        600,
+        80
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/video_statistics_log.cpp",
+          "line": 10,
+          "end_line": 20,
+          "label": "日志文件创建"
+        },
+        {
+          "path": "probes/webrtc/video_statistics_log.cpp",
+          "line": 57,
+          "end_line": 69,
+          "label": "样本写入与刷新"
+        }
+      ],
+      "icon": "none"
+    },
+    {
+      "id": "platform-roadmap",
+      "type": "external",
+      "label": "多平台扩展规划",
+      "sublabel": "职责与公共代码待设计",
+      "tag": "规划项",
+      "pos": [
+        320,
+        500
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 107,
+          "end_line": 114,
+          "label": "当前首版边界"
+        }
+      ],
+      "icon": "flag"
+    },
+    {
+      "id": "macos-desktop",
+      "type": "external",
+      "label": "macOS 桌面端",
+      "sublabel": "控制 / 被控职责待定",
+      "tag": "预留目录",
+      "pos": [
+        20,
+        660
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 108,
+          "end_line": 108,
+          "label": "当前规格尚未包含此平台"
+        }
+      ]
+    },
+    {
+      "id": "linux-desktop",
+      "type": "external",
+      "label": "Linux 桌面端",
+      "sublabel": "控制 / 被控职责待定",
+      "tag": "预留目录",
+      "pos": [
+        320,
+        660
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 108,
+          "end_line": 108,
+          "label": "当前规格尚未包含此平台"
+        }
+      ]
+    },
+    {
+      "id": "public-connectivity",
+      "type": "cloud",
+      "label": "公网连接能力",
+      "sublabel": "穿透 / 中转方案待定",
+      "tag": "后续目标",
+      "pos": [
+        600,
+        660
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "sources": [
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 11,
+          "end_line": 11,
+          "label": "外出连接家中电脑的目标"
+        },
+        {
+          "path": ".scratch/lan-remote-desktop-mvp/spec.md",
+          "line": 107,
+          "end_line": 107,
+          "label": "首版尚无公网连接"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-operates-controller",
+      "from": "remote-programmer",
+      "to": "android-controller",
+      "label": "操作",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "pairing-request",
+      "from": "android-controller",
+      "to": "pairing-session",
+      "label": "地址与口令",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "authorized-session",
+      "from": "pairing-session",
+      "to": "windows-host",
+      "label": "认证后建会话",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "authorized-input-telemetry",
+      "from": "android-controller",
+      "to": "windows-host",
+      "label": "授权 DataChannel",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "desktop-video-feedback",
+      "from": "windows-host",
+      "to": "android-controller",
+      "label": "WebRTC 视频",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "persist-statistics",
+      "from": "windows-host",
+      "to": "session-evidence",
+      "label": "写入 JSONL",
+      "variant": "emphasis",
+      "width": 2
+    },
+    {
+      "id": "later-platform-planning",
+      "from": "windows-host",
+      "to": "platform-roadmap",
+      "label": "后续规划",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right"
+    },
+    {
+      "id": "macos-planned-role",
+      "from": "platform-roadmap",
+      "to": "macos-desktop",
+      "label": "角色待定",
+      "variant": "dashed"
+    },
+    {
+      "id": "linux-planned-role",
+      "from": "platform-roadmap",
+      "to": "linux-desktop",
+      "label": "角色待定",
+      "variant": "dashed"
+    },
+    {
+      "id": "internet-planned-solution",
+      "from": "platform-roadmap",
+      "to": "public-connectivity",
+      "label": "方案待定",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "当前可用链路",
+      "items": [
+        "Android 控制 Windows；视频由 Windows 发往 Android，输入与统计反向回传。",
+        "配对在 Android 与 Windows 应用内部实现，无独立配对服务；授权后启用桌面和输入。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "后续范围待确定",
+      "items": [
+        "实线：已有运行链路；虚线：后续规划，不表示运行时连接。",
+        "macOS 与 Linux 已预留目录，控制 / 被控职责及公共代码边界尚未确定。",
+        "公网是远期目标；尚未选定穿透、中转或协调服务。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "性能工作尚待完成",
+      "items": [
+        "接收统计保存为 Windows 工作目录中的 JSONL 文件，无数据库依赖。",
+        "任务07计划测量本地处理与操作到反馈帧耗时；真实帧关联须先验证。",
+        "720p30、十分钟基线、弱网与优化是验收目标；物理屏幕延迟仍延期。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "源码与规划证据",
+      "items": [
+        "代码引用固定于 f08a128，使用该提交中的旧目录路径。",
+        "apps/ 目录迁移尚未提交；已有应用源码内容与迁移前一致。",
+        "四平台全景来自本次目标；原规格仍以 Android → Windows 为首版范围。"
+      ]
+    }
+  ]
+}

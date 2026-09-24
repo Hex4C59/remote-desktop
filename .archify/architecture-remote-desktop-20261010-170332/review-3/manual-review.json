@@ -1,0 +1,13 @@
+{
+  "artifact_sha256": "34a2610dd59911d812ab60c92605585193b40b5f82883a396a0ec55d0ac0162a",
+  "specification_sha256": "910caf282968320ba20865bf6591b234bf387a72ccbbc5feb30e7c0d66cd4494",
+  "visual_review": "passed",
+  "correction_rounds": 2,
+  "reviewed_captures": [
+    "remote-desktop-architecture.visual-check.1440x900.light.png",
+    "remote-desktop-architecture.visual-check.1440x900.dark.png",
+    "remote-desktop-architecture.visual-check.2048x1320.light.png",
+    "remote-desktop-architecture.visual-check.2048x1320.dark.png"
+  ],
+  "observations": "All four final captures inspected; nodes, labels and connectors legible; no node clipping or toolbar overlap."
+}

@@ -1,0 +1,484 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "远程桌面 · 已实现的软件组件架构",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-remote-desktop-components-20261010-175259/remote-desktop-components.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Hex4C59/remote-desktop.git",
+      "revision": "f08a12898a0dcfee4942cd4270d2db6591403371",
+      "provider": "github",
+      "link_mode": "web"
+    },
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "Android 组件"
+        },
+        "backend": {
+          "label": "Windows 组件"
+        },
+        "security": {
+          "label": "应用内配对"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "android-pairing",
+      "type": "security",
+      "label": "配对与信令",
+      "sublabel": "口令 · TLS 证书固定",
+      "tag": "Android 自有代码",
+      "pos": [
+        40,
+        100
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/PairingConnection.java",
+          "line": 54,
+          "end_line": 86,
+          "label": "证书固定与 TLS 连接"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 516,
+          "end_line": 542,
+          "label": "授权和信令分派"
+        }
+      ]
+    },
+    {
+      "id": "windows-pairing",
+      "type": "security",
+      "label": "配对与会话授权",
+      "sublabel": "口令校验 · 单会话",
+      "tag": "Windows 自有代码",
+      "pos": [
+        540,
+        100
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/pairing_server.cpp",
+          "line": 147,
+          "end_line": 180,
+          "label": "校验口令并授权"
+        },
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 402,
+          "end_line": 411,
+          "label": "授权后启动会话"
+        }
+      ]
+    },
+    {
+      "id": "android-media",
+      "type": "frontend",
+      "label": "WebRTC 接入与解码",
+      "sublabel": "PeerConnection · DataChannel",
+      "tag": "接入代码 + libwebrtc",
+      "pos": [
+        40,
+        260
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 568,
+          "end_line": 604,
+          "label": "解码器与会话创建"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 601,
+          "end_line": 618,
+          "label": "DataChannel 与视频接收"
+        }
+      ]
+    },
+    {
+      "id": "windows-media",
+      "type": "backend",
+      "label": "WebRTC 接入与编码",
+      "sublabel": "视频轨道 · DataChannel",
+      "tag": "接入代码 + libwebrtc",
+      "pos": [
+        540,
+        260
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 160,
+          "end_line": 175,
+          "label": "媒体工厂与视频轨道"
+        },
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 331,
+          "end_line": 354,
+          "label": "通道消息分派"
+        }
+      ]
+    },
+    {
+      "id": "android-display",
+      "type": "frontend",
+      "label": "桌面画面显示",
+      "sublabel": "视频轨道 · UI 渲染",
+      "tag": "Android UI + WebRTC 渲染",
+      "pos": [
+        40,
+        420
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 144,
+          "end_line": 162,
+          "label": "渲染视图"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 614,
+          "end_line": 618,
+          "label": "视频轨道绑定渲染"
+        }
+      ]
+    },
+    {
+      "id": "windows-capture",
+      "type": "backend",
+      "label": "桌面采集与帧处理",
+      "sublabel": "DXGI · I420 转换与缩放",
+      "tag": "自有流程 + libyuv",
+      "pos": [
+        540,
+        420
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/desktop_source.cpp",
+          "line": 111,
+          "end_line": 155,
+          "label": "桌面采集与色彩转换"
+        },
+        {
+          "path": "probes/webrtc/desktop_source.cpp",
+          "line": 156,
+          "end_line": 185,
+          "label": "旋转缩放及帧产出"
+        }
+      ]
+    },
+    {
+      "id": "android-input",
+      "type": "frontend",
+      "label": "触屏与终端输入",
+      "sublabel": "点击 · 文字 · 终端按键",
+      "tag": "Android 自有代码",
+      "pos": [
+        40,
+        580
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 445,
+          "end_line": 475,
+          "label": "输入校验与通道发送"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 296,
+          "end_line": 338,
+          "label": "触屏与终端按键入口"
+        }
+      ]
+    },
+    {
+      "id": "windows-input",
+      "type": "backend",
+      "label": "输入校验与执行",
+      "sublabel": "授权复查 · Windows SendInput",
+      "tag": "Windows 自有代码",
+      "pos": [
+        540,
+        580
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 270,
+          "end_line": 287,
+          "label": "执行前复查与队列超时"
+        },
+        {
+          "path": "probes/webrtc/pointer_input.cpp",
+          "line": 36,
+          "end_line": 78,
+          "label": "点击系统输入"
+        },
+        {
+          "path": "probes/webrtc/keyboard_input.cpp",
+          "line": 30,
+          "end_line": 68,
+          "label": "键盘系统输入"
+        }
+      ]
+    },
+    {
+      "id": "android-statistics",
+      "type": "frontend",
+      "label": "接收统计与回执",
+      "sublabel": "getStats · 采样与 UI 状态",
+      "tag": "Android 自有代码",
+      "pos": [
+        40,
+        740
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 725,
+          "end_line": 748,
+          "label": "统计采样与通道回传"
+        },
+        {
+          "path": "probes/webrtc/android/dev/remotedesktop/probe/ProbeActivity.java",
+          "line": 688,
+          "end_line": 697,
+          "label": "处理日志保存回执"
+        }
+      ]
+    },
+    {
+      "id": "windows-statistics",
+      "type": "backend",
+      "label": "统计日志写入",
+      "sublabel": "本地 JSONL · 保存回执",
+      "tag": "Windows 自有代码",
+      "pos": [
+        540,
+        740
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "sources": [
+        {
+          "path": "probes/webrtc/video_statistics_log.cpp",
+          "line": 10,
+          "end_line": 20,
+          "label": "本地文件创建"
+        },
+        {
+          "path": "probes/webrtc/video_statistics_log.cpp",
+          "line": 49,
+          "end_line": 74,
+          "label": "校验写入并刷新"
+        },
+        {
+          "path": "probes/webrtc/sender.cpp",
+          "line": 334,
+          "end_line": 343,
+          "label": "保存回执经通道返回"
+        }
+      ],
+      "icon": "none"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Android 控制端应用",
+      "wraps": [
+        "android-pairing",
+        "android-media",
+        "android-display",
+        "android-input",
+        "android-statistics"
+      ],
+      "pad": 26
+    },
+    {
+      "kind": "region",
+      "label": "Windows 被控端程序",
+      "wraps": [
+        "windows-pairing",
+        "windows-media",
+        "windows-capture",
+        "windows-input",
+        "windows-statistics"
+      ],
+      "pad": 26
+    }
+  ],
+  "connections": [
+    {
+      "id": "pairing-request",
+      "to": "windows-pairing",
+      "label": "口令 / answer / ICE",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "android-pairing"
+    },
+    {
+      "id": "pairing-response",
+      "to": "android-pairing",
+      "label": "accepted / offer / ICE",
+      "variant": "emphasis",
+      "width": 2,
+      "fromSide": "top",
+      "toSide": "top",
+      "from": "windows-pairing"
+    },
+    {
+      "id": "android-session",
+      "to": "android-media",
+      "label": "授权后接入",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "android-pairing"
+    },
+    {
+      "id": "windows-session",
+      "to": "windows-media",
+      "label": "授权后启动",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "windows-pairing"
+    },
+    {
+      "id": "video-transfer",
+      "to": "android-media",
+      "label": "WebRTC 视频",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "windows-media"
+    },
+    {
+      "id": "video-render",
+      "to": "android-display",
+      "label": "解码帧",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "android-media"
+    },
+    {
+      "id": "capture-submit",
+      "to": "windows-media",
+      "label": "I420 帧",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "windows-capture"
+    },
+    {
+      "id": "input-transfer",
+      "to": "windows-input",
+      "label": "授权 DataChannel",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "android-input"
+    },
+    {
+      "id": "stats-transfer",
+      "to": "windows-statistics",
+      "label": "授权 stats:1",
+      "variant": "emphasis",
+      "width": 2,
+      "from": "android-statistics"
+    },
+    {
+      "id": "stats-receipt",
+      "to": "android-statistics",
+      "label": "stats-saved 回执",
+      "variant": "emphasis",
+      "width": 2,
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "from": "windows-statistics"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "边界与连接含义",
+      "items": [
+        "两列按应用归属分组；每个节点代表逻辑职责，不代表独立进程或服务。",
+        "横向箭头表示跨端业务消息；输入、统计与回执均复用上方 libwebrtc 会话的同一 DataChannel。",
+        "配对信令在两端应用内部处理，包含认证、SDP 与 ICE；没有第三方配对服务。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "自有代码与基础库",
+      "items": [
+        "项目负责配对、采集与帧调度、UI、输入约束、会话结束和统计保存。",
+        "libwebrtc 提供媒体与 DataChannel 基础设施；Windows 帧转换与缩放复用 libyuv。",
+        "解码、编码与渲染能力依赖实际 libwebrtc 构建及平台；图不承诺特定编码器或硬件加速。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "授权与会话结束",
+      "items": [
+        "Windows 认证成功后启动桌面会话；接收和执行输入时再次检查授权及结束状态。",
+        "输入及统计仅走授权会话；断网、离开前台或主动结束会话会清理状态，重连建立新会话。",
+        "JSONL 为 Windows 工作目录中的本地文件；保存回执确认写入刷新，不等同于持久介质落盘保证。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "范围与来源",
+      "items": [
+        "本图只展开已经实现的 Android → Windows 首版；macOS、Linux 与公网规划见系统概览。",
+        "引用固定于 f08a128 的旧 probes/webrtc 路径；当前 apps/ 源码与所引提交内容一致。",
+        "软件耗时测量与物理屏幕延迟验收仍未完成。"
+      ]
+    }
+  ]
+}

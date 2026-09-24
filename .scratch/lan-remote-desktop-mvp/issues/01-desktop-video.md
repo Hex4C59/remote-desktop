@@ -14,4 +14,4 @@
 
 ## Comments
 
-2026-09-22：实现已完成，三项验收通过。Windows真实桌面与终端文字已在Android截图核验，合成源及回显回归通过；详见[验证记录](../../../docs/task01-desktop-video.md)。Status保留分诊分类，不表示仍未完成。
+2026-09-22：实现已完成，三项验收通过。Windows真实桌面与终端文字已在Android截图核验，合成源及回显回归通过；详见[验证记录](../../../docs/validation/task01-desktop-video.md)。Status保留分诊分类，不表示仍未完成。
