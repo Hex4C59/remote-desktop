@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 
+#include "remote_desktop_probe/software_trace.h"
 #include "api/scoped_refptr.h"
 #include "api/video/i420_buffer.h"
 
@@ -18,7 +19,7 @@ class FrameSource {
  public:
   virtual ~FrameSource() = default;
   virtual bool Initialize() = 0;
-  virtual bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest) = 0;
+  virtual bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest, CaptureTiming* timing = nullptr) = 0;
   // Physical desktop rectangle of the selected, already-rotated output.
   // Synthetic sources do not permit input.
   virtual std::optional<DesktopBounds> InputBounds() const { return std::nullopt; }

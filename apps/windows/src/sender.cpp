@@ -134,8 +134,12 @@ class Sender : public webrtc::PeerConnectionObserver,
       signaling_->Stop();
     }
   }
-  int Run(const std::string& offer_path, const std::string& answer_path, bool desktop, desktop_probe::PairingServer* pairing = nullptr) {
+  int Run(const std::string& offer_path, const std::string& answer_path, bool desktop, desktop_probe::PairingServer* pairing = nullptr, const std::string& trace_directory = "") {
     pairing_ = pairing;
+    if (!trace_directory.empty()) {
+      trace_ = std::make_unique<desktop_probe::SoftwareTrace>(trace_directory);
+      if (!trace_->valid()) { std::cerr << "software_trace_unavailable=true\n"; return 1; }
+    }
     if (pairing_ && pairing_->Authorized() && !pairing_->Ended()) {
       statistics_ = std::make_unique<desktop_probe::VideoStatisticsLog>();
     }
@@ -259,8 +263,19 @@ class Sender : public webrtc::PeerConnectionObserver,
       }
       if (state_->answer_applied) {
         if (connected_at == Clock::time_point::max()) connected_at = Clock::now();
-        if (!framesource->Capture(latest)) return 1;
-        if (latest) { source_->Push(latest); ++frames; }
+        desktop_probe::CaptureTiming timing;
+        auto* observation = trace_ ? &timing : nullptr;
+        desktop_probe::TimedStage total(observation ? &timing.total_ns : nullptr);
+        desktop_probe::TimedStage capture(observation ? &timing.capture_ns : nullptr);
+        const bool captured = framesource->Capture(latest, observation);
+        capture.Stop();
+        if (captured && latest) {
+          desktop_probe::TimedStage submit(observation ? &timing.submit_ns : nullptr);
+          source_->Push(latest); ++frames;
+        }
+        total.Stop();
+        if (trace_) trace_->Record(timing, latest ? latest->width() : 0, latest ? latest->height() : 0);
+        if (!captured) return 1;
 #if defined(WEBRTC_WIN)
         if (pointer && latest) {
           input_enabled_ = true;
@@ -336,8 +351,9 @@ class Sender : public webrtc::PeerConnectionObserver,
           !pairing_->Authorized() || pairing_->Ended()) return;
       auto receipt = statistics_->Record(message.substr(8));
       if (receipt) {
+        if (trace_) trace_->SetReceiverSample(receipt->session, receipt->sequence);
         auto channel = channel_;
-        signaling_->PostTask([channel, receipt = std::move(*receipt)] {
+        signaling_->PostTask([channel, receipt = std::move(receipt->receipt)] {
           if (channel && channel->state() == webrtc::DataChannelInterface::kOpen &&
               channel->buffered_amount() < 16384) channel->Send(webrtc::DataBuffer(receipt));
         });
@@ -376,6 +392,7 @@ class Sender : public webrtc::PeerConnectionObserver,
   std::deque<PendingInput> pending_inputs_;
   desktop_probe::PairingServer* pairing_ = nullptr;
   std::unique_ptr<desktop_probe::VideoStatisticsLog> statistics_;
+  std::unique_ptr<desktop_probe::SoftwareTrace> trace_;
   std::shared_ptr<ProbeState> state_;
   std::unique_ptr<webrtc::Thread> signaling_;
   bool signaling_started_ = false;
@@ -388,7 +405,7 @@ class Sender : public webrtc::PeerConnectionObserver,
 
 int main(int argc, char** argv) {
   if (argc != 2 && argc != 3 && argc != 4) {
-    std::cerr << "Usage: sender --serve OR sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp [pattern|desktop]\n";
+    std::cerr << "Usage: sender --serve [--software-trace DIRECTORY] OR sender OFFER_OUTPUT.sdp ANSWER_INPUT.sdp [pattern|desktop]\n";
     return 2;
   }
 #if defined(WEBRTC_WIN)
@@ -399,20 +416,23 @@ int main(int argc, char** argv) {
 #pragma clang unsafe_buffer_usage begin
   const std::span<char*> arguments(argv, static_cast<size_t>(argc));
 #pragma clang unsafe_buffer_usage end
-  if (argc == 2) {
-    if (std::string(arguments[1]) != "--serve" || !webrtc::InitializeSSL()) return 2;
+  if (std::string(arguments[1]) == "--serve") {
+    if (argc != 2 && (argc != 4 || std::string(arguments[2]) != "--software-trace")) return 2;
+    const std::string trace_directory = argc == 4 ? arguments[3] : "";
+    if (!webrtc::InitializeSSL()) return 2;
     int result = 1;
     {
       desktop_probe::PairingServer pairing;
       if (!pairing.Start()) { std::cerr << "pairing_start_failed=true\n"; }
       else {
         while (!pairing.Authorized() && !pairing.Ended()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        if (pairing.Authorized() && !pairing.Ended()) { Sender sender; result = sender.Run("", "", true, &pairing); }
+        if (pairing.Authorized() && !pairing.Ended()) { Sender sender; result = sender.Run("", "", true, &pairing, trace_directory); }
       }
     }
     webrtc::CleanupSSL();
     return result;
   }
+  if (argc == 2) return 2;
   const std::string mode = argc == 4 ? arguments[3] : "pattern";
   if (mode != "pattern" && mode != "desktop") {
     std::cerr << "Unknown source mode\n";

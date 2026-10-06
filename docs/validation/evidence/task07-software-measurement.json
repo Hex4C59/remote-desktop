@@ -1,0 +1,79 @@
+{
+  "schema": "software-measurement-implementation-v1",
+  "checked_date": "2026-10-12",
+  "source_base": "1e53fec6b094ce918bdbde8a798f791f35db3a8c",
+  "source_bundle_sha256": "fcd000b2839af6a33b078b61056548100e7045387ebabb744398b63589723cee",
+  "dependency_manifest_sha256": "1ec8c6c890823343a4acd32ea8f6bdfc6e410ee40fb9bd1a18c9f223e790b2d7",
+  "webrtc_revision": "a3553f1c82a5580c91ad1f82baab4b11ed4b34b6",
+  "builds": {
+    "windows": {
+      "configuration": "Release x64",
+      "passed": true,
+      "sender_sha256": "27671966a9b1189368384122dd98c147e1cb2091867b039c765714aeef728405",
+      "pe_machine": "AMD64"
+    },
+    "android": {
+      "configuration": "Release arm64",
+      "passed": true,
+      "local_jobs": 4,
+      "apk_sha256": "917cdd07ccf92b91ffd3130ab3ab5f3bd1da3cfd9c4c9f122ae477fee0189357",
+      "native_abi": [
+        "arm64-v8a"
+      ],
+      "elf_machine": "AArch64"
+    }
+  },
+  "checks": {
+    "python_unit_tests": {
+      "passed": true,
+      "count": 32,
+      "data": "synthetic"
+    },
+    "review_import_regression": "passed",
+    "review_ui": "synthetic_navigation_and_save_verified",
+    "windows_writer_smoke": {
+      "scope": "synthetic_writer_only",
+      "attempts": 1000,
+      "saved": 138,
+      "dropped": 862,
+      "passed": true
+    },
+    "existing_evidence_overwrite_refused": true,
+    "powershell_syntax": "passed",
+    "bash_syntax": "passed"
+  },
+  "runtime": {
+    "hdc_targets": 0,
+    "adb_devices": 0,
+    "deployed_this_run": false,
+    "real_feedback_formal_attempts": 0,
+    "measurement_overhead_runs": 0,
+    "completed_600s_baselines": 0,
+    "current_artifact_device_regressions": "not_run"
+  },
+  "review": {
+    "standards_hard_violations": 0,
+    "standards_correctness_findings_fixed": 4,
+    "standards_smell_addressed": 1,
+    "spec_findings_fixed": 3,
+    "remaining_actionable_findings": 0
+  },
+  "acceptance": {
+    "task07": false,
+    "task08": false,
+    "physical_display_latency": false,
+    "physical_operation_feedback_latency": false
+  },
+  "limitations": [
+    "hardware feedback association unverified",
+    "formal and overhead sampling not executed",
+    "ten-minute baseline not executed",
+    "physical display latency deferred"
+  ],
+  "private_evidence_sha256": {
+    "android-delivery.log": "9faf2e5c2b94d9a491a3a9645b7b98f7ca83f1db3ce6dd2b5c6feceec1ec7ff3",
+    "windows-delivery.log": "4fa568ea2b426e82ef2bac1fcc58c0ebb72ddc19a28adc512a2f8e10c4cb9453",
+    "windows-delivery-checks.log": "622874816d0c8c8a2a88dee3277c679ad154daf3be5330bcbef6a86af7559ffc",
+    "delivery-smoke-stages.jsonl": "af35ca057ec7dbb5d023f2d9a47f75139986ee0bd9aed61d10ae606b39fb9ecf"
+  }
+}

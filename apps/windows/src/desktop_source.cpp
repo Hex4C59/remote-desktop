@@ -108,14 +108,30 @@ class DesktopSource final : public FrameSource {
 
   std::optional<DesktopBounds> InputBounds() const override { return bounds_; }
 
-  bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest) override {
+  bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest, CaptureTiming* timing) override {
     DXGI_OUTDUPL_FRAME_INFO info{};
     ComPtr<IDXGIResource> resource;
+    if (timing) {
+      timing->frame_id = frame_id_;
+      timing->acquire_status = "failed";
+      const bool swap = rotation_ == libyuv::kRotate90 || rotation_ == libyuv::kRotate270;
+      timing->source_width = swap ? texture_height_ : texture_width_;
+      timing->source_height = swap ? texture_width_ : texture_height_;
+    }
+    TimedStage acquire(timing ? &timing->acquire_ns : nullptr);
     HRESULT hr = duplication_->AcquireNextFrame(0, &info, &resource);
+    acquire.Stop();
     // Static desktops yield no new texture. Keep the last immutable image and
     // submit it at the sender cadence; this also permits retransmission/keyframes.
-    if (hr == DXGI_ERROR_WAIT_TIMEOUT) return true;
+    if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
+      if (timing) {
+        timing->outcome = latest ? "reused" : "empty";
+        timing->acquire_status = "timeout";
+      }
+      return true;
+    }
     if (FAILED(hr)) return Failed("AcquireNextFrame", hr);
+    if (timing) timing->acquire_status = "acquired";
     AcquiredFrame acquired(duplication_.Get());
     ComPtr<ID3D11Texture2D> texture;
     hr = resource.As(&texture);
@@ -140,10 +156,13 @@ class DesktopSource final : public FrameSource {
         desc.Height != static_cast<UINT>(texture_height_)) {
       return Failed("DisplaySizeChangedRestartRequired", E_FAIL);
     }
+    TimedStage readback(timing ? &timing->readback_ns : nullptr);
     context_->CopyResource(staging_.Get(), texture.Get());
     D3D11_MAPPED_SUBRESOURCE mapped{};
     hr = context_->Map(staging_.Get(), 0, D3D11_MAP_READ, 0, &mapped);
+    readback.Stop();
     if (FAILED(hr)) return Failed("Map", hr);
+    TimedStage convert(timing ? &timing->convert_ns : nullptr);
     auto converted = webrtc::I420Buffer::Create(texture_width_, texture_height_);
     // DXGI BGRA bytes match libyuv's little-endian ARGB memory layout. Respect
     // GPU row padding; the library owns all plane/pointer arithmetic.
@@ -151,6 +170,7 @@ class DesktopSource final : public FrameSource {
         static_cast<int>(mapped.RowPitch), converted->MutableDataY(), converted->StrideY(),
         converted->MutableDataU(), converted->StrideU(),
         converted->MutableDataV(), converted->StrideV(), texture_width_, texture_height_);
+    convert.Stop();
     context_->Unmap(staging_.Get(), 0);
     hr = acquired.Release();
     if (FAILED(hr)) return Failed("ReleaseFrame", hr);
@@ -159,6 +179,7 @@ class DesktopSource final : public FrameSource {
     const int width = swap_dimensions ? texture_height_ : texture_width_;
     const int height = swap_dimensions ? texture_width_ : texture_height_;
     if (rotation_ != libyuv::kRotate0) {
+      TimedStage rotate(timing ? &timing->rotate_ns : nullptr);
       auto rotated = webrtc::I420Buffer::Create(width, height);
       result = libyuv::I420Rotate(converted->DataY(), converted->StrideY(),
           converted->DataU(), converted->StrideU(), converted->DataV(), converted->StrideV(),
@@ -171,12 +192,14 @@ class DesktopSource final : public FrameSource {
     const double scale = std::min({1.0, 1280.0 / width, 720.0 / height});
     const int output_width = std::max(2, static_cast<int>(width * scale) & ~1);
     const int output_height = std::max(2, static_cast<int>(height * scale) & ~1);
+    TimedStage scale_stage(timing ? &timing->scale_ns : nullptr);
     auto output = webrtc::I420Buffer::Create(output_width, output_height);
     result = libyuv::I420Scale(converted->DataY(), converted->StrideY(),
         converted->DataU(), converted->StrideU(), converted->DataV(), converted->StrideV(),
         width, height, output->MutableDataY(), output->StrideY(),
         output->MutableDataU(), output->StrideU(), output->MutableDataV(), output->StrideV(),
         output_width, output_height, libyuv::kFilterBox);
+    scale_stage.Stop();
     if (result != 0) return Failed("I420Scale", E_FAIL);
     if (!latest) {
       std::cout << "desktop_frame=true capture_width=" << width << " capture_height=" << height
@@ -184,6 +207,9 @@ class DesktopSource final : public FrameSource {
                 << " conversion=BGRA-I420 scale_filter=box" << std::endl;
     }
     latest = std::move(output);
+    ++frame_id_;
+    if (timing) { timing->outcome = "fresh"; timing->frame_id = frame_id_;
+      timing->acquire_status = "failed"; }
     return true;
   }
  private:
@@ -192,6 +218,7 @@ class DesktopSource final : public FrameSource {
   ComPtr<ID3D11DeviceContext> context_;
   ComPtr<IDXGIOutputDuplication> duplication_;
   ComPtr<ID3D11Texture2D> staging_;
+  uint64_t frame_id_ = 0;
   int texture_width_ = 0;
   int texture_height_ = 0;
   libyuv::RotationMode rotation_ = libyuv::kRotate0;

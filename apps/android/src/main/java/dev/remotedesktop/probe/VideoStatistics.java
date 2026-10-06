@@ -39,6 +39,7 @@ final class VideoStatistics {
     String state = matches == 0 ? "no_sample" : "ambiguous_stream";
     String label = matches == 0 ? "等待视频样本" : "多个视频流，统计不可用";
     Double windowMs = null, fps = null, kbps = null, decodeMs = null;
+    Long receiverWindowNs = null;
     JSONObject raw = new JSONObject();
     String identity = null;
     if (matches == 1) {
@@ -69,7 +70,8 @@ final class VideoStatistics {
           if (!identity.equals(identity(previous))) {
             state = "stream_changed"; label = "视频流已变化，重新采样";
           } else {
-            double elapsedMs = (observedNs - previousObservedNs) / 1_000_000.0;
+            receiverWindowNs = observedNs - previousObservedNs;
+            double elapsedMs = receiverWindowNs / 1_000_000.0;
             windowMs = (inbound.getTimestampUs() - previous.getTimestampUs()) / 1000.0;
             Long oldBytes = counter(previous.getMembers(), "bytesReceived");
             Long oldFrames = counter(previous.getMembers(), "framesDecoded");
@@ -111,7 +113,9 @@ final class VideoStatistics {
         + " · 库冻结累计 " + freezes + " · 丢包累计 " + losses;
     JSONObject record = new JSONObject();
     record.put("schema", 1).put("session", session).put("seq", number).put("state", state)
-        .put("observed_elapsed_ns", observedNs).put("stream", identity == null ? JSONObject.NULL : identity)
+        .put("observed_elapsed_ns", observedNs)
+        .put("receiver_observed_ns", Long.toString(observedNs))
+        .put("receiver_window_ns", receiverWindowNs == null ? JSONObject.NULL : Long.toString(receiverWindowNs)).put("stream", identity == null ? JSONObject.NULL : identity)
         .put("window_ms", nullable(windowMs)).put("decoded_fps", nullable(fps))
         .put("received_payload_kbps", nullable(kbps)).put("mean_decode_ms", nullable(decodeMs))
         .put("raw", raw).put("ui", text);

@@ -3,7 +3,7 @@ import("//webrtc.gni")
 if (is_android) {
   import("//build/config/android/rules.gni")
   rtc_android_library("receiver_java") {
-    sources = [ "android/dev/remotedesktop/probe/ProbeActivity.java", "android/dev/remotedesktop/probe/PairingConnection.java", "android/dev/remotedesktop/probe/VideoStatistics.java" ]
+    sources = [ "android/dev/remotedesktop/probe/ProbeActivity.java", "android/dev/remotedesktop/probe/PairingConnection.java", "android/dev/remotedesktop/probe/VideoStatistics.java", "android/dev/remotedesktop/probe/SoftwareLatency.java" ]
     deps = [
       "//sdk/android:base_java",
       "//sdk/android:default_video_codec_factory_java",
@@ -24,11 +24,11 @@ if (is_android) {
 }
 
 # The build scripts assemble apps/windows/src, apps/android/src/main and
-# probes/webrtc/pattern_source.cpp into <webrtc src>/remote_desktop_probe.
+# probes/webrtc/*.cpp into <webrtc src>/remote_desktop_probe.
 # Paths below are relative to that generated overlay, not this source directory.
 # Existing sender/receiver targets and artifact names remain unchanged.
 rtc_executable("sender") {
-  sources = [ "sender.cpp", "frame_source.h", "pattern_source.cpp", "pairing_server.h", "video_statistics_log.h", "video_statistics_log.cpp" ]
+  sources = [ "sender.cpp", "frame_source.h", "pattern_source.cpp", "pairing_server.h", "video_statistics_log.h", "video_statistics_log.cpp", "software_trace.h", "software_trace.cpp" ]
   deps = [
     "//api:create_modular_peer_connection_factory",
     "//api:data_channel_interface",
@@ -53,5 +53,17 @@ rtc_executable("sender") {
     sources += [ "desktop_source.cpp", "pairing_server.cpp", "pointer_input.cpp", "pointer_input.h", "physical_coordinates.h", "keyboard_input.cpp", "keyboard_input.h" ]
     libs = [ "d3d11.lib", "dxgi.lib", "ws2_32.lib", "user32.lib" ]
     deps += [ "//rtc_base:win32_socket_init", "//rtc_base:ssl", "//third_party/boringssl" ]
+  }
+}
+
+# Exercises the bounded writer only; it is not desktop/media runtime evidence.
+rtc_executable("software_trace_smoke") {
+  sources = [ "software_trace_smoke.cpp", "software_trace.h", "software_trace.cpp" ]
+  deps = [ "//third_party/jsoncpp" ]
+}
+
+if (is_win) {
+  group("windows_validation") {
+    deps = [ ":sender", ":software_trace_smoke" ]
   }
 }

@@ -98,12 +98,16 @@ public final class ProbeActivity extends Activity {
   private boolean answerPublished;
   private final Runnable publishAnswer = () -> writeAnswer();
   private volatile boolean firstFrameRendered, inputChannelReady;
+  private volatile long firstVideoNs;
   private final AtomicInteger pendingInputs = new AtomicInteger();
   private LinearLayout terminalControls, terminalKeyRow;
   private EditText terminalInput;
   private Button sendTextButton;
   private final ArrayList<Button> terminalKeys = new ArrayList<>();
   private boolean textPending, dockedKeyboardVisible, statusBarsHidden;
+  private volatile SoftwareLatency softwareLatency;
+  private long measurementStatisticsSequence;
+  private Button measurementButton;
   private volatile int pointerGeometry;
   // Gesture state and renderer dimensions belong to the UI thread.
   private int displayedWidth, displayedHeight, tapPointerId, touchSlop;
@@ -212,6 +216,7 @@ public final class ProbeActivity extends Activity {
     egl = EglBase.create();
     renderer.init(egl.getEglBaseContext(), new RendererCommon.RendererEvents() {
       @Override public void onFirstFrameRendered() {
+        firstVideoNs = SystemClock.elapsedRealtimeNanos();
         firstFrameRendered = true;
         report("first_frame_rendered=true");
         updateInputControls();
@@ -340,6 +345,10 @@ public final class ProbeActivity extends Activity {
       terminalKeys.add(button);
     }
     terminalControls.addView(terminalKeyRow);
+    measurementButton = new Button(this);
+    measurementButton.setText("软件测量（未开启）");
+    measurementButton.setOnClickListener(view -> configureMeasurement());
+    terminalControls.addView(measurementButton);
     layout.addView(terminalControls);
     updateInputControls();
   }
@@ -433,6 +442,35 @@ public final class ProbeActivity extends Activity {
     });
   }
 
+  private void configureMeasurement() {
+    if (!inputReady()) return;
+    if (softwareLatency == null) {
+      try {
+        softwareLatency = new SoftwareLatency(getExternalFilesDir(null), statistics.session,
+            () -> ui.post(() -> { if (!stopping) measurementButton.setText(softwareLatency.display()); }));
+        worker.post(() -> { if (!stopping && video != null) video.addSink(softwareLatency); });
+      } catch (IOException error) { status.setText("无法创建软件测量目录"); return; }
+    }
+    if (softwareLatency.busy()) { status.setText("当前样本尚未完成"); return; }
+    LinearLayout fields = new LinearLayout(this);
+    fields.setOrientation(LinearLayout.VERTICAL);
+    EditText category = new EditText(this);
+    category.setHint("操作分类，例如 compile_start"); category.setText("manual");
+    EditText expected = new EditText(this);
+    expected.setHint("预期看到的完整反馈");
+    android.widget.CheckBox warmup = new android.widget.CheckBox(this);
+    warmup.setText("预热样本");
+    fields.addView(category); fields.addView(expected); fields.addView(warmup);
+    new android.app.AlertDialog.Builder(this).setTitle("记录下一次桌面操作")
+        .setView(fields).setNegativeButton("取消", null)
+        .setNeutralButton("开始十分钟基线", (dialog, which) -> {
+          if (!softwareLatency.startBaseline(firstVideoNs)) status.setText("请等待30秒预热，或建立新实验会话");
+        })
+        .setPositiveButton("准备采样", (dialog, which) -> {
+          softwareLatency.arm(category.getText().toString(), expected.getText().toString(), warmup.isChecked());
+        }).show();
+  }
+
   private interface InputResult { void complete(boolean sent); }
 
   private void finishInput(InputResult result, boolean sent, String message) {
@@ -443,7 +481,7 @@ public final class ProbeActivity extends Activity {
   }
 
   private void queueInput(String message, int geometry, InputResult result) {
-    if (!inputReady()) {
+    if (!inputReady() || (softwareLatency != null && !softwareLatency.allowsInput())) {
       finishInput(result, false, "桌面尚未连接或会话已结束；未发送输入");
       return;
     }
@@ -456,9 +494,11 @@ public final class ProbeActivity extends Activity {
     // retry automatically: a delayed Enter or Ctrl+C could affect another task.
     if (!worker.post(() -> {
       boolean sent = false;
+      boolean measured = false;
       String feedback = "输入未发送，请重试；文本草稿已保留";
       try {
-        if (!inputReady() || !authorized || pairing == null || channel == null
+        if (!inputReady() || (softwareLatency != null && !softwareLatency.allowsInput())
+            || !authorized || pairing == null || channel == null
             || channel.state() != DataChannel.State.OPEN) {
           feedback = "会话已结束；未发送输入";
         } else if (geometry >= 0 && geometry != pointerGeometry) {
@@ -471,11 +511,14 @@ public final class ProbeActivity extends Activity {
           if ((geometry >= 0 && buffered != 0) || buffered + bytes.length > 16384) {
             feedback = "输入通道繁忙，请重试；文本草稿已保留";
           } else {
+            if (softwareLatency != null) measured = softwareLatency.beforeSend(message.substring(0, message.indexOf(':')),
+                measurementStatisticsSequence);
             sent = channel.send(new DataChannel.Buffer(ByteBuffer.wrap(bytes), false));
             if (sent) feedback = geometry >= 0 ? null : "输入已发送";
           }
         }
       } finally {
+        if (measured && softwareLatency != null) softwareLatency.afterSend(sent);
         pendingInputs.decrementAndGet();
         finishInput(result, sent, feedback);
       }
@@ -733,6 +776,7 @@ public final class ProbeActivity extends Activity {
       if (observedNs - requestedNs <= 3_000_000_000L) {
         try {
           VideoStatistics.Sample sample = statistics.sample(report, observedNs);
+            measurementStatisticsSequence = sample.sequence;
           runOnUiThread(() -> {
             if (stopping) return;
             statisticsObservedNs = observedNs;
@@ -810,7 +854,11 @@ public final class ProbeActivity extends Activity {
     worker.post(() -> {
       worker.removeCallbacks(statisticsPoll);
       if (pairing != null) pairing.close();
-      if (video != null) video.removeSink(renderer);
+      if (video != null) {
+        video.removeSink(renderer);
+        if (softwareLatency != null) video.removeSink(softwareLatency);
+      }
+      if (softwareLatency != null) softwareLatency.close();
       if (channel != null) { channel.unregisterObserver(); channel.close(); channel.dispose(); }
       if (peer != null) peer.dispose();
       if (factory != null) factory.dispose();

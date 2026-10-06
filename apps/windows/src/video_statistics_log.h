@@ -16,7 +16,12 @@ class VideoStatisticsLog {
  public:
   VideoStatisticsLog();
   ~VideoStatisticsLog();
-  std::optional<std::string> Record(const std::string& payload);
+  struct SavedSample {
+    std::string session;
+    uint64_t sequence;
+    std::string receipt;
+  };
+  std::optional<SavedSample> Record(const std::string& payload);
  private:
   using Clock = std::chrono::steady_clock;
   std::mutex mutex_;

@@ -12,7 +12,7 @@ class PatternSource final : public FrameSource {
     std::cout << "source=pattern output_width=640 output_height=360" << std::endl;
     return true;
   }
-  bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest) override {
+  bool Capture(webrtc::scoped_refptr<webrtc::I420Buffer>& latest, CaptureTiming* timing) override {
     auto buffer = webrtc::I420Buffer::Create(640, 360);
     webrtc::I420Buffer::SetBlack(buffer.get());
     libyuv::I420Rect(buffer->MutableDataY(), buffer->StrideY(),
@@ -21,10 +21,12 @@ class PatternSource final : public FrameSource {
                     left_, 0, 120, 360, 180, 90, 180);
     left_ = (left_ + 4) % 520;
     latest = std::move(buffer);
+    if (timing) { timing->outcome = "fresh"; timing->frame_id = ++frame_id_; timing->source_width = 640; timing->source_height = 360; }
     return true;
   }
  private:
   int left_ = 0;
+  uint64_t frame_id_ = 0;
 };
 }  // namespace
 std::unique_ptr<FrameSource> CreatePatternSource() {

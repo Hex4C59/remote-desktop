@@ -1,0 +1,59 @@
+# 软件耗时采集与反馈帧复核
+
+当前方法支持普通桌面与终端操作。每次输入前写明预期视觉反馈，变化检测帮助定位候选，人工确认反馈边界。它不测量物理屏幕呈现；两类物理显示延迟仍延期、未验收。
+
+## 计时与证据
+
+Windows 通过 `sender --serve --software-trace <新目录>` 开启阶段日志，默认关闭。`software-stages-v1` 的 `capture_ns` 包含 `FrameSource::Capture` 整体调用；其内部依次观测 `AcquireNextFrame`、GPU 复制与 `Map`、ARGB→I420 转换、需要时的旋转、缩放。`submit_ns` 截止同步 `Push` 返回，`total_ns` 包含采集和提交，不含后台写日志，也不代表编码完成。单位是纳秒，数值为十进制字符串；未执行阶段为 `null`。
+
+`fresh` 的源帧编号递增；`reused` 表示 `AcquireNextFrame` 等待超时后提交旧帧，`empty` 表示超时且尚无旧帧，`failed` 表示失败。复用帧保留旧编号，转换、旋转和缩放不适用。独立的 `acquire_status` 区分取得新帧、等待超时、失败和不适用。日志同时记录源尺寸、提交尺寸及最近成功保存的任务06统计序号；序号关联是近似窗口关联，不是跨机器时钟同步。后台写入队列最多128条，总文件预算32 MiB；丢失计数、写入失败和结束记录用于判断日志完整性。
+
+Android 在授权、输入队列和缓冲量校验通过后、调用 `DataChannel.send` 前记录 `elapsedRealtimeNanos`；独立 `VideoSink.onFrame` 入口记录同机终点。测量按钮默认未开启，启用后只对明确准备的下一次操作采样，同一时刻最多一个操作，采样期间拒绝新输入。
+
+每次操作保留前1秒和后5秒的完整解码 I420 图像（无损 zlib），不会在会话中回传图像。回调只取得入口时间、保留引用并交接，复制、压缩和保存由独立线程执行。最多两个项目持有的待处理帧引用（包括正在处理者），前序图像环32 MiB，每张图像最大4 MiB，项目临时图像缓冲与环合计低于64 MiB；解码器自身内存不计入此预算。超大图像、队列溢出、转换失败、保存失败及前序环淘汰都有缺口或失败记录。
+
+## 先验证关联，再正式采样
+
+1. 重新核对两端系统、设备标识、部署文件 SHA256、网络和 Windows 桌面状态。Windows 必须已登录、未锁定；HDC/ADB 必须显式选择本次可见的设备标识。连接配置和本机源码路径写入用户本地配置。
+2. 正常配对，分别在普通窗口和终端验证指针点击、文本提交、Enter、Ctrl+C 的视觉反馈关联。通过测量按钮填写分类、完整反馈判据，准备后等至少1秒，再执行一次操作；等待5秒窗口结束再进行下一次输入。
+3. 方法验证通过后固定四类可辨认操作，每类1次预热、5次正式尝试，正式共20次。记录预期反馈，保留所有尝试，包括发送失败、超时、不可判读、不完整、会话结束和未执行；不能删除失败后补齐成功数量。
+4. 会话结束后回收控制端应用的 `externalFilesDir/software-measurement/<实验UUID>`。Android 原始证据目录由系统提供，按本次 HDC/ADB 设备实际路径回收，不假定卓易通映射位置。Windows 回收阶段日志和对应 `receiver-statistics-*.jsonl`；原始图像、地址、配对日志保留在 `.local/` 或 `build/`。
+5. 生成离线页面（依赖已安装的 ffmpeg），逐帧查看完整证据，选择连续的“最后尚无完整反馈”和“最早完整反馈”两帧。变化候选不能替代逐帧判断。页面显示入口时间及相对输入时间，导出 JSON 才保存选择。复读全部正式边界，填写复读者；同人复读自动明确标注。
+
+```sh
+python3 scripts/latency/software.py review .local/run/experiment .local/run/review
+# 用浏览器打开 .local/run/review/index.html，导出 software-review.json
+python3 scripts/latency/software.py analyze .local/run/experiment .local/run/software-review.json .local/run/feedback.json
+python3 scripts/latency/software.py stages .local/run/stages.jsonl .local/run/stages-analysis.json
+```
+
+输出包含所选帧观察耗时 `(反馈入口 − 发送前时间)`、相邻判读帧形成的区间、各状态数量、正式有效样本的中位数与范围。下界早于发送时刻时截为0；它不是屏幕显示时间或完整触摸链路延迟。反馈边界与缺口相交或尺寸/旋转变化时自动标为不完整。索引和所选原始帧 SHA256 绑定复核，旧会话标注不能用于新证据。
+
+## 测量开销对照
+
+同一设备、桌面负载、目标配置分别运行关闭和开启测量的120秒对照。关闭组不传 `--software-trace`、不启用 Android 测量；开启组开启两端观测，并按相同操作节奏采集图像。每组使用独立会话，明确记录所用任务06序号及控制端单调时钟窗口。
+
+为每组保存 `measurement-overhead-run-v1` JSON，字段为 `session`、`clock: elapsedRealtimeNanos`、`start_ns`、`end_ns`（相差120000000000）、`measurement_enabled`（布尔值）、相同的 `workload_id` 和 `device_setup_id`。这些窗口是已观测控制端时间，不能填写墙钟或 Windows 时间。汇总程序按实际相交窗口加权，包含0 FPS冻结窗口，不把不可用样本补为有效值。
+
+```sh
+python3 scripts/latency/baseline.py overhead .local/off/statistics.jsonl .local/on/statistics.jsonl .local/off/window.json .local/on/window.json .local/on/feedback.json .local/overhead.json
+```
+
+对照报告包含解码帧率、接收负载码率、解码耗时变化、库冻结统计、复制/压缩/写入耗时及采样缺口。所有软件反馈耗时均来自开启测量的运行；开销对照未运行时，必须公开保留缺口。
+
+## 构建与检查
+
+固定依赖版本继续使用仓库清单。Android 首次构建使用 `scripts/linux/build-webrtc-probe.sh <本地固定源码目录> 4`。Windows 构建脚本同时编译 `sender` 与 `software_trace_smoke`；后者只验证有界日志写入和会话关联，不访问桌面，也不构成媒体运行证据。
+
+```powershell
+scripts\windows\check-software-trace.ps1 -WebRtcRoot <固定源码目录> -OutputDirectory <全新忽略目录>
+```
+
+```sh
+python3 -m unittest discover -s scripts/latency -v
+node scripts/latency/test-review-import.cjs
+```
+
+正常配对、错误口令、触屏与高DPI、终端按键、切后台、断网、结束和手动重连需要在当前产物上另做运行验证。构建成功不能代替这些检查。
+
+新 checkout 若缺少 Siso 后端配置，构建脚本安装仓库的本地配置模板；已有配置保留。固定 Siso 使用 `-local_jobs` 控制并发，`-remote_jobs 0` 关闭远程编译。

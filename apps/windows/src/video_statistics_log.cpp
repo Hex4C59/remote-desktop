@@ -33,7 +33,7 @@ VideoStatisticsLog::~VideoStatisticsLog() {
   file_.flush();
 }
 
-std::optional<std::string> VideoStatisticsLog::Record(const std::string& payload) {
+std::optional<VideoStatisticsLog::SavedSample> VideoStatisticsLog::Record(const std::string& payload) {
   std::lock_guard lock(mutex_);
   const auto now = Clock::now();
   if (!file_ || payload.size() > 8192 || written_ >= 16 * 1024 * 1024 ||
@@ -71,6 +71,6 @@ std::optional<std::string> VideoStatisticsLog::Record(const std::string& payload
   sequence_ = sequence;
   session_ = session;
   last_record_ = now;
-  return "stats-saved:" + session + ":" + std::to_string(sequence);
+  return SavedSample{session, sequence, "stats-saved:" + session + ":" + std::to_string(sequence)};
 }
 }
