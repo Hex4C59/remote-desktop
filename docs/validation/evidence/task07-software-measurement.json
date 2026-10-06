@@ -43,13 +43,32 @@
     "bash_syntax": "passed"
   },
   "runtime": {
-    "hdc_targets": 0,
-    "adb_devices": 0,
+    "hdc_targets": 1,
+    "adb_devices": null,
     "deployed_this_run": false,
     "real_feedback_formal_attempts": 0,
     "measurement_overhead_runs": 0,
     "completed_600s_baselines": 0,
-    "current_artifact_device_regressions": "not_run"
+    "current_artifact_device_regressions": "not_run",
+    "hdc_targets_at_initial_check": 0,
+    "adb_devices_at_initial_check": 0,
+    "controller_model": "MRO-W00",
+    "harmony_version": "OpenHarmony-6.1.1.120",
+    "droi_version": "1.0.10.81",
+    "same_lan_subnet": true,
+    "windows_console_session": 1,
+    "windows_foreground_observed": true,
+    "windows_source_dimensions": [
+      2560,
+      1440
+    ],
+    "windows_foreground_dpi": 96,
+    "apk_transferred": true,
+    "apk_transfer_roundtrip_hash_verified": true,
+    "apk_transfer_bytes": 14380485,
+    "deployment_blocker": "file_manager_first_use_privacy_choice_requires_user",
+    "power_settings_restored_readback": true,
+    "readiness_scheduled_task_removed": true
   },
   "review": {
     "standards_hard_violations": 0,
@@ -74,6 +93,11 @@
     "android-delivery.log": "9faf2e5c2b94d9a491a3a9645b7b98f7ca83f1db3ce6dd2b5c6feceec1ec7ff3",
     "windows-delivery.log": "4fa568ea2b426e82ef2bac1fcc58c0ebb72ddc19a28adc512a2f8e10c4cb9453",
     "windows-delivery-checks.log": "622874816d0c8c8a2a88dee3277c679ad154daf3be5330bcbef6a86af7559ffc",
-    "delivery-smoke-stages.jsonl": "af35ca057ec7dbb5d023f2d9a47f75139986ee0bd9aed61d10ae606b39fb9ecf"
+    "delivery-smoke-stages.jsonl": "af35ca057ec7dbb5d023f2d9a47f75139986ee0bd9aed61d10ae606b39fb9ecf",
+    "runtime-inventory.raw": "823d5a9d7d55767a52f3f19eb6850dd585fe272c71007cb45afa1b3fcd1fa7e9",
+    "stage-apk.log": "4adda6dcd93f7df2b88086156616373ce9d3bdb910b7ba4d8f1a937b1336f124",
+    "desktop-readiness.log": "4eb079fac6c2fb82efa7647fb086a213531fd7bd054c4ff3326efacc07b41d5d",
+    "deployment-ready.log": "9f0fb27febfe3208f0557688e7a432c1cec776e64d1f0790bd392d8e50632cef",
+    "readiness.json": "da3dafd7440a2f566c676ce49f66963350e0c4985640b8e6dc9e16b7e74266bd"
   }
 }
