@@ -71,3 +71,5 @@ docs/
 - [规格与任务管理](agents/issue-tracker.md)。
 - [分诊标签](agents/triage-labels.md)。
 - [领域文档与术语约定](agents/domain.md)。
+
+软件性能采集：[软件测量与反馈帧复核](guides/software-measurement.md)、[十分钟局域网基线](guides/lan-baseline.md)。当前实施与验收边界见[任务07记录](validation/task07-end-to-end-latency.md)和[任务08记录](validation/task08-lan-baseline.md)。

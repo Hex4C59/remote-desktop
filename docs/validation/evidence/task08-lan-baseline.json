@@ -1,0 +1,37 @@
+{
+  "schema": "lan-baseline-readiness-v1",
+  "checked_date": "2026-10-12",
+  "method": "generic_desktop_operations_with_human_frame_review",
+  "implementation": {
+    "fixed_cpp_workload": true,
+    "receiver_600s_window": true,
+    "workload_audit": true,
+    "weighted_actual_statistics_windows": true,
+    "separate_collection_and_target_decisions": true
+  },
+  "verification": {
+    "calculation_tests": "synthetic_passed",
+    "standards_spec_review": "findings_fixed",
+    "platform_builds": "passed"
+  },
+  "runtime": {
+    "completed_runs": 0,
+    "formal_attempts": 0,
+    "collection_completed": false,
+    "target_720p30_reached": null,
+    "controller_available": false
+  },
+  "software_references_ms": {},
+  "future_candidates": {
+    "bandwidth_kbps": null,
+    "bandwidth_factor": 0.75,
+    "added_one_way_delay_ms": 50,
+    "random_loss_percent": 1,
+    "validation_task": "09"
+  },
+  "physical_measurements": {
+    "display_latency": "deferred_unaccepted",
+    "operation_feedback_latency": "deferred_unaccepted"
+  },
+  "evidence": "task07-software-measurement.json"
+}
