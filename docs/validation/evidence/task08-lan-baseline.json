@@ -19,7 +19,11 @@
     "formal_attempts": 0,
     "collection_completed": false,
     "target_720p30_reached": null,
-    "controller_available": false
+    "controller_available": true,
+    "sampling_ready": false,
+    "blocker": "task07_apk_installation_waiting_file_manager_privacy_choice",
+    "windows_interactive_desktop_checked": true,
+    "same_lan_subnet": true
   },
   "software_references_ms": {},
   "future_candidates": {
