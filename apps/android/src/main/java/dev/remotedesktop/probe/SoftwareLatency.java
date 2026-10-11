@@ -1,20 +1,34 @@
 package dev.remotedesktop.probe;
 
+import android.content.ContentResolver;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.VideoFrame;
@@ -22,6 +36,7 @@ import org.webrtc.VideoSink;
 
 /** Opt-in evidence capture; frame timestamps precede copying, compression and IO. */
 final class SoftwareLatency implements VideoSink {
+  private static final Set<String> WRITING = Collections.synchronizedSet(new HashSet<>());
   private static final long SECOND = 1_000_000_000L;
   private static final long MAX_RING_BYTES = 32L * 1024 * 1024;
   private static final int MAX_IMAGE_BYTES = 4 * 1024 * 1024;
@@ -36,6 +51,7 @@ final class SoftwareLatency implements VideoSink {
   private int retained, ordinal;
   private long frameSequence;
   private boolean closed;
+  private volatile boolean exportReady;
   private long baselineStartedNs;
   private boolean baselineFinished;
   private final java.util.Map<String, Integer> baselineCounts = new java.util.HashMap<>();
@@ -73,6 +89,7 @@ final class SoftwareLatency implements VideoSink {
     if (!directory.mkdirs()) throw new IOException("Cannot create fresh evidence directory");
     this.session = session; this.changed = changed;
     thread.start(); background = new Handler(thread.getLooper());
+    WRITING.add(experiment);
   }
   synchronized boolean busy() { return active != null; }
   synchronized boolean allowsInput() {
@@ -304,11 +321,143 @@ final class SoftwareLatency implements VideoSink {
       changed.run();
     });
   }
+  boolean exportReady() { return exportReady; }
+  Evidence completedEvidence() throws IOException {
+    if (!exportReady) throw new IOException("Evidence is still being saved");
+    return new Evidence(directory);
+  }
+  static final class Evidence {
+    final File directory;
+    final boolean ended;
+    private Evidence(File directory) {
+      this.directory = directory;
+      ended = validClosure(directory);
+    }
+    String id() { return directory.getName(); }
+    String filename() { return "software-measurement-" + id() + ".zip"; }
+    void export(OutputStream output) throws IOException {
+      if (WRITING.contains(id())) throw new IOException("Evidence is still being saved");
+      try (ZipOutputStream zip = new ZipOutputStream(output)) {
+        zip.setLevel(0); // Frame payloads are already losslessly compressed.
+        archive(zip, directory, id() + "/", new byte[64 * 1024]);
+      }
+    }
+  }
+  private static boolean validClosure(File directory) {
+    File marker = new File(directory, "session-closed.json");
+    if (!marker.isFile() || marker.length() > 1024) return false;
+    try (FileInputStream input = new FileInputStream(marker)) {
+      byte[] bytes = new byte[1024];
+      int length = 0, count;
+      while (length < bytes.length && (count = input.read(bytes, length, bytes.length - length)) != -1) {
+        length += count;
+      }
+      JSONObject row = new JSONObject(new String(bytes, 0, length, StandardCharsets.UTF_8));
+      String session = row.getString("session");
+      return "software-evidence-closed-v1".equals(row.getString("schema"))
+          && directory.getName().equals(row.getString("experiment"))
+          && UUID.fromString(session).toString().equals(session);
+    } catch (IOException | JSONException | IllegalArgumentException error) { return false; }
+  }
+
+  private static volatile ExportTask exportTask;
+  static ExportTask exportTask() { return exportTask; }
+  static synchronized ExportTask export(Evidence evidence, ContentResolver resolver, Uri destination)
+      throws IOException {
+    if (exportTask != null && exportTask.busy()) throw new IOException("Another export is running");
+    ExportTask task = new ExportTask(evidence);
+    exportTask = task;
+    new Thread(() -> {
+      String result = "测量证据已导出";
+      try (OutputStream output = resolver.openOutputStream(destination, "w")) {
+        if (output == null) throw new IOException("Destination unavailable");
+        evidence.export(output);
+      } catch (IOException | RuntimeException error) {
+        result = "导出失败；目标文件可能不完整，原始证据仍保留";
+      }
+      task.complete(result);
+    }, "measurement-export").start();
+    return task;
+  }
+  static final class ExportTask {
+    final String experiment;
+    private volatile String result;
+    private volatile WeakReference<Runnable> observer = new WeakReference<>(null);
+    ExportTask(Evidence evidence) { experiment = evidence.id(); }
+    boolean busy() { return result == null; }
+    String result() { return result; }
+    void observe(Runnable changed) {
+      observer = new WeakReference<>(changed);
+      if (!busy()) changed.run();
+    }
+    private void complete(String message) {
+      result = message;
+      Runnable changed = observer.get();
+      if (changed != null) changed.run();
+    }
+  }
+
+  static Evidence savedEvidence(File parent, String id) throws IOException {
+    if (parent == null || id == null) throw new IOException("Evidence unavailable");
+    try {
+      if (!UUID.fromString(id).toString().equals(id)) throw new IOException("Invalid experiment");
+    } catch (IllegalArgumentException error) { throw new IOException("Invalid experiment", error); }
+    File directory = new File(new File(parent, "software-measurement"), id);
+    if (!directory.isDirectory() || WRITING.contains(id)) throw new IOException("Evidence unavailable");
+    return new Evidence(directory);
+  }
+  static List<Evidence> savedEvidence(File parent) {
+    List<Evidence> evidence = new ArrayList<>();
+    if (parent == null) return evidence;
+    File[] directories = new File(parent, "software-measurement").listFiles();
+    if (directories == null) return evidence;
+    Arrays.sort(directories, Comparator.comparingLong(File::lastModified).reversed());
+    for (File directory : directories) {
+      try { evidence.add(savedEvidence(parent, directory.getName())); }
+      catch (IOException ignored) { /* Active or invalid directories cannot be exported. */ }
+    }
+    return evidence;
+  }
+  private static void archive(ZipOutputStream zip, File directory, String prefix,
+      byte[] buffer) throws IOException {
+    File[] files = directory.listFiles();
+    if (files == null) throw new IOException("Cannot list evidence directory");
+    Arrays.sort(files, Comparator.comparing(File::getName));
+    for (File file : files) {
+      if (file.isDirectory()) { archive(zip, file, prefix + file.getName() + "/", buffer); }
+      else {
+        zip.putNextEntry(new ZipEntry(prefix + file.getName()));
+        try (FileInputStream input = new FileInputStream(file)) {
+          int count;
+          while ((count = input.read(buffer)) != -1) zip.write(buffer, 0, count);
+        }
+        zip.closeEntry();
+      }
+    }
+  }
+
   synchronized void close() {
     if (closed) return;
     closed = true;
     finishBaseline(true);
     if (active != null) finish(active, "session_ended");
-    background.post(() -> thread.quitSafely());
+    background.post(() -> {
+      File pending = new File(directory, "session-closed.json.pending");
+      try {
+        try (Writer marker = new OutputStreamWriter(new FileOutputStream(pending), StandardCharsets.UTF_8)) {
+          marker.write(new JSONObject().put("schema", "software-evidence-closed-v1")
+              .put("experiment", experiment).put("session", session).toString());
+        }
+        if (!pending.renameTo(new File(directory, "session-closed.json"))) {
+          throw new IOException("Cannot publish closure record");
+        }
+      } catch (IOException | JSONException error) {
+        display = "会话结束记录写入失败；导出保留现有原始证据";
+      }
+      WRITING.remove(experiment);
+      exportReady = true;
+      changed.run();
+      thread.quitSafely();
+    });
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema": "software-measurement-implementation-v1",
-  "checked_date": "2026-10-12",
+  "checked_date": "2026-10-13",
   "source_base": "1e53fec6b094ce918bdbde8a798f791f35db3a8c",
   "source_bundle_sha256": "fcd000b2839af6a33b078b61056548100e7045387ebabb744398b63589723cee",
   "dependency_manifest_sha256": "1ec8c6c890823343a4acd32ea8f6bdfc6e410ee40fb9bd1a18c9f223e790b2d7",
@@ -16,11 +16,13 @@
       "configuration": "Release arm64",
       "passed": true,
       "local_jobs": 4,
-      "apk_sha256": "917cdd07ccf92b91ffd3130ab3ab5f3bd1da3cfd9c4c9f122ae477fee0189357",
+      "apk_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
       "native_abi": [
         "arm64-v8a"
       ],
-      "elf_machine": "AArch64"
+      "elf_machine": "AArch64",
+      "apk_bytes": 14405301,
+      "native_library_sha256": "d8966a7beb2a72df734714692bbf51c49ac02d01aaaf504b5731338dacbfb03d"
     }
   },
   "checks": {
@@ -45,11 +47,11 @@
   "runtime": {
     "hdc_targets": 1,
     "adb_devices": null,
-    "deployed_this_run": false,
+    "deployed_this_run": true,
     "real_feedback_formal_attempts": 0,
     "measurement_overhead_runs": 0,
     "completed_600s_baselines": 0,
-    "current_artifact_device_regressions": "not_run",
+    "current_artifact_device_regressions": "partial_on_59c419e2_artifact",
     "hdc_targets_at_initial_check": 0,
     "adb_devices_at_initial_check": 0,
     "controller_model": "MRO-W00",
@@ -66,9 +68,45 @@
     "apk_transferred": true,
     "apk_transfer_roundtrip_hash_verified": true,
     "apk_transfer_bytes": 14380485,
-    "deployment_blocker": "file_manager_first_use_privacy_choice_requires_user",
+    "deployment_blocker": null,
     "power_settings_restored_readback": true,
-    "readiness_scheduled_task_removed": true
+    "readiness_scheduled_task_removed": true,
+    "measurement_validation_experiments": 2,
+    "validation_captured_attempts": 7,
+    "validation_not_run_attempts": 1,
+    "human_boundary_reviews": 0,
+    "deployed_feedback_artifact_sha256": "283a3d6b7861b19452bce98fb33fc015c92759f2dd49ecf56cd0556c5ab41209",
+    "sampling_blocker": "owned_fixture_cannot_acquire_foreground_actual_foreground_WeGame",
+    "normal_pairing_720p": true,
+    "end_and_manual_reconnect_observed": true,
+    "terminal_text_enter_ctrl_c_observed": true,
+    "ordinary_window_pointer_observed": true,
+    "ordinary_window_text_and_key_association": "not_verified",
+    "latest_apk_installation": "observed_success",
+    "latest_apk_transfer_bytes": 14405301,
+    "latest_artifact_regressions": {
+      "artifact_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+      "normal_gui_pairing_1280x720": "passed",
+      "wrong_pairing_code": "denied",
+      "background_home_return": "session_ended_statistics_nonlive",
+      "manual_reconnect_after_background": "new_authorized_session_1280x720",
+      "explicit_end": "passed_inputs_disabled_video_absent_sender_exited",
+      "network_cut": "ended_with_manual_reconnect_required_targeted_firewall_rules_removed",
+      "touch_high_dpi": "not_run",
+      "terminal_keys": "not_repeated_on_latest_artifact",
+      "manual_reconnect_after_network_cut": "new_authorized_session_1280x720"
+    },
+    "windows_foreground_last_checked_local": "2026-10-13T10:55:42+08:00",
+    "cleanup": {
+      "remaining_owned_interactive_processes": 0,
+      "remaining_owned_scheduled_tasks": 0,
+      "remaining_task07_firewall_rules": 0,
+      "owned_scheduled_tasks_removed": 5,
+      "tablet_timeout_ms": 30000,
+      "tablet_override_timeout_ms": 10000,
+      "tablet_returned_home": true,
+      "existing_hotspot_wlan_and_display_settings_preserved": true
+    }
   },
   "review": {
     "standards_hard_violations": 0,
@@ -84,9 +122,12 @@
     "physical_operation_feedback_latency": false
   },
   "limitations": [
-    "hardware feedback association unverified",
-    "formal and overhead sampling not executed",
+    "ordinary window text and key feedback not yet verified",
+    "planned formal and overhead sampling not executed",
+    "human feedback boundary reviews not performed",
     "ten-minute baseline not executed",
+    "latest artifact regressions incomplete",
+    "prior long debugging stage log reached the 32 MiB limit",
     "physical display latency deferred"
   ],
   "private_evidence_sha256": {
@@ -98,6 +139,63 @@
     "stage-apk.log": "4adda6dcd93f7df2b88086156616373ce9d3bdb910b7ba4d8f1a937b1336f124",
     "desktop-readiness.log": "4eb079fac6c2fb82efa7647fb086a213531fd7bd054c4ff3326efacc07b41d5d",
     "deployment-ready.log": "9f0fb27febfe3208f0557688e7a432c1cec776e64d1f0790bd392d8e50632cef",
-    "readiness.json": "da3dafd7440a2f566c676ce49f66963350e0c4985640b8e6dc9e16b7e74266bd"
+    "readiness.json": "da3dafd7440a2f566c676ce49f66963350e0c4985640b8e6dc9e16b7e74266bd",
+    "final-latency-checks.log": "520dea7e47d0c1a09565ca275e95164865851352712f376dea59ccce2a2677af",
+    "final-review-import-check.log": "e83cfbad7412613b5668d47a0ff9080bb85ea13323123bacac9182aca55dd642",
+    "android-export-progress-build.log": "026faff9ec63b7c9fb882d198d9c1635089ec7fbf6c9152a2207db1588b8721f",
+    "association-review-build.log": "9b2e23cf8fbc34c5230f9135b38ee93e4cbe9e7edcc43fe5527cc42d0ab1b005",
+    "association-final-evidence.verification.json": "8a03da1c55eaa45f5bb4631715184d6765b638fd92db3baa89d7154ca13af58f",
+    "focus-validation-evidence.verification.json": "7b0bdb240bff1389eb220db9ac0c022fbbf0c0bfc1c9edf11d4bb8d8e936d1e0",
+    "read-cpp-audit.log": "5aef44679f8c8d330d897c9c49a71e1020d25ad407c45ce143be1664872dd4b9",
+    "regression-wrong-code-1791858523737153000-aab39d15.log": "936686abc38ceddb84a0a585e4d921a5399daaae16948322c7b70b1f8cd1616f",
+    "connect-fresh-1791858877224702000-591d81c9.log": "690599460db2dedae70cbe26874f78420e34d430e4c508848e92dffab5ba8d03",
+    "check-background-return-1791859102725063000-d7445602.log": "95b2dd5d0e8f8c3684660cd9ccc90ad1b7441787946a15ce992cd378bfe5e077",
+    "connect-fresh-1791859152448672000-ce8efdc9.log": "0dacd9bf26d244e137cdbe3ae1f92d3df9f71f2d9c7a7a1577e17388d47b5ee6",
+    "foreground-pointer-diagnostic-1791858828855668000-84dd04d9.log": "8a80c11e3a2a24dc04123d43bada7b1719d274dfea0c1dac28187888e2cbbd16",
+    "regression-network-cut.log": "d8f0ab098665510b1d7e47ee265b795bdeb35d54a725a8ae2cf3a1d3ec5e03c4",
+    "connect-fresh-1791859953257408000-164beb61.log": "4b6914e604c7b52bc14d4c3b8c0d64e758a30ffb876867a90800aeee91f576d8",
+    "regression-explicit-end-1791860060948540000-65696d86.log": "32851cd92c4f66ce18e1e5fa1a31b7ec9c597d53155f546fea9b8539b4439e4f",
+    "foreground-pointer-diagnostic-1791860140959004000-d989dc30.log": "5f715c9b8df312684de6e6e48aa5771cbb2f3d75a56a7fa2750cdb96dd52d2d0",
+    "cleanup-runtime.log": "bb8090b135896d506540ac23a37912c6c0db0c1a547520ac1dbe723cf63c6a7c"
+  },
+  "latest_source": {
+    "base": "3712692",
+    "code_patch_sha256": "f7efdc1d9ab386b1bcbedbf17654a6574279d6b9c27f785db30bb51dceb42e7f",
+    "scope": "three_android_java_files_export_recovery_and_sanitized_failures"
+  },
+  "validation_evidence": {
+    "complete_zip_bytes": 219223944,
+    "complete_zip_sha256": "d9435f0bc87213e4da40c8d896afc1ca7e458d7b504c8d32ca5fbc2441d6f812",
+    "zip_entries": 1095,
+    "operations": 6,
+    "frames": 1088,
+    "zip_crc": "passed",
+    "indices_and_frame_decompression": "passed",
+    "gap_records": 28,
+    "gaps_in_final_sample_windows": 1,
+    "human_reviewed": false,
+    "scope": "method_validation_excluded_from_planned_formal_sampling",
+    "collector_medians_ms": {
+      "copy": 2.865104,
+      "compress": 13.1744795,
+      "write": 2.172917
+    },
+    "second_zip_sha256": "4b91f9682b8d7c3bed54861fa48d88afffff1127138a46edd17516a5032f3a1e",
+    "second_zip_bytes": 13349937,
+    "second_zip_crc": "passed",
+    "initial_truncated_copy_preserved": true,
+    "mtp_size_cache_refresh_verified": true,
+    "windows_stage_log_limit_reached_during_prior_debugging": true
+  },
+  "incremental_review": {
+    "date": "2026-10-13",
+    "base_commit": "3712692ff05bc7f3017f6831e4c46603cb8635fc",
+    "scope": "three_android_measurement_export_and_pairing_files_and_cpp_baseline_script",
+    "standards_hard_violations": 0,
+    "standards_correctness_risks": 0,
+    "standards_actionable_smells": 0,
+    "spec_confirmed_code_findings": 0,
+    "scope_expansion": false,
+    "runtime_acceptance_complete": false
   }
 }

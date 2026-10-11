@@ -1,6 +1,7 @@
 package dev.remotedesktop.probe;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Insets;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -107,7 +108,12 @@ public final class ProbeActivity extends Activity {
   private boolean textPending, dockedKeyboardVisible, statusBarsHidden;
   private volatile SoftwareLatency softwareLatency;
   private long measurementStatisticsSequence;
-  private Button measurementButton;
+  private Button measurementButton, exportMeasurementButton;
+  private static final int EXPORT_MEASUREMENT = 701;
+  private boolean exportingMeasurement, measurementPickerPending;
+  private SoftwareLatency.Evidence exportMeasurement;
+  private SoftwareLatency.ExportTask observedExport;
+  private final Runnable exportChanged = () -> runOnUiThread(this::refreshMeasurementExport);
   private volatile int pointerGeometry;
   // Gesture state and renderer dimensions belong to the UI thread.
   private int displayedWidth, displayedHeight, tapPointerId, touchSlop;
@@ -142,6 +148,10 @@ public final class ProbeActivity extends Activity {
     connectionFields.addView(addressInput);
     connectionFields.addView(codeInput);
     connectionFields.addView(connectButton);
+    Button savedEvidenceButton = new Button(this);
+    savedEvidenceButton.setText("导出已保存测量证据");
+    savedEvidenceButton.setOnClickListener(view -> selectSavedMeasurement());
+    connectionFields.addView(savedEvidenceButton);
     connectionForm.addView(connectionFields);
     layout.addView(connectionForm);
     connectButton.setOnClickListener(view -> startPairing());
@@ -172,7 +182,7 @@ public final class ProbeActivity extends Activity {
     sessionButton.setVisibility(View.GONE);
     sessionButton.setOnClickListener(view -> {
       if (!stopping) stopSession("会话已结束");
-      else if (cleanupComplete) {
+      else if (cleanupComplete && !exportingMeasurement) {
         sessionButton.setEnabled(false);
         // A manual reconnect gets new handlers, observers and queues. Never
         // revive this instance: late callbacks remain attached to the old view.
@@ -192,6 +202,28 @@ public final class ProbeActivity extends Activity {
     createTerminalControls(layout);
     configureWindowInsets(layout);
     setContentView(layout);
+    if (savedInstanceState != null) {
+      String pendingExperiment = savedInstanceState.getString("pending_measurement_export");
+      if (pendingExperiment != null) {
+        try {
+          exportMeasurement = SoftwareLatency.savedEvidence(getExternalFilesDir(null), pendingExperiment);
+          exportingMeasurement = true;
+          measurementPickerPending = true;
+        } catch (IOException error) { status.setText("上次导出未恢复；可重新选择已保存实验"); }
+      }
+    }
+    SoftwareLatency.ExportTask runningExport = SoftwareLatency.exportTask();
+    String restoredExport = savedInstanceState == null ? null : savedInstanceState.getString("running_measurement_export");
+    if (runningExport != null && (runningExport.busy() || runningExport.experiment.equals(restoredExport))) {
+      observedExport = runningExport;
+      exportingMeasurement = true;
+      connectButton.setEnabled(false);
+      runningExport.observe(exportChanged);
+      refreshMeasurementExport();
+    } else if (restoredExport != null) {
+      status.setText("上次导出未确认；可重新选择已保存实验");
+    }
+    connectButton.setEnabled(!exportingMeasurement);
     connectivity = getSystemService(ConnectivityManager.class);
     boolean wifiBound = false;
     Network selectedWifi = null;
@@ -349,6 +381,11 @@ public final class ProbeActivity extends Activity {
     measurementButton.setText("软件测量（未开启）");
     measurementButton.setOnClickListener(view -> configureMeasurement());
     terminalControls.addView(measurementButton);
+    exportMeasurementButton = new Button(this);
+    exportMeasurementButton.setText("导出测量证据");
+    exportMeasurementButton.setVisibility(View.GONE);
+    exportMeasurementButton.setOnClickListener(view -> selectMeasurementDestination());
+    terminalControls.addView(exportMeasurementButton);
     layout.addView(terminalControls);
     updateInputControls();
   }
@@ -447,7 +484,7 @@ public final class ProbeActivity extends Activity {
     if (softwareLatency == null) {
       try {
         softwareLatency = new SoftwareLatency(getExternalFilesDir(null), statistics.session,
-            () -> ui.post(() -> { if (!stopping) measurementButton.setText(softwareLatency.display()); }));
+            () -> ui.post(this::updateMeasurementControls));
         worker.post(() -> { if (!stopping && video != null) video.addSink(softwareLatency); });
       } catch (IOException error) { status.setText("无法创建软件测量目录"); return; }
     }
@@ -469,6 +506,100 @@ public final class ProbeActivity extends Activity {
         .setPositiveButton("准备采样", (dialog, which) -> {
           softwareLatency.arm(category.getText().toString(), expected.getText().toString(), warmup.isChecked());
         }).show();
+  }
+
+  private void updateMeasurementControls() {
+    if (softwareLatency == null) return;
+    if (!stopping) measurementButton.setText(softwareLatency.display());
+    exportMeasurementButton.setVisibility(stopping ? View.VISIBLE : View.GONE);
+    exportMeasurementButton.setEnabled(softwareLatency.exportReady() && !exportingMeasurement);
+  }
+
+  private void selectMeasurementDestination() {
+    if (!stopping || softwareLatency == null || !softwareLatency.exportReady()
+        || exportingMeasurement) return;
+    try { selectMeasurementDestination(softwareLatency.completedEvidence()); }
+    catch (IOException error) { status.setText("证据仍在保存，请稍后再试"); }
+  }
+
+  private void selectSavedMeasurement() {
+    if (exportingMeasurement || (!stopping && pairing != null)) return;
+    java.util.List<SoftwareLatency.Evidence> saved = SoftwareLatency.savedEvidence(getExternalFilesDir(null));
+    if (saved.isEmpty()) { status.setText("没有可导出的已保存实验"); return; }
+    String[] labels = new String[saved.size()];
+    for (int i = 0; i < saved.size(); i++) {
+      SoftwareLatency.Evidence evidence = saved.get(i);
+      labels[i] = (evidence.ended ? "已结束 · " : "未完整关闭 · ") + evidence.id();
+    }
+    new android.app.AlertDialog.Builder(this).setTitle("选择已保存实验")
+        .setItems(labels, (dialog, which) -> selectMeasurementDestination(saved.get(which)))
+        .setNegativeButton("取消", null).show();
+  }
+
+  private void selectMeasurementDestination(SoftwareLatency.Evidence evidence) {
+    if (exportingMeasurement) return;
+    exportMeasurement = evidence;
+    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/zip");
+    intent.putExtra(Intent.EXTRA_TITLE, evidence.filename());
+    exportingMeasurement = true;
+    measurementPickerPending = true;
+    updateMeasurementControls();
+    sessionButton.setEnabled(false);
+    try { startActivityForResult(intent, EXPORT_MEASUREMENT); }
+    catch (android.content.ActivityNotFoundException error) {
+      finishMeasurementExport("设备未提供文件保存入口；原始证据仍保留");
+    }
+  }
+
+  @Override protected void onSaveInstanceState(Bundle state) {
+    if (measurementPickerPending && exportMeasurement != null) {
+      state.putString("pending_measurement_export", exportMeasurement.id());
+    }
+    if (observedExport != null) state.putString("running_measurement_export", observedExport.experiment);
+    super.onSaveInstanceState(state);
+  }
+
+  @Override protected void onActivityResult(int request, int result, Intent data) {
+    super.onActivityResult(request, result, data);
+    if (request != EXPORT_MEASUREMENT) return;
+    SoftwareLatency.Evidence evidence = exportMeasurement;
+    measurementPickerPending = false;
+    if (result != RESULT_OK || data == null || data.getData() == null || evidence == null) {
+      finishMeasurementExport("已取消导出；原始证据仍保留");
+      return;
+    }
+    try {
+      observedExport = SoftwareLatency.export(evidence,
+          getApplicationContext().getContentResolver(), data.getData());
+      observedExport.observe(exportChanged);
+      refreshMeasurementExport();
+    } catch (IOException error) { finishMeasurementExport("另一个导出仍在进行；原始证据仍保留"); }
+  }
+
+  private void refreshMeasurementExport() {
+    if (observedExport == null) return;
+    if (observedExport.busy()) {
+      status.setText("正在导出测量证据，请等待完成");
+      exportingMeasurement = true;
+      connectButton.setEnabled(false);
+      sessionButton.setEnabled(false);
+      return;
+    }
+    String result = observedExport.result();
+    observedExport = null;
+    finishMeasurementExport(result);
+  }
+
+  private void finishMeasurementExport(String message) {
+    exportingMeasurement = false;
+    measurementPickerPending = false;
+    exportMeasurement = null;
+    status.setText(message + (stopping ? "；点击重新连接建立新会话" : "；可继续配对"));
+    connectButton.setEnabled(!stopping);
+    updateMeasurementControls();
+    sessionButton.setEnabled(cleanupComplete && !exportingMeasurement);
   }
 
   private interface InputResult { void complete(boolean sent); }
@@ -529,7 +660,9 @@ public final class ProbeActivity extends Activity {
   }
 
   private void startPairing() {
-    if (worker == null || stopping || pairing != null) return;
+    SoftwareLatency.ExportTask pendingExport = SoftwareLatency.exportTask();
+    if (worker == null || stopping || pairing != null || exportingMeasurement
+        || (pendingExport != null && pendingExport.busy())) return;
     String address = addressInput.getText().toString().trim();
     String code = codeInput.getText().toString().trim();
     codeInput.setText("");
@@ -543,11 +676,11 @@ public final class ProbeActivity extends Activity {
         if (pendingSignals.incrementAndGet() > 128) { pairing.close(); return; }
         worker.post(() -> { pendingSignals.decrementAndGet(); receiveSignal(message); });
       }
-      @Override public void onClosed() {
-        Log.i(TAG, "pairing_transport_closed=true");
+      @Override public void onClosed(PairingConnection.Failure reason) {
+        Log.i(TAG, "pairing_transport_closed=true reason=" + reason.name());
         worker.post(() -> {
           if (!stopping) {
-            stopSession("连接已结束或配对失败；请检查网络、地址和口令");
+            stopSession(reason.message);
           }
         });
       }
@@ -843,12 +976,13 @@ public final class ProbeActivity extends Activity {
       sessionButton.setEnabled(false);
       ui.removeCallbacks(statisticsFreshness);
       updateStatisticsText();
+      updateMeasurementControls();
       updateKeyboardLayout();
     });
     if (wifiCallback != null) connectivity.unregisterNetworkCallback(wifiCallback);
     if (worker == null) {
       if (connectivity != null) connectivity.bindProcessToNetwork(null);
-      runOnUiThread(() -> { cleanupComplete = true; sessionButton.setEnabled(true); });
+      runOnUiThread(() -> { cleanupComplete = true; sessionButton.setEnabled(!exportingMeasurement); });
       return;
     }
     worker.post(() -> {
@@ -867,7 +1001,7 @@ public final class ProbeActivity extends Activity {
         renderer.release();
         egl.release();
         cleanupComplete = true;
-        sessionButton.setEnabled(true);
+        sessionButton.setEnabled(!exportingMeasurement);
       });
       rtcThread.quitSafely();
     });
