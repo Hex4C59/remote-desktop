@@ -1,6 +1,6 @@
 {
   "schema": "lan-baseline-readiness-v1",
-  "checked_date": "2026-10-12",
+  "checked_date": "2026-10-13",
   "method": "generic_desktop_operations_with_human_frame_review",
   "implementation": {
     "fixed_cpp_workload": true,
@@ -12,7 +12,8 @@
   "verification": {
     "calculation_tests": "synthetic_passed",
     "standards_spec_review": "findings_fixed",
-    "platform_builds": "passed"
+    "platform_builds": "passed",
+    "incremental_standards_spec_review": "no_remaining_actionable_code_findings"
   },
   "runtime": {
     "completed_runs": 0,
@@ -21,9 +22,15 @@
     "target_720p30_reached": null,
     "controller_available": true,
     "sampling_ready": false,
-    "blocker": "task07_apk_installation_waiting_file_manager_privacy_choice",
+    "blocker": "task07_generic_text_key_association_and_owned_windows_foreground_unavailable",
     "windows_interactive_desktop_checked": true,
-    "same_lan_subnet": true
+    "same_lan_subnet": true,
+    "workload_method_validation_cycles": 1,
+    "workload_compile_exit_code": 0,
+    "workload_ctrl_c_return_observed": true,
+    "workload_method_validation_counted_as_baseline": false,
+    "lifecycle_regressions_on_latest_artifact": "normal_pairing_wrong_code_background_targeted_network_cut_end_manual_reconnect_observed",
+    "touch_high_dpi_and_latest_terminal_regressions": "not_completed"
   },
   "software_references_ms": {},
   "future_candidates": {
@@ -37,5 +44,14 @@
     "display_latency": "deferred_unaccepted",
     "operation_feedback_latency": "deferred_unaccepted"
   },
-  "evidence": "task07-software-measurement.json"
+  "evidence": "task07-software-measurement.json",
+  "workload_audit": {
+    "scope": "single_method_validation_cycle_not_fixed_baseline",
+    "sha256": "3e716b7155d3c4f4a663a4a1dc2116c8a763e4d49b4b318f4e287c05f942002c",
+    "event_count": 7,
+    "run_returned_exit_code": -1073741510
+  },
+  "private_evidence_sha256": {
+    "read-cpp-audit.log": "5aef44679f8c8d330d897c9c49a71e1020d25ad407c45ce143be1664872dd4b9"
+  }
 }

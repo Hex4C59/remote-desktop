@@ -23,8 +23,17 @@ $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\v
 $vs=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 if (-not $vs) { throw 'MSVC installation not found.' }
 $dev=Join-Path $vs 'Common7\Tools\VsDevCmd.bat'
-$environment=& cmd.exe /s /c "`"`"$dev`" -no_logo -arch=x64 >nul && set`""
-if ($LASTEXITCODE -ne 0) { throw 'Compiler environment initialization failed.' }
+# Keep the quoted Visual Studio path inside a batch file: Windows PowerShell
+# otherwise strips a quote layer when passing a nested /c command to cmd.exe.
+$envScript=Join-Path ([IO.Path]::GetTempPath()) ('remote-desktop-msvc-'+[Guid]::NewGuid().ToString('N')+'.cmd')
+try {
+    [IO.File]::WriteAllLines($envScript,@('@echo off',"call `"$dev`" -no_logo -arch=x64 >nul",
+        'if errorlevel 1 exit /b %errorlevel%','set'),[Text.Encoding]::Default)
+    $environment=& cmd.exe /d /c $envScript
+    if ($LASTEXITCODE -ne 0) { throw 'Compiler environment initialization failed.' }
+} finally {
+    if (Test-Path -LiteralPath $envScript) { Remove-Item -LiteralPath $envScript }
+}
 foreach ($line in $environment) {
     $pair=$line -split '=',2
     if ($pair.Length -eq 2 -and $pair[0] -in @('PATH','INCLUDE','LIB','LIBPATH')) {
@@ -32,7 +41,7 @@ foreach ($line in $environment) {
     }
 }
 New-Item -ItemType Directory -Path $OutputDirectory | Out-Null
-$global:BaselineWorkload=@{Directory=[IO.Path]::GetFullPath($OutputDirectory);Cycle=0}
+$global:BaselineWorkload=@{Directory=(Get-Item -LiteralPath $OutputDirectory).FullName;Cycle=0}
 Set-Location -LiteralPath $global:BaselineWorkload.Directory
 @'
 #include <chrono>
