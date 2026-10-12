@@ -9,20 +9,28 @@
     "windows": {
       "configuration": "Release x64",
       "passed": true,
-      "sender_sha256": "27671966a9b1189368384122dd98c147e1cb2091867b039c765714aeef728405",
-      "pe_machine": "AMD64"
+      "sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+      "pe_machine": "AMD64",
+      "capture_status_fix_built": true,
+      "prior_formal_sender_sha256": "27671966a9b1189368384122dd98c147e1cb2091867b039c765714aeef728405",
+      "incremental_build_steps": 2,
+      "initial_post_build_smoke_harness": "failed due to missing output-directory argument; corrected separate smoke passed; both logs retained"
     },
     "android": {
       "configuration": "Release arm64",
       "passed": true,
       "local_jobs": 4,
-      "apk_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+      "apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
       "native_abi": [
         "arm64-v8a"
       ],
       "elf_machine": "AArch64",
-      "apk_bytes": 14405301,
-      "native_library_sha256": "d8966a7beb2a72df734714692bbf51c49ac02d01aaaf504b5731338dacbfb03d"
+      "apk_bytes": 14405252,
+      "native_library_sha256": "d8966a7beb2a72df734714692bbf51c49ac02d01aaaf504b5731338dacbfb03d",
+      "capture_apk_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+      "export_only_update_after_600s_session_closed": true,
+      "signing_certificate_sha256": "32a2fc74d731105859e5a85df16d95f102d85b22099b8064c5d8915c61dad1e0",
+      "incremental_build_steps": 8
     }
   },
   "checks": {
@@ -32,26 +40,35 @@
       "data": "synthetic"
     },
     "review_import_regression": "passed",
-    "review_ui": "synthetic_navigation_and_save_verified",
+    "review_ui": "actual_task07_catalog27_and_baseline_catalog20_with_1280x720_frame_images_observed; private_review_hub40_formal_links; no_human_boundary_acceptance",
     "windows_writer_smoke": {
+      "scope": "synthetic_writer_only",
+      "attempts": 1000,
+      "saved": 149,
+      "dropped": 851,
+      "passed": true,
+      "record_lines_including_start_stop": 151
+    },
+    "existing_evidence_overwrite_refused": true,
+    "powershell_syntax": "passed",
+    "bash_syntax": "passed",
+    "previous_windows_writer_smoke": {
       "scope": "synthetic_writer_only",
       "attempts": 1000,
       "saved": 138,
       "dropped": 862,
       "passed": true
     },
-    "existing_evidence_overwrite_refused": true,
-    "powershell_syntax": "passed",
-    "bash_syntax": "passed"
+    "previous_review_ui": "synthetic_navigation_and_save_verified"
   },
   "runtime": {
     "hdc_targets": 1,
     "adb_devices": null,
     "deployed_this_run": true,
-    "real_feedback_formal_attempts": 0,
-    "measurement_overhead_runs": 0,
-    "completed_600s_baselines": 0,
-    "current_artifact_device_regressions": "partial_on_59c419e2_artifact",
+    "real_feedback_formal_attempts": 20,
+    "measurement_overhead_runs": 2,
+    "completed_600s_baselines": 1,
+    "current_artifact_device_regressions": "observed_with_scoped_evidence",
     "hdc_targets_at_initial_check": 0,
     "adb_devices_at_initial_check": 0,
     "controller_model": "MRO-W00",
@@ -67,7 +84,6 @@
     "windows_foreground_dpi": 96,
     "apk_transferred": true,
     "apk_transfer_roundtrip_hash_verified": true,
-    "apk_transfer_bytes": 14380485,
     "deployment_blocker": null,
     "power_settings_restored_readback": true,
     "readiness_scheduled_task_removed": true,
@@ -75,29 +91,118 @@
     "validation_captured_attempts": 7,
     "validation_not_run_attempts": 1,
     "human_boundary_reviews": 0,
-    "deployed_feedback_artifact_sha256": "283a3d6b7861b19452bce98fb33fc015c92759f2dd49ecf56cd0556c5ab41209",
-    "sampling_blocker": "owned_fixture_cannot_acquire_foreground_actual_foreground_WeGame",
+    "deployed_feedback_artifact_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+    "sampling_blocker": "human_feedback_boundary_and_repeat_review_pending",
     "normal_pairing_720p": true,
     "end_and_manual_reconnect_observed": true,
     "terminal_text_enter_ctrl_c_observed": true,
     "ordinary_window_pointer_observed": true,
-    "ordinary_window_text_and_key_association": "not_verified",
+    "ordinary_window_text_and_key_association": "observed_on_59c419e2",
     "latest_apk_installation": "observed_success",
-    "latest_apk_transfer_bytes": 14405301,
+    "latest_apk_transfer_bytes": 14405252,
     "latest_artifact_regressions": {
-      "artifact_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
-      "normal_gui_pairing_1280x720": "passed",
-      "wrong_pairing_code": "denied",
-      "background_home_return": "session_ended_statistics_nonlive",
-      "manual_reconnect_after_background": "new_authorized_session_1280x720",
-      "explicit_end": "passed_inputs_disabled_video_absent_sender_exited",
-      "network_cut": "ended_with_manual_reconnect_required_targeted_firewall_rules_removed",
-      "touch_high_dpi": "not_run",
-      "terminal_keys": "not_repeated_on_latest_artifact",
-      "manual_reconnect_after_network_cut": "new_authorized_session_1280x720"
+      "schema": "task07-latest-artifact-regressions-v1",
+      "apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
+      "windows_sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+      "outside_600s_baseline": true,
+      "measurement_enabled": false,
+      "normal_pairing": {
+        "result": "observed_connected_1280x720",
+        "jobs": [
+          "1791869214710985000-3016afe2",
+          "1791869238347666000-931015ed"
+        ]
+      },
+      "wrong_code": {
+        "result": "wrong_code_denied",
+        "job": "1791867652708991000-a4fd9ba5",
+        "utc": "2026-10-13T05:01:10.0070250Z"
+      },
+      "high_dpi": {
+        "original_scale": "100% (推荐)",
+        "requested_scale": "125%",
+        "method": "normal_settings_uia_selection",
+        "applied": true,
+        "restored": true,
+        "utc": "2026-10-13T04:58:22.4739167Z"
+      },
+      "high_dpi_input": {
+        "result": "actual_125_percent_touch_text_enter_observed",
+        "dpi": 120,
+        "source_width": 2560,
+        "source_height": 1440,
+        "pointer_events": 2,
+        "enter_events": 2,
+        "typed_text": "DPI125_TEXT\r\nDPI125_RETRY\r\n",
+        "measurement_enabled": false,
+        "utc": "2026-10-13T05:05:27.4937386Z"
+      },
+      "terminal_keys": {
+        "schema": "terminal-key-regression-v1",
+        "capture_artifact_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
+        "windows_sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+        "result": "observed_in_actual_received_video_and_independent_workload_audit",
+        "keys": [
+          "Enter",
+          "Tab",
+          "Left",
+          "Right",
+          "Up",
+          "Down",
+          "Backspace",
+          "Ctrl+C"
+        ],
+        "visible_observations": [
+          "Write-Host LATEST_KEY_B and LATEST_KEY_B output",
+          "Get-Location completed and own work path printed",
+          "run_demo revision=5 tick=0..4 followed by TASK07 PS> prompt"
+        ],
+        "screenshot_sha256": "76781d0786f25b6bc2cdb3f64b94f51a0016cd1b6fdbd125807f218cba3fc107",
+        "input_job": "1791868242998641000-0900609f",
+        "initial_harness_assertion": "failed_due_to_stale_cached_console_snapshot; retained",
+        "native_snapshot_helpers": "unavailable; not acceptance evidence",
+        "outside_baseline": true,
+        "measurement_enabled": false,
+        "human_latency_review": false,
+        "verified_utc": "2026-10-13T05:22:16.313349+00:00"
+      },
+      "network_cut": {
+        "result": "network_cut_ended_without_auto_reconnect",
+        "mechanism": "owned_sender_remote_address_bidirectional_firewall_block",
+        "started_utc": "2026-10-13T05:21:57.0881692Z",
+        "ended_utc": "2026-10-13T05:22:03.7665819Z",
+        "status": "桌面连接已断开，会话已结束；点击重新连接建立新会话",
+        "block_rules_removed": true
+      },
+      "background": {
+        "result": "background_end_return_observed",
+        "status": "应用已离开前台，会话已结束；点击重新连接建立新会话",
+        "statistics": "视频统计 · 会话已结束（非实时）· 最后样本 #4 · 电脑最后确认 #4",
+        "reconnect_enabled": true,
+        "utc": "2026-10-13T05:27:17.1516867Z"
+      },
+      "explicit_end": {
+        "result": "explicit_end_observed",
+        "status": "会话已结束；点击重新连接建立新会话",
+        "statistics": "视频统计 · 会话已结束（非实时）· 最后样本 #4 · 电脑最后确认 #4",
+        "input_controls_disabled": true,
+        "live_video_view_absent": true,
+        "sender_exited": true,
+        "utc": "2026-10-13T05:27:39.6463376Z"
+      },
+      "manual_reconnect": {
+        "after_network_cut": "observed",
+        "after_background": "observed",
+        "new_session_ids_distinct": true,
+        "jobs": [
+          "1791869214710985000-3016afe2",
+          "1791869238347666000-931015ed"
+        ]
+      },
+      "failed_harness_attempts_preserved": true
     },
     "windows_foreground_last_checked_local": "2026-10-13T10:55:42+08:00",
-    "cleanup": {
+    "cleanup_before_resumed_run": {
       "remaining_owned_interactive_processes": 0,
       "remaining_owned_scheduled_tasks": 0,
       "remaining_task07_firewall_rules": 0,
@@ -106,7 +211,44 @@
       "tablet_override_timeout_ms": 10000,
       "tablet_returned_home": true,
       "existing_hotspot_wlan_and_display_settings_preserved": true
-    }
+    },
+    "cleanup": {
+      "utc": "2026-10-13T05:33:11.1115315Z",
+      "owned_fixture_pids_stopped": [
+        33020
+      ],
+      "owned_scheduled_tasks_removed": 1,
+      "remaining_owned_interactive_processes": 0,
+      "remaining_owned_scheduled_tasks": 0,
+      "remaining_task07_firewall_rules": 0,
+      "tablet_power_restored_readback": true,
+      "tablet_timeout_ms": 30000,
+      "tablet_override_timeout_ms": 10000,
+      "tablet_returned_home": true,
+      "hotspot_wlan_changed": false,
+      "display_scale_temporarily_changed": true,
+      "display_scale_restored": true,
+      "display_scale_restored_dpi": 96,
+      "user_window_restoration": {
+        "wegame_window_restored": true,
+        "identity_verified": true,
+        "show_command": 1,
+        "utc": "2026-10-13T05:33:12.7614288Z"
+      },
+      "final_resource_readback": {
+        "utc": "2026-10-13T05:33:49.8899729Z",
+        "remaining_owned_interactive_processes": 0,
+        "remaining_owned_scheduled_tasks": 0,
+        "remaining_task07_firewall_rules": 0,
+        "restoration_task_removed": true
+      }
+    },
+    "baseline_collection_accepted": false,
+    "human_boundary_rereviews": 0,
+    "deployed_current_artifact_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
+    "windows_foreground_condition_resolved": true,
+    "initial_apk_transfer_bytes": 14380485,
+    "capture_apk_transfer_bytes": 14405301
   },
   "review": {
     "standards_hard_violations": 0,
@@ -122,13 +264,14 @@
     "physical_operation_feedback_latency": false
   },
   "limitations": [
-    "ordinary window text and key feedback not yet verified",
-    "planned formal and overhead sampling not executed",
-    "human feedback boundary reviews not performed",
-    "ten-minute baseline not executed",
-    "latest artifact regressions incomplete",
-    "prior long debugging stage log reached the 32 MiB limit",
-    "physical display latency deferred"
+    "Human boundary selection and repeat review: 0; no accepted software feedback reference medians",
+    "600s raw run completed; collection acceptance awaits human feedback/workload review",
+    "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
+    "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
+    "First baseline archive had one CRC failure; two reads identical, reexport fully valid; root cause unlocated",
+    "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
+    "Android API/device process independently unreadable in Harmony Android container",
+    "Both physical display latency measurements deferred and unaccepted"
   ],
   "private_evidence_sha256": {
     "android-delivery.log": "9faf2e5c2b94d9a491a3a9645b7b98f7ca83f1db3ce6dd2b5c6feceec1ec7ff3",
@@ -156,7 +299,27 @@
     "connect-fresh-1791859953257408000-164beb61.log": "4b6914e604c7b52bc14d4c3b8c0d64e758a30ffb876867a90800aeee91f576d8",
     "regression-explicit-end-1791860060948540000-65696d86.log": "32851cd92c4f66ce18e1e5fa1a31b7ec9c597d53155f546fea9b8539b4439e4f",
     "foreground-pointer-diagnostic-1791860140959004000-d989dc30.log": "5f715c9b8df312684de6e6e48aa5771cbb2f3d75a56a7fa2750cdb96dd52d2d0",
-    "cleanup-runtime.log": "bb8090b135896d506540ac23a37912c6c0db0c1a547520ac1dbe723cf63c6a7c"
+    "cleanup-runtime.log": "bb8090b135896d506540ac23a37912c6c0db0c1a547520ac1dbe723cf63c6a7c",
+    "task07-formal.zip": "7c7c51dce1395e8670d9dea460eb93a504255f6f9f7b97ce47734fdd9ae6eefa",
+    "task07-formal-analysis.json": "cce1cbdd0c3aeea6e56c4e9881a3766bfa477d65a9521fb1e9f0a2497d0433a4",
+    "overhead-analysis.json": "3c7272d494022be1c3de42bf238e15ed4bf5b16dc758e80f0b64758daa17cd16",
+    "baseline-reexport.zip": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
+    "baseline-analysis.json": "a1f0c112cc4aa4866f6e621d9906cd2949bcd47d7cc85f307a02f1ff9a595f91",
+    "resumed-latency-tests.log": "fcee3223b60efc73e55954ea5d703f2b75952d3a6b8d9965e7127379f70b03cc",
+    "resumed-review-import-tests.log": "e83cfbad7412613b5668d47a0ff9080bb85ea13323123bacac9182aca55dd642",
+    "terminal-key-visual-regression.json": "0bd5f228e8025ec7b3e924b40eb2aa78d800c654d05432d32ab3facceb710a4e",
+    "final-regressions.json": "e78c12665a9abc35c2cf97309cb641fdaceb365ef5592d0f776ba137c8f53731",
+    "final-cleanup.json": "5f6fa57719b7fc073d0504bbabf7a640196c8c3371ba657549ebd3be5f7aefe2",
+    "final-resumed-tests.log": "58631cceaf84cfc34fe6297ad13261b59619d965cd35088d3ed637a025c146f3",
+    "final-resumed-review-import.log": "e83cfbad7412613b5668d47a0ff9080bb85ea13323123bacac9182aca55dd642",
+    "new-native-smoke-stages.jsonl": "e62b2b87ff59eb05ecf16eaa0c8af38e79fd31499ad193e728ade4873e6a3598",
+    "verify-native-status-build.log": "d7c286a8de9ecd86c604a19784bb0e6cf68a7f845981e2d3706f45849a5471e7",
+    "build-native-status-fix.log": "002126a2f6fd8980e9d743787a6c91ffa306c5b8fc3aff24cdb5346d55a81c29",
+    "android-buffered-export-build.log": "9734997c9bc9801f6f44efbb4b6e00444d94ad51e5180e3e475232e95b98de94",
+    "baseline-review-visible.png": "7b76cfb0e4cb32d09e4934a9417f8a61dfb307c9b20673ada4e14996ee5dc672",
+    "review-hub-visible.png": "76da40a92f2d30df4166c23f3a3b5db9aa2ee7a584c93228e6ccd80112d36b00",
+    "task07-review-visible.png": "c58b09928711936f87243c2a0387e2f619746a41e2b13721ff7ddff7792db996",
+    "final-report-invariants.log": "a65749b906470aa61b94763203057621d7810a2c04157d5cf6bbb0cb39f0875e"
   },
   "latest_source": {
     "base": "3712692",
@@ -197,5 +360,215 @@
     "spec_confirmed_code_findings": 0,
     "scope_expansion": false,
     "runtime_acceptance_complete": false
+  },
+  "resumed_formal_evidence": {
+    "sha256": "7c7c51dce1395e8670d9dea460eb93a504255f6f9f7b97ce47734fdd9ae6eefa",
+    "bytes": 462297279,
+    "zip_entries": 4688,
+    "crc": "passed",
+    "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+    "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+    "closed_marker": "passed",
+    "indices_and_all_frame_decompression": "passed",
+    "frames": 4660,
+    "gap_records": 400,
+    "gaps_in_final_sample_windows": 253,
+    "planned_formal_counts": {
+      "pointer_feedback": 5,
+      "window_text": 5,
+      "window_enter": 5,
+      "interrupt_return": 5
+    },
+    "human_reviewed": false,
+    "planned_categories": {
+      "pointer_feedback": 5,
+      "window_text": 5,
+      "window_enter": 5,
+      "interrupt_return": 5
+    },
+    "warmups": 4,
+    "additional_method_validation_attempts": 3,
+    "raw_phase_formal_attempts": 23,
+    "planned_attempts": 20,
+    "capture_lifecycle_counts": {
+      "captured": 27
+    },
+    "planned_review_statuses": {
+      "unreviewed": 20,
+      "valid": 0
+    },
+    "protocol_sha256": "a7b03c67018012b2a08720547dffd12a2cefc321a66bcd44bb92b6add7ab4b9a",
+    "formal_driver_sha256": "8d6a8fd7e2ba0cdabe970869f3254ebb2a0cbd9752a4c460971aeb134920cc89",
+    "old_formal_stage_status_limitation": "fresh frames incorrectly labelled acquire_status=failed; raw log preserved; fixed sender used for overhead and baseline",
+    "ai_candidates_are_not_human_reviews": true
+  },
+  "measurement_overhead": {
+    "schema": "measurement-overhead-analysis-v1",
+    "off": {
+      "statistics_samples": 120,
+      "valid_window_ms": 120000.0,
+      "coverage_ratio": 1.0,
+      "weighted_decoded_fps": 30.305519033005744,
+      "weighted_payload_kbps": 184.0383904348035,
+      "weighted_mean_decode_ms": 9.817159799432398,
+      "decoded_resolutions": [
+        [
+          1280,
+          720
+        ]
+      ],
+      "statistics_states": {
+        "sampled": 120
+      },
+      "missing_sequences": 0,
+      "library_counter_deltas": {
+        "freezeCount": 18,
+        "totalFreezesDuration": 6.378,
+        "pauseCount": 0,
+        "totalPausesDuration": 0,
+        "packetsLost": 0,
+        "framesDropped": 0
+      },
+      "counter_scope": "inside_window_endpoints_only",
+      "edge_window_rule": "clip_interval_and_prorate_reported_window_average",
+      "first_observed_ns": "1430732777591453",
+      "last_observed_ns": "1430853181919038"
+    },
+    "on": {
+      "statistics_samples": 120,
+      "valid_window_ms": 120000.0,
+      "coverage_ratio": 1.0,
+      "weighted_decoded_fps": 30.293725094513423,
+      "weighted_payload_kbps": 177.85289674320663,
+      "weighted_mean_decode_ms": 6.851452957761244,
+      "decoded_resolutions": [
+        [
+          1280,
+          720
+        ]
+      ],
+      "statistics_states": {
+        "sampled": 120
+      },
+      "missing_sequences": 0,
+      "library_counter_deltas": {
+        "freezeCount": 19,
+        "totalFreezesDuration": 6.834,
+        "pauseCount": 0,
+        "totalPausesDuration": 0,
+        "packetsLost": 0,
+        "framesDropped": 0
+      },
+      "counter_scope": "inside_window_endpoints_only",
+      "edge_window_rule": "clip_interval_and_prorate_reported_window_average",
+      "first_observed_ns": "1430992305072663",
+      "last_observed_ns": "1431112591628374"
+    },
+    "delta": {
+      "weighted_decoded_fps": -0.011793938492321132,
+      "weighted_payload_kbps": -6.185493691596861,
+      "weighted_mean_decode_ms": -2.965706841671154
+    },
+    "collector_processing": {
+      "copy_ns": {
+        "count": 721,
+        "median_ms": 2.129688,
+        "min_ms": 1.020312,
+        "max_ms": 10.228646
+      },
+      "compress_ns": {
+        "count": 721,
+        "median_ms": 17.158334,
+        "min_ms": 12.147917,
+        "max_ms": 36.80625
+      },
+      "write_ns": {
+        "count": 721,
+        "median_ms": 2.03125,
+        "min_ms": 0.3125,
+        "max_ms": 13.436458
+      }
+    },
+    "capture_gaps": {
+      "queue_overflow": 82
+    },
+    "provenance": {
+      "off_statistics": "b0a94552c09ba277963f01c60f4b60cd35c67daf7638ae517f340ec43e7e0457",
+      "on_statistics": "47fca4ee9efdd136b444901cee330e2856c958b53fe9c92df2eabadfba8d0741",
+      "off_window": "f5e734387e313b6b43386efb313522eb96fd3c60ce22e6f05cdc29377db5e6a9",
+      "on_window": "726484e8a9038bb1914980293c02840adaabad7e05476854279037f6c46d6554",
+      "on_feedback": "50606af63f9edecc9d5b35e14e333e6af6bd16e54b0f7819c76706634c90f1e9"
+    },
+    "evidence": {
+      "sha256": "13b97a9e44d579a9b8b6a4d873f912f313b37f04a9340aad3217fe33ff60e1b5",
+      "bytes": 234614330,
+      "zip_entries": 726,
+      "crc": "passed",
+      "experiment": "191c89ae-db8d-459a-ab3b-101e3e49ff72",
+      "session": "32248af5-38bc-4928-af5c-678256508487",
+      "closed_marker": "passed",
+      "indices_and_all_frame_decompression": "passed",
+      "frames": 721,
+      "gap_records": 82,
+      "gaps_in_final_sample_windows": 16,
+      "human_reviewed": false
+    },
+    "conditions": "One sequential 120s pair, same workload/setup, 30s warmup, receiver anchor intervals clipped to exactly120s; no causal confidence interval or repeated control pairs"
+  },
+  "capture_status_fix_validation": {
+    "on_window_fresh_acquired": 487,
+    "on_window_reused_timeout": 3188,
+    "baseline_window_fresh_acquired": 2433,
+    "baseline_window_reused_timeout": 15763,
+    "invalid_pairs": 0,
+    "dropped_stage_records": 0,
+    "stage_log_complete": true
+  },
+  "post_capture_export": {
+    "buffer_bytes": 65536,
+    "scope": "Only ZIP output after closed evidence; callback, capture, input queue and original frames unchanged",
+    "new_build_log_sha256": "9734997c9bc9801f6f44efbb4b6e00444d94ad51e5180e3e475232e95b98de94",
+    "signature_check_log_sha256": "8ede44352864845a52315b15e145f143762cd74fc220975d0b4b555b0dbdd8d4",
+    "baseline_first_archive_sha256": "6726663faa84b6b99ae4a697f5f7e857689ec9353b1f001f11c54a96e94c27ae",
+    "first_archive_bad_entries": 1,
+    "repeat_mtp_copy_same_sha256": true,
+    "reexport_archive_sha256": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
+    "reexport_crc_and_all_frames": "passed",
+    "first_corruption_cause": "not_determined; corrupt copies preserved; no results derived from corrupt archive",
+    "baseline_export_completion_observed_seconds": 23.8,
+    "baseline_reexport_completion_observed_seconds": 26.2,
+    "speedup_comparison": "Different archive sizes; not a controlled speedup measurement"
+  },
+  "resumed_code_review": {
+    "base": "ed4264e700481628a03ff78c2b80cb10f04bfa8f",
+    "scopes": [
+      "desktop_source.cpp acquisition status fix",
+      "SoftwareLatency.java closed-session export buffer"
+    ],
+    "standards_hard_violations": 0,
+    "standards_correctness_risks": 0,
+    "standards_actionable_smells": 0,
+    "spec_code_findings": 0,
+    "human_acceptance_pending": true
+  },
+  "resumed_source": {
+    "base": "ed4264e700481628a03ff78c2b80cb10f04bfa8f",
+    "files": {
+      "apps/windows/src/desktop_source.cpp": "e85e414230e45170bef28e3d1357654e5df72246577abd55971d7569f08c07ac",
+      "apps/android/src/main/java/dev/remotedesktop/probe/SoftwareLatency.java": "cd5afb7ae7195b2e2eb1a00bb47f6e3931708643ba9fb65e3620b362588fcd38"
+    },
+    "user_agents_sha256_preserved": "2f7b1faf7907a1577f17e905f098ff65f357787ab865d81d07051d42bdf2dec0"
+  },
+  "initial_build_metadata_scope": "source_base/source_bundle/latest_source describe earlier documented builds; resumed_source and builds identify current narrow changes/artifacts",
+  "final_report_review": {
+    "base": "ed4264e700481628a03ff78c2b80cb10f04bfa8f",
+    "standards_hard_violations": 0,
+    "standards_correctness_risks": 0,
+    "standards_actionable_smells": 0,
+    "standards_heuristics_considered": 12,
+    "spec_findings": 1,
+    "spec_finding_severity": "P3",
+    "spec_fixed": "Clarify zero accepted samples and unavailable latency references, not zero latency",
+    "remaining_actionable_findings": 0
   }
 }

@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -337,7 +338,7 @@ final class SoftwareLatency implements VideoSink {
     String filename() { return "software-measurement-" + id() + ".zip"; }
     void export(OutputStream output) throws IOException {
       if (WRITING.contains(id())) throw new IOException("Evidence is still being saved");
-      try (ZipOutputStream zip = new ZipOutputStream(output)) {
+      try (ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(output, 64 * 1024))) {
         zip.setLevel(0); // Frame payloads are already losslessly compressed.
         archive(zip, directory, id() + "/", new byte[64 * 1024]);
       }

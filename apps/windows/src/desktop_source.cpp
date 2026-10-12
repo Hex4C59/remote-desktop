@@ -208,8 +208,7 @@ class DesktopSource final : public FrameSource {
     }
     latest = std::move(output);
     ++frame_id_;
-    if (timing) { timing->outcome = "fresh"; timing->frame_id = frame_id_;
-      timing->acquire_status = "failed"; }
+    if (timing) { timing->outcome = "fresh"; timing->frame_id = frame_id_; }
     return true;
   }
  private:
