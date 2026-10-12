@@ -16,29 +16,40 @@
     "incremental_standards_spec_review": "no_remaining_actionable_code_findings"
   },
   "runtime": {
-    "completed_runs": 0,
-    "formal_attempts": 0,
+    "completed_runs": 1,
+    "formal_attempts": 20,
     "collection_completed": false,
-    "target_720p30_reached": null,
+    "target_720p30_reached": false,
     "controller_available": true,
-    "sampling_ready": false,
-    "blocker": "task07_generic_text_key_association_and_owned_windows_foreground_unavailable",
+    "sampling_ready": true,
+    "blocker": "human_feedback_boundary_repeat_and_workload_review_pending",
     "windows_interactive_desktop_checked": true,
     "same_lan_subnet": true,
     "workload_method_validation_cycles": 1,
     "workload_compile_exit_code": 0,
     "workload_ctrl_c_return_observed": true,
     "workload_method_validation_counted_as_baseline": false,
-    "lifecycle_regressions_on_latest_artifact": "normal_pairing_wrong_code_background_targeted_network_cut_end_manual_reconnect_observed",
-    "touch_high_dpi_and_latest_terminal_regressions": "not_completed"
+    "lifecycle_regressions_on_latest_artifact": "observed_outside_long_window",
+    "touch_high_dpi_and_latest_terminal_regressions": "observed_outside_long_window",
+    "workload_fixed_cycles_completed": 5,
+    "all_compile_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "continuous_runtime_seconds": 600.0,
+    "raw_window_and_workload_acquisition_completed": true
   },
   "software_references_ms": {},
   "future_candidates": {
-    "bandwidth_kbps": null,
+    "bandwidth_kbps": 116.09263849973166,
     "bandwidth_factor": 0.75,
     "added_one_way_delay_ms": 50,
     "random_loss_percent": 1,
-    "validation_task": "09"
+    "validation_task": "09",
+    "status": "provisional_from_observed_unaccepted_baseline; task09_path_effect_not_verified"
   },
   "physical_measurements": {
     "display_latency": "deferred_unaccepted",
@@ -46,12 +57,462 @@
   },
   "evidence": "task07-software-measurement.json",
   "workload_audit": {
-    "scope": "single_method_validation_cycle_not_fixed_baseline",
-    "sha256": "3e716b7155d3c4f4a663a4a1dc2116c8a763e4d49b4b318f4e287c05f942002c",
-    "event_count": 7,
-    "run_returned_exit_code": -1073741510
+    "scope": "five_fixed_120s_cycles",
+    "sha256": "1cca698cca9650fde441bc6172b4c04d3a05fbd6d33a530c6e15066e147bbb0e",
+    "event_count": 31,
+    "completed": true,
+    "human_reviewed": false,
+    "auxiliary_cached_console_snapshots": "stale_excluded"
   },
   "private_evidence_sha256": {
-    "read-cpp-audit.log": "5aef44679f8c8d330d897c9c49a71e1020d25ad407c45ce143be1664872dd4b9"
+    "read-cpp-audit.log": "5aef44679f8c8d330d897c9c49a71e1020d25ad407c45ce143be1664872dd4b9",
+    "baseline-reexport.zip": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
+    "baseline-analysis.json": "a1f0c112cc4aa4866f6e621d9906cd2949bcd47d7cc85f307a02f1ff9a595f91",
+    "baseline-context.json": "7bdfd9c9cd9e1796dbbcb34f650d7cc0cf9d43b19b8e4f30d9176c025091ec49",
+    "baseline-feedback-analysis.json": "de8f79e420c80868a810aa27b746d65fbe7b0e997048545322ca60b8be0dc36e"
+  },
+  "run": {
+    "experiment": "5d47fc4d-7778-493d-8015-78d8910d3830",
+    "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
+    "duration_seconds": 600.0,
+    "collection_completed": false,
+    "collection_criteria": {
+      "continuous_600_seconds": true,
+      "five_fixed_cycles": false,
+      "four_attempts_per_cycle": true,
+      "all_attempts_reviewed": false,
+      "statistics_available": true,
+      "stages_available": true
+    },
+    "target_720p30_reached": false,
+    "target_criteria": {
+      "decoded_720p": true,
+      "submitted_720p": true,
+      "average_at_least_30_fps": false,
+      "statistics_coverage": true,
+      "no_reported_freezes": false,
+      "no_missing_sequences": true
+    },
+    "target_rule": "720p submissions/decodes, average FPS >=30, coverage >=99%, no reported freeze/sequence loss",
+    "receiver": {
+      "statistics_samples": 594,
+      "valid_window_ms": 600000.0,
+      "coverage_ratio": 1.0,
+      "weighted_decoded_fps": 29.285337030317898,
+      "weighted_payload_kbps": 154.79018466630887,
+      "weighted_mean_decode_ms": 7.76557072694844,
+      "decoded_resolutions": [
+        [
+          1280,
+          720
+        ]
+      ],
+      "statistics_states": {
+        "sampled": 593,
+        "no_new_decoded_frames": 1
+      },
+      "missing_sequences": 0,
+      "library_counter_deltas": {
+        "freezeCount": 91,
+        "totalFreezesDuration": 33.574,
+        "pauseCount": 0,
+        "totalPausesDuration": 0,
+        "packetsLost": 0,
+        "framesDropped": 5
+      },
+      "counter_scope": "inside_window_endpoints_only",
+      "edge_window_rule": "clip_interval_and_prorate_reported_window_average",
+      "first_observed_ns": "1431598202910591",
+      "last_observed_ns": "1432197628854771"
+    },
+    "source_resolutions": [
+      [
+        2560,
+        1440
+      ]
+    ],
+    "submitted_resolutions": [
+      [
+        1280,
+        720
+      ]
+    ],
+    "stages": {
+      "schema": "software-stage-analysis-v1",
+      "source_sha256": "53d1b2876aa6912ef36e96b694458e75e92ab9920321043ecfcc2f787972ea2a",
+      "outcomes": {
+        "reused": 15763,
+        "fresh": 2433
+      },
+      "acquire_statuses": {
+        "timeout": 15763,
+        "acquired": 2433
+      },
+      "stages": {
+        "capture_ns": {
+          "count": 18196,
+          "median_ms": 0.0605,
+          "min_ms": 0.0171,
+          "max_ms": 9.4067
+        },
+        "acquire_ns": {
+          "count": 18196,
+          "median_ms": 0.0554,
+          "min_ms": 0.0168,
+          "max_ms": 0.469
+        },
+        "readback_ns": {
+          "count": 2433,
+          "median_ms": 4.473,
+          "min_ms": 4.2247,
+          "max_ms": 7.8107
+        },
+        "convert_ns": {
+          "count": 2433,
+          "median_ms": 0.8934,
+          "min_ms": 0.7708,
+          "max_ms": 1.6651
+        },
+        "rotate_ns": {
+          "count": 0,
+          "median_ms": null,
+          "min_ms": null,
+          "max_ms": null
+        },
+        "scale_ns": {
+          "count": 2433,
+          "median_ms": 0.2167,
+          "min_ms": 0.1801,
+          "max_ms": 0.5976
+        },
+        "submit_ns": {
+          "count": 18196,
+          "median_ms": 0.0101,
+          "min_ms": 0.0024,
+          "max_ms": 0.3874
+        },
+        "total_ns": {
+          "count": 18196,
+          "median_ms": 0.0717,
+          "min_ms": 0.0226,
+          "max_ms": 9.4214
+        }
+      },
+      "complete_log": true,
+      "end": {
+        "dropped_records_total": 0,
+        "event": "stopped",
+        "records_attempted": 21343,
+        "schema": "software-stages-v1",
+        "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
+        "write_failed": false
+      },
+      "capture_count": 18196,
+      "bottlenecks": [
+        {
+          "stage": "readback_ns",
+          "count": 2433,
+          "median_ms": 4.473,
+          "min_ms": 4.2247,
+          "max_ms": 7.8107
+        },
+        {
+          "stage": "convert_ns",
+          "count": 2433,
+          "median_ms": 0.8934,
+          "min_ms": 0.7708,
+          "max_ms": 1.6651
+        },
+        {
+          "stage": "scale_ns",
+          "count": 2433,
+          "median_ms": 0.2167,
+          "min_ms": 0.1801,
+          "max_ms": 0.5976
+        },
+        {
+          "stage": "acquire_ns",
+          "count": 18196,
+          "median_ms": 0.0554,
+          "min_ms": 0.0168,
+          "max_ms": 0.469
+        },
+        {
+          "stage": "submit_ns",
+          "count": 18196,
+          "median_ms": 0.0101,
+          "min_ms": 0.0024,
+          "max_ms": 0.3874
+        }
+      ]
+    },
+    "stage_association": "latest_delivered_receiver_sequence_approximation_not_clock_sync",
+    "workload": {
+      "completed": true,
+      "events": 31,
+      "sha256": "1cca698cca9650fde441bc6172b4c04d3a05fbd6d33a530c6e15066e147bbb0e",
+      "association": "operator_review_and_cycle_order_not_clock_subtraction"
+    },
+    "context": {
+      "schema": "lan-run-context-v1",
+      "experiment": "5d47fc4d-7778-493d-8015-78d8910d3830",
+      "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
+      "controller": {
+        "model": "MRO-W00",
+        "system": "OpenHarmony-6.1.1.120",
+        "android_container": "DroiTong 1.0.10.81",
+        "android_api_independently_read": false
+      },
+      "controlled_host": {
+        "system": "Windows 11 Home 10.0.26300 x64",
+        "desktop": "logged-in unlocked Session1",
+        "source_dimensions": [
+          2560,
+          1440
+        ],
+        "dpi": 96
+      },
+      "network": {
+        "kind": "existing Windows Wi-Fi hotspot LAN",
+        "usb_use": "HDC user-interface automation and after-session MTP evidence recovery",
+        "impairment_applied_during_baseline": false
+      },
+      "versions": {
+        "webrtc_revision": "a3553f1c82a5580c91ad1f82baab4b11ed4b34b6",
+        "compiler_file_version": "14.51.36248.0",
+        "workload": "cpp-browse-edit-compile-run-interrupt-v1"
+      },
+      "artifact_sha256": {
+        "capture_apk": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+        "windows_sender": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+        "post_session_export_apk": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0"
+      },
+      "workload_reviewer": "pending_human",
+      "workload_reviewed": false,
+      "auxiliary_console_snapshots": "stale; not used for acceptance; independent workload audit and full decoded-frame evidence preserved",
+      "measurement_enabled": true
+    },
+    "feedback_statuses": {
+      "unreadable": 20
+    },
+    "by_category": {
+      "text_submit": {
+        "count": 0,
+        "median_ms": null,
+        "min_ms": null,
+        "max_ms": null
+      },
+      "compile_start": {
+        "count": 0,
+        "median_ms": null,
+        "min_ms": null,
+        "max_ms": null
+      },
+      "program_start": {
+        "count": 0,
+        "median_ms": null,
+        "min_ms": null,
+        "max_ms": null
+      },
+      "interrupt_return": {
+        "count": 0,
+        "median_ms": null,
+        "min_ms": null,
+        "max_ms": null
+      }
+    },
+    "provenance": {
+      "receiver-statistics-1791866337255034.jsonl": "51440cd273823adf63a057379707570bc5e2602d218570215bc2c66746fd9b54",
+      "stages.jsonl": "53d1b2876aa6912ef36e96b694458e75e92ab9920321043ecfcc2f787972ea2a",
+      "baseline-feedback-analysis.json": "de8f79e420c80868a810aa27b746d65fbe7b0e997048545322ca60b8be0dc36e",
+      "baseline.json": "a2bc989cb108a2d2f61f127a383eb72781ad844f942016efe12488cf422c7924",
+      "workload.jsonl": "1cca698cca9650fde441bc6172b4c04d3a05fbd6d33a530c6e15066e147bbb0e",
+      "baseline-context.json": "7bdfd9c9cd9e1796dbbcb34f650d7cc0cf9d43b19b8e4f30d9176c025091ec49"
+    }
+  },
+  "raw_evidence": {
+    "sha256": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
+    "bytes": 1109238759,
+    "zip_entries": 3414,
+    "crc": "passed",
+    "experiment": "5d47fc4d-7778-493d-8015-78d8910d3830",
+    "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
+    "closed_marker": "passed",
+    "indices_and_all_frame_decompression": "passed",
+    "frames": 3392,
+    "gap_records": 20,
+    "gaps_in_final_sample_windows": 9,
+    "human_reviewed": false,
+    "categories": {
+      "text_submit": 5,
+      "compile_start": 5,
+      "program_start": 5,
+      "interrupt_return": 5
+    },
+    "collector_processing": {
+      "copy_ns": {
+        "count": 3392,
+        "median_ms": 1.9869795,
+        "min_ms": 0.85625,
+        "max_ms": 12.970833
+      },
+      "compress_ns": {
+        "count": 3392,
+        "median_ms": 16.760416499999998,
+        "min_ms": 11.719792,
+        "max_ms": 57.105729
+      },
+      "write_ns": {
+        "count": 3392,
+        "median_ms": 2.089063,
+        "min_ms": 0.311979,
+        "max_ms": 11.026562
+      }
+    },
+    "capture_gaps": {
+      "queue_overflow": 20
+    }
+  },
+  "limitations": [
+    "Human boundary selection and repeat review: 0; no accepted software feedback reference medians",
+    "600s raw run completed; collection acceptance awaits human feedback/workload review",
+    "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
+    "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
+    "First baseline archive had one CRC failure; two reads identical, reexport fully valid; root cause unlocated",
+    "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
+    "Android API/device process independently unreadable in Harmony Android container",
+    "Both physical display latency measurements deferred and unaccepted"
+  ],
+  "regressions": {
+    "schema": "task07-latest-artifact-regressions-v1",
+    "apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
+    "windows_sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+    "outside_600s_baseline": true,
+    "measurement_enabled": false,
+    "normal_pairing": {
+      "result": "observed_connected_1280x720",
+      "jobs": [
+        "1791869214710985000-3016afe2",
+        "1791869238347666000-931015ed"
+      ]
+    },
+    "wrong_code": {
+      "result": "wrong_code_denied",
+      "job": "1791867652708991000-a4fd9ba5",
+      "utc": "2026-10-13T05:01:10.0070250Z"
+    },
+    "high_dpi": {
+      "original_scale": "100% (推荐)",
+      "requested_scale": "125%",
+      "method": "normal_settings_uia_selection",
+      "applied": true,
+      "restored": true,
+      "utc": "2026-10-13T04:58:22.4739167Z"
+    },
+    "high_dpi_input": {
+      "result": "actual_125_percent_touch_text_enter_observed",
+      "dpi": 120,
+      "source_width": 2560,
+      "source_height": 1440,
+      "pointer_events": 2,
+      "enter_events": 2,
+      "typed_text": "DPI125_TEXT\r\nDPI125_RETRY\r\n",
+      "measurement_enabled": false,
+      "utc": "2026-10-13T05:05:27.4937386Z"
+    },
+    "terminal_keys": {
+      "schema": "terminal-key-regression-v1",
+      "capture_artifact_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
+      "windows_sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+      "result": "observed_in_actual_received_video_and_independent_workload_audit",
+      "keys": [
+        "Enter",
+        "Tab",
+        "Left",
+        "Right",
+        "Up",
+        "Down",
+        "Backspace",
+        "Ctrl+C"
+      ],
+      "visible_observations": [
+        "Write-Host LATEST_KEY_B and LATEST_KEY_B output",
+        "Get-Location completed and own work path printed",
+        "run_demo revision=5 tick=0..4 followed by TASK07 PS> prompt"
+      ],
+      "screenshot_sha256": "76781d0786f25b6bc2cdb3f64b94f51a0016cd1b6fdbd125807f218cba3fc107",
+      "input_job": "1791868242998641000-0900609f",
+      "initial_harness_assertion": "failed_due_to_stale_cached_console_snapshot; retained",
+      "native_snapshot_helpers": "unavailable; not acceptance evidence",
+      "outside_baseline": true,
+      "measurement_enabled": false,
+      "human_latency_review": false,
+      "verified_utc": "2026-10-13T05:22:16.313349+00:00"
+    },
+    "network_cut": {
+      "result": "network_cut_ended_without_auto_reconnect",
+      "mechanism": "owned_sender_remote_address_bidirectional_firewall_block",
+      "started_utc": "2026-10-13T05:21:57.0881692Z",
+      "ended_utc": "2026-10-13T05:22:03.7665819Z",
+      "status": "桌面连接已断开，会话已结束；点击重新连接建立新会话",
+      "block_rules_removed": true
+    },
+    "background": {
+      "result": "background_end_return_observed",
+      "status": "应用已离开前台，会话已结束；点击重新连接建立新会话",
+      "statistics": "视频统计 · 会话已结束（非实时）· 最后样本 #4 · 电脑最后确认 #4",
+      "reconnect_enabled": true,
+      "utc": "2026-10-13T05:27:17.1516867Z"
+    },
+    "explicit_end": {
+      "result": "explicit_end_observed",
+      "status": "会话已结束；点击重新连接建立新会话",
+      "statistics": "视频统计 · 会话已结束（非实时）· 最后样本 #4 · 电脑最后确认 #4",
+      "input_controls_disabled": true,
+      "live_video_view_absent": true,
+      "sender_exited": true,
+      "utc": "2026-10-13T05:27:39.6463376Z"
+    },
+    "manual_reconnect": {
+      "after_network_cut": "observed",
+      "after_background": "observed",
+      "new_session_ids_distinct": true,
+      "jobs": [
+        "1791869214710985000-3016afe2",
+        "1791869238347666000-931015ed"
+      ]
+    },
+    "failed_harness_attempts_preserved": true
+  },
+  "cleanup": {
+    "utc": "2026-10-13T05:33:11.1115315Z",
+    "owned_fixture_pids_stopped": [
+      33020
+    ],
+    "owned_scheduled_tasks_removed": 1,
+    "remaining_owned_interactive_processes": 0,
+    "remaining_owned_scheduled_tasks": 0,
+    "remaining_task07_firewall_rules": 0,
+    "tablet_power_restored_readback": true,
+    "tablet_timeout_ms": 30000,
+    "tablet_override_timeout_ms": 10000,
+    "tablet_returned_home": true,
+    "hotspot_wlan_changed": false,
+    "display_scale_temporarily_changed": true,
+    "display_scale_restored": true,
+    "display_scale_restored_dpi": 96,
+    "user_window_restoration": {
+      "wegame_window_restored": true,
+      "identity_verified": true,
+      "show_command": 1,
+      "utc": "2026-10-13T05:33:12.7614288Z"
+    },
+    "final_resource_readback": {
+      "utc": "2026-10-13T05:33:49.8899729Z",
+      "remaining_owned_interactive_processes": 0,
+      "remaining_owned_scheduled_tasks": 0,
+      "remaining_task07_firewall_rules": 0,
+      "restoration_task_removed": true
+    }
   }
 }
