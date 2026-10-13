@@ -378,7 +378,7 @@
     "600s raw run completed; collection acceptance awaits human feedback/workload review",
     "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
     "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
-    "First baseline archive had one CRC failure; two reads identical, reexport fully valid; root cause unlocated",
+    "First baseline ZIP has a2486B zero block; repeated exports show Android/shared-storage view differences; fd.sync did not eliminate them; corrupt copies preserved and rejected",
     "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
     "Android API/device process independently unreadable in Harmony Android container",
     "Both physical display latency measurements deferred and unaccepted"
@@ -514,5 +514,18 @@
       "remaining_task07_firewall_rules": 0,
       "restoration_task_removed": true
     }
+  },
+  "export_integrity_continuation": {
+    "record": "task07-export-integrity.json",
+    "source_base": "0ca07345a107208e3be7f73e7fd2c0ca0df976b0",
+    "post_capture_android_apk_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
+    "baseline_raw_reference_unchanged": true,
+    "attempts": 5,
+    "recovery_passed": 3,
+    "recovery_rejected": 2,
+    "all_frames_valid_in_successful_reexports": 3392,
+    "sync_hypothesis": "rejected_by_attempt04",
+    "specific_introducing_module": "not_determined",
+    "raw_statistics_and_capture_versions_unchanged": true
   }
 }
