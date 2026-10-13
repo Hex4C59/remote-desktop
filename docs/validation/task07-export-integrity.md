@@ -55,3 +55,6 @@ python3 scripts/latency/archive.py recovered.zip --bytes BYTES --sha256 SHA256
 清理回读确认平板已返回主屏，Timeout=30000 ms、OverrideTimeout=10000 ms恢复；本轮WPD读取进程、任务07计划任务和防火墙规则剩余0。没有新远程控制会话，没有改热点、WLAN、显示缩放或用户应用。
 
 结构化结果及各次回执见[完整性证据](evidence/task07-export-integrity.json)。原始ZIP、设备标识、机器路径、界面树、二进制范围与日志保存在忽略目录。反馈边界人工判读与复读仍为0；任务07/08继续未验收，两类物理显示延迟继续延期。
+
+
+后续状态更新：上述人工复核0、任务未验收描述的是导出续查结束时的快照。用户随后将剩余判读委托Agent，已完成同一AI的40次视觉判读及复读，软件测量／基线采集按此口径结项；人工数量仍0，原人工专属条件未宣称满足，CRC根因未知与物理测量延期不变。见[授权复核记录](task07-authorized-visual-review.md)。

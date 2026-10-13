@@ -111,7 +111,7 @@
     "validation_not_run_attempts": 1,
     "human_boundary_reviews": 0,
     "deployed_feedback_artifact_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
-    "sampling_blocker": "human_feedback_boundary_and_repeat_review_pending",
+    "sampling_blocker": null,
     "normal_pairing_720p": true,
     "end_and_manual_reconnect_observed": true,
     "terminal_text_enter_ctrl_c_observed": true,
@@ -175,7 +175,7 @@
         "restoration_task_removed": true
       }
     },
-    "baseline_collection_accepted": false,
+    "baseline_collection_accepted": true,
     "human_boundary_rereviews": 0,
     "deployed_current_artifact_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
     "windows_foreground_condition_resolved": true,
@@ -296,7 +296,9 @@
       "display_scale_changed": false,
       "user_applications_changed": false,
       "new_remote_control_sessions": 0
-    }
+    },
+    "ai_boundary_reviews": 20,
+    "ai_boundary_rereviews": 20
   },
   "review": {
     "standards_hard_violations": 0,
@@ -306,20 +308,22 @@
     "remaining_actionable_findings": 0
   },
   "acceptance": {
-    "task07": false,
-    "task08": false,
+    "task07": true,
+    "task08": true,
     "physical_display_latency": false,
-    "physical_operation_feedback_latency": false
+    "physical_operation_feedback_latency": false,
+    "review_policy": "user_authorized_ai_visual_two_pass",
+    "original_human_only_review_satisfied": false
   },
   "limitations": [
-    "Human boundary selection and repeat review: 0; no accepted software feedback reference medians",
-    "600s raw run completed; collection acceptance awaits human feedback/workload review",
+    "Human boundary reviews remain 0; user delegated remaining review to Codex; 20 task07 and20 baseline boundaries visually read twice by the same AI, not independent human review",
     "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
     "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
     "First baseline ZIP has a2486B zero block; repeated exports show Android/shared-storage view differences; fd.sync did not eliminate them; corrupt copies preserved and rejected",
     "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
     "Android API/device process independently unreadable in Harmony Android container",
-    "Both physical display latency measurements deferred and unaccepted"
+    "Both physical display latency measurements deferred and unaccepted",
+    "Two historical log SHA bindings unresolved: regression-network-cut.log and cleanup-runtime.log; recorded hashes retained, observed files separately hashed; final-regressions/final-cleanup JSON hashes still match"
   ],
   "private_evidence_sha256": {
     "android-delivery.log": "9faf2e5c2b94d9a491a3a9645b7b98f7ca83f1db3ce6dd2b5c6feceec1ec7ff3",
@@ -367,7 +371,10 @@
     "baseline-review-visible.png": "7b76cfb0e4cb32d09e4934a9417f8a61dfb307c9b20673ada4e14996ee5dc672",
     "review-hub-visible.png": "76da40a92f2d30df4166c23f3a3b5db9aa2ee7a584c93228e6ccd80112d36b00",
     "task07-review-visible.png": "c58b09928711936f87243c2a0387e2f619746a41e2b13721ff7ddff7792db996",
-    "final-report-invariants.log": "a65749b906470aa61b94763203057621d7810a2c04157d5cf6bbb0cb39f0875e"
+    "final-report-invariants.log": "a65749b906470aa61b94763203057621d7810a2c04157d5cf6bbb0cb39f0875e",
+    "authorized-review/task07-review.json": "55be4b6d4722483813f4fc49b7bd3d38f174494f0e890c4613acd466c750d74b",
+    "authorized-review/task07-analysis.json": "b672358d9092538080c45f96e13d907c2e4c4cd06f55ed182eb4582df70356e5",
+    "authorized-review/first-pass-boundaries.json": "26bcb2661f372bb85e3ffe93a5980304a2050484726c9a359ba8d5bafea514d7"
   },
   "latest_source": {
     "base": "3712692",
@@ -442,13 +449,42 @@
       "captured": 27
     },
     "planned_review_statuses": {
-      "unreviewed": 20,
-      "valid": 0
+      "valid": 20
     },
     "protocol_sha256": "a7b03c67018012b2a08720547dffd12a2cefc321a66bcd44bb92b6add7ab4b9a",
     "formal_driver_sha256": "8d6a8fd7e2ba0cdabe970869f3254ebb2a0cbd9752a4c460971aeb134920cc89",
     "old_formal_stage_status_limitation": "fresh frames incorrectly labelled acquire_status=failed; raw log preserved; fixed sender used for overhead and baseline",
-    "ai_candidates_are_not_human_reviews": true
+    "ai_candidates_are_not_human_reviews": true,
+    "ai_reviewed": true,
+    "ai_rereviewed": true,
+    "review_record": "task07-authorized-review.json",
+    "feedback_analysis": "task07-authorized-analysis.json",
+    "by_category": {
+      "pointer_feedback": {
+        "count": 5,
+        "median_ms": 88.884375,
+        "min_ms": 78.807292,
+        "max_ms": 97.140625
+      },
+      "window_text": {
+        "count": 5,
+        "median_ms": 120.061458,
+        "min_ms": 91.478646,
+        "max_ms": 363.907813
+      },
+      "window_enter": {
+        "count": 5,
+        "median_ms": 95.210937,
+        "min_ms": 79.236979,
+        "max_ms": 123.864583
+      },
+      "interrupt_return": {
+        "count": 5,
+        "median_ms": 171.778646,
+        "min_ms": 143.182813,
+        "max_ms": 502.701041
+      }
+    }
   },
   "measurement_overhead": {
     "schema": "measurement-overhead-analysis-v1",
@@ -628,5 +664,73 @@
     "sync_hypothesis": "rejected_by_attempt04",
     "specific_introducing_module": "not_determined",
     "raw_images_and_capture_version_unchanged": true
+  },
+  "authorized_visual_review": {
+    "date": "2026-10-13",
+    "source_base": "e2eff8f",
+    "authorization": {
+      "mode": "user_authorized_ai_visual",
+      "requested_by": "user",
+      "date": "2026-10-13",
+      "instruction": "你帮我做了啊,我授权你完成"
+    },
+    "task07_review_counts": {
+      "ai": 20
+    },
+    "task07_rereview_counts": {
+      "ai": 20
+    },
+    "same_ai_rereview": true,
+    "original_protocol_preserved": true,
+    "original_human_only_acceptance": false,
+    "record": "../task07-authorized-visual-review.md",
+    "calculation_tests": 46,
+    "checks": {
+      "python-tests": {
+        "result": "passed",
+        "log_sha256": "b1879943f202fdab199eacaa58951888cc2dc488e8b667d947615a5cfd3b1e69"
+      },
+      "review-import": {
+        "result": "passed",
+        "log_sha256": "e83cfbad7412613b5668d47a0ff9080bb85ea13323123bacac9182aca55dd642"
+      }
+    },
+    "reproduction": "byte_identical_public_feedback; baseline_result_identical_ignoring_input_basenames",
+    "platform_build_scope": "no_platform_source_changed_in_this_offline_review; prior_artifact_builds_and_regressions_retained",
+    "code_diff_sha256": "3e11d40397ef2329924d35a01bae6e6f272c9f46a7f9085982fd433df74fb56c"
+  },
+  "historical_provenance_qualifications": [
+    {
+      "file": "regression-network-cut.log",
+      "recorded_sha256": "d8f0ab098665510b1d7e47ee265b795bdeb35d54a725a8ae2cf3a1d3ec5e03c4",
+      "retained_sha256": "d3f238cdc0c46992bfe6885cc6639974fa91f2edbbaf78e2cfb38da7a5487670",
+      "status": "historical_binding_unresolved",
+      "matching_original_found": false,
+      "search_scope": "retained local task07 log/raw/json files at most2MiB",
+      "search_files": 637,
+      "effect": "not used to calculate the40new feedback boundaries; existing regression/cleanup byte binding qualified, not upgraded"
+    },
+    {
+      "file": "cleanup-runtime.log",
+      "recorded_sha256": "bb8090b135896d506540ac23a37912c6c0db0c1a547520ac1dbe723cf63c6a7c",
+      "retained_sha256": "11541c7931d9056fe286fd7f7d98a370a110475ac4aa2c89ac0e71c290e101c2",
+      "status": "historical_binding_unresolved",
+      "matching_original_found": false,
+      "search_scope": "retained local task07 log/raw/json files at most2MiB",
+      "search_files": 637,
+      "effect": "not used to calculate the40new feedback boundaries; existing regression/cleanup byte binding qualified, not upgraded"
+    }
+  ],
+  "authorized_review_code_audit": {
+    "base_commit": "e2eff8f4c4f6c65ffc07a889cc3dc2e1af7d6c8a",
+    "standards_introduced_findings": 0,
+    "standards_preexisting_provenance_finding": 1,
+    "standards_reporting_finding_addressed_by_explicit_qualification": true,
+    "spec_findings": 0,
+    "remaining_actionable_reporting_findings": 0,
+    "historical_bindings_still_unresolved": 2,
+    "python_tests_passed": 46,
+    "visual_reviewers_independent_of_code_audit_agents": true,
+    "record": "../task07-software-review.md"
   }
 }

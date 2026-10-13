@@ -1,0 +1,1061 @@
+{
+  "schema": "software-feedback-analysis-v1",
+  "review_schema": "software-review-v2",
+  "review_authorization": {
+    "mode": "user_authorized_ai_visual",
+    "requested_by": "user",
+    "date": "2026-10-13",
+    "instruction": "你帮我做了啊,我授权你完成"
+  },
+  "boundary_review_counts": {
+    "ai": 20
+  },
+  "boundary_rereview_counts": {
+    "ai": 20
+  },
+  "endpoint": "VideoSink.onFrame_entry",
+  "physical_display_measurement": false,
+  "measurement_enabled": true,
+  "samples": [
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0001",
+      "category": "association_pointer",
+      "phase": "formal",
+      "index_sha256": "343ad0b5969693cb8e85b6c1073af56a01827d822b386031b79f0ac6c5ae9541",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1427881566177304",
+      "armed_ns": "1427877960668451",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0002",
+      "category": "association_window_text",
+      "phase": "formal",
+      "index_sha256": "908cb630285cb886cb0699b3a22b41b248e10517f5fa118972d29d95cd38aacd",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1427912269567925",
+      "armed_ns": "1427902867714280",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0003",
+      "category": "association_window_enter",
+      "phase": "formal",
+      "index_sha256": "5be7120c853edb4b7253fa322ef969906e70b19776b3fadc46978b614be4d77c",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1427933958812713",
+      "armed_ns": "1427930369423651",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0004",
+      "category": "pointer_feedback",
+      "phase": "warmup",
+      "index_sha256": "c5089fa4d429e0744c5866dc02982a49fd86dba676e41fd4131447db93a13396",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1428071431826755",
+      "armed_ns": "1428067754253318",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0005",
+      "category": "pointer_feedback",
+      "phase": "formal",
+      "index_sha256": "17ebc0e28bc4407c8e08da4eced4de46f4519bf3ae7688ad4801a14118764e33",
+      "status": "valid",
+      "observed_frame_latency_ms": 88.884375,
+      "interval_ms": [
+        53.036459,
+        88.884375
+      ],
+      "start_ns": "1428094619957480",
+      "armed_ns": "1428091061037689",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "POINTER_CONFIRMED 3 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 1330,
+        "first_present": 1331,
+        "last_absent_ns": "1428094672993939",
+        "first_present_ns": "1428094708841855",
+        "last_absent_sha256": "da2643b886a9e3448beb9f2f79cbf97f7017fe66730f9421f80a31bbfd9a6c4d",
+        "first_present_sha256": "11fe5c9c202c2d77f1607fc2d146dfc4eb4d45e677adf0ff00e2a95f58fc913c"
+      },
+      "statistics_seq": 313,
+      "observed_frame_latency_ns": "88884375",
+      "interval_ns": [
+        "53036459",
+        "88884375"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0006",
+      "category": "pointer_feedback",
+      "phase": "formal",
+      "index_sha256": "669a1ff4d02763925342d9bac8100aaaa8503c3892397a7f4fdd85ad81e5cba3",
+      "status": "valid",
+      "observed_frame_latency_ms": 97.140625,
+      "interval_ms": [
+        56.997395,
+        97.140625
+      ],
+      "start_ns": "1428117906617373",
+      "armed_ns": "1428114288680394",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "POINTER_CONFIRMED 4 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 1592,
+        "first_present": 1593,
+        "last_absent_ns": "1428117963614768",
+        "first_present_ns": "1428118003757998",
+        "last_absent_sha256": "c07ccbe89dda4e5a3aa6d4f15ac58fe14b9601ef69808536a805779fd79aa052",
+        "first_present_sha256": "6c16a5b0be8680244caa98646a17541b04ebbdd391a25b400cc583b6c42b037c"
+      },
+      "statistics_seq": 336,
+      "observed_frame_latency_ns": "97140625",
+      "interval_ns": [
+        "56997395",
+        "97140625"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0007",
+      "category": "pointer_feedback",
+      "phase": "formal",
+      "index_sha256": "dc8cb4d0aafa459989825f2474bf17fda14074b03593566a644069ac800ddf7c",
+      "status": "valid",
+      "observed_frame_latency_ms": 92.469271,
+      "interval_ms": [
+        54.280208,
+        92.469271
+      ],
+      "start_ns": "1428141568514244",
+      "armed_ns": "1428137920369453",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "POINTER_CONFIRMED 5 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 1863,
+        "first_present": 1864,
+        "last_absent_ns": "1428141622794452",
+        "first_present_ns": "1428141660983515",
+        "last_absent_sha256": "4d25895bfd72cee112535f8f808c254346e5a15746d0aa5cdd4503f0c47af3c7",
+        "first_present_sha256": "800c150b937aefe179a254ed06e76f3c14250d54314da4d40ee118a9db8e0586"
+      },
+      "statistics_seq": 360,
+      "observed_frame_latency_ns": "92469271",
+      "interval_ns": [
+        "54280208",
+        "92469271"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0008",
+      "category": "pointer_feedback",
+      "phase": "formal",
+      "index_sha256": "a22dbabf03792d24ef8387de59899e0741b8cb02f25a779d2cbe6334bb679a16",
+      "status": "valid",
+      "observed_frame_latency_ms": 84.415625,
+      "interval_ms": [
+        46.602604,
+        84.415625
+      ],
+      "start_ns": "1428164346616845",
+      "armed_ns": "1428160728515803",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "POINTER_CONFIRMED 6 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 2124,
+        "first_present": 2125,
+        "last_absent_ns": "1428164393219449",
+        "first_present_ns": "1428164431032470",
+        "last_absent_sha256": "4ab787774d0b6bef3f4c2b3046a41a25e2533277cc2f14a15191750c6829a3cc",
+        "first_present_sha256": "3b3b8c5c0b1efdf695edf1bee6c280689426e874587240fdd73f3d99e7cf8a36"
+      },
+      "statistics_seq": 382,
+      "observed_frame_latency_ns": "84415625",
+      "interval_ns": [
+        "46602604",
+        "84415625"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0009",
+      "category": "pointer_feedback",
+      "phase": "formal",
+      "index_sha256": "dd2a6324bf67b5ae7e5e7d8d32f86af6b763a46d90392d2c8345c7ba00262e78",
+      "status": "valid",
+      "observed_frame_latency_ms": 78.807292,
+      "interval_ms": [
+        41.476042,
+        78.807292
+      ],
+      "start_ns": "1428187787501737",
+      "armed_ns": "1428184172419446",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "POINTER_CONFIRMED 7 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 2384,
+        "first_present": 2385,
+        "last_absent_ns": "1428187828977779",
+        "first_present_ns": "1428187866309029",
+        "last_absent_sha256": "ac1959e489d6fe983bb57e557e104bee6b03a7f1ba68fa70ffa4367210022698",
+        "first_present_sha256": "da40190eeb117ca1bd32f8baa3a8fe94e80f8f76d74aa89769e2ae51dd045891"
+      },
+      "statistics_seq": 406,
+      "observed_frame_latency_ns": "78807292",
+      "interval_ns": [
+        "41476042",
+        "78807292"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0010",
+      "category": "window_text",
+      "phase": "warmup",
+      "index_sha256": "0e856f44e9ed43aa07b87cdcc740d42233c400c8962e3595b57d723dce886615",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1428556911100639",
+      "armed_ns": "1428553407380327",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0011",
+      "category": "window_text",
+      "phase": "formal",
+      "index_sha256": "e6747aff577706665d183b52238dc0bdc574a4726cf48ccc501365e5de4c219a",
+      "status": "valid",
+      "observed_frame_latency_ms": 91.478646,
+      "interval_ms": [
+        45.539584,
+        91.478646
+      ],
+      "start_ns": "1428587829108967",
+      "armed_ns": "1428584262756364",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "Entire TASK07_TEXT_01 appears in ordinary window text box",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 2901,
+        "first_present": 2902,
+        "last_absent_ns": "1428587874648551",
+        "first_present_ns": "1428587920587613",
+        "last_absent_sha256": "4fba013b44396c5ec7f9933fc6c4c6c1ca41f5a1a188a66827722c5e7f53c57a",
+        "first_present_sha256": "c53ee3dd5d56dc0bcb6c16d4bef5c20260c37ba4d66749a996758ed4d71ab1d5"
+      },
+      "statistics_seq": 800,
+      "observed_frame_latency_ns": "91478646",
+      "interval_ns": [
+        "45539584",
+        "91478646"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0012",
+      "category": "window_text",
+      "phase": "formal",
+      "index_sha256": "761caab3a041721840dad29f7dc53366156fa50077778701d30de72f1a9e752e",
+      "status": "valid",
+      "observed_frame_latency_ms": 120.061458,
+      "interval_ms": [
+        75.113021,
+        120.061458
+      ],
+      "start_ns": "1428618754083442",
+      "armed_ns": "1428615115450630",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "Entire TASK07_TEXT_02 appears in ordinary window text box",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 3170,
+        "first_present": 3171,
+        "last_absent_ns": "1428618829196463",
+        "first_present_ns": "1428618874144900",
+        "last_absent_sha256": "f33d21b9a7431f91bed4a7abb01f021e7eccbc486010ff685a000df19ed35ca3",
+        "first_present_sha256": "2dbe671f5e6104f74cda0fc67e3df1c0749cfced1f71555dd64ecc82cf386a36"
+      },
+      "statistics_seq": 830,
+      "observed_frame_latency_ns": "120061458",
+      "interval_ns": [
+        "75113021",
+        "120061458"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0013",
+      "category": "window_text",
+      "phase": "formal",
+      "index_sha256": "a9579a09d2ad7e073668e7c4b994abd70c9121f864fc227472ca4d512c61754e",
+      "status": "valid",
+      "observed_frame_latency_ms": 106.740625,
+      "interval_ms": [
+        81.448959,
+        106.740625
+      ],
+      "start_ns": "1428649514282916",
+      "armed_ns": "1428646018393334",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "Entire TASK07_TEXT_03 appears in ordinary window text box",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 3428,
+        "first_present": 3429,
+        "last_absent_ns": "1428649595731875",
+        "first_present_ns": "1428649621023541",
+        "last_absent_sha256": "3e480ca121083081c708f21ca40700b27bd1ae1ee8b85d3141558de1e4ca8b71",
+        "first_present_sha256": "84a9dc431cb1830591ffa8d6a2793e33a84c6a4ac9fb0042164ea516ed9eafcd"
+      },
+      "statistics_seq": 861,
+      "observed_frame_latency_ns": "106740625",
+      "interval_ns": [
+        "81448959",
+        "106740625"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0014",
+      "category": "window_text",
+      "phase": "formal",
+      "index_sha256": "d6b3c984a16315c7a648925362e92818b653dd50bfb15848cda376cc20696278",
+      "status": "valid",
+      "observed_frame_latency_ms": 363.907813,
+      "interval_ms": [
+        334.11875,
+        363.907813
+      ],
+      "start_ns": "1428680397137599",
+      "armed_ns": "1428676840586037",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "Entire TASK07_TEXT_04 appears in ordinary window text box",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 3696,
+        "first_present": 3697,
+        "last_absent_ns": "1428680731256349",
+        "first_present_ns": "1428680761045412",
+        "last_absent_sha256": "a0f0973fadfb3e5924756460d1bb60a5709bd315256ca49d0b172942112ced48",
+        "first_present_sha256": "ce6725f6e2d1012d55f020115ddf5cc53eab432e0a9fea2d760458b67b984ea3"
+      },
+      "statistics_seq": 891,
+      "observed_frame_latency_ns": "363907813",
+      "interval_ns": [
+        "334118750",
+        "363907813"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0015",
+      "category": "window_text",
+      "phase": "formal",
+      "index_sha256": "aa9c00985fdf4e973a44a690c8d5ca027b844fc3dccf63414e266ab2c0adcc6e",
+      "status": "valid",
+      "observed_frame_latency_ms": 136.396875,
+      "interval_ms": [
+        106.477604,
+        136.396875
+      ],
+      "start_ns": "1428711093135511",
+      "armed_ns": "1428707573944887",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "Entire TASK07_TEXT_05 appears in ordinary window text box",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 3947,
+        "first_present": 3948,
+        "last_absent_ns": "1428711199613115",
+        "first_present_ns": "1428711229532386",
+        "last_absent_sha256": "385b5e5f746e4752441d628cf69ea083f77993aaadfe7eaf7cacfa98680c96d9",
+        "first_present_sha256": "102756e4694a02c6572f942640c82c5aba3cf7b961763280bfc2d6c046af13a9"
+      },
+      "statistics_seq": 922,
+      "observed_frame_latency_ns": "136396875",
+      "interval_ns": [
+        "106477604",
+        "136396875"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0016",
+      "category": "window_enter",
+      "phase": "warmup",
+      "index_sha256": "90d76a48d89681ef4ea272679f88fafa4802ec4ad8199f6fdafbd5713be0c7ed",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1428735849933945",
+      "armed_ns": "1428732241494362",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0017",
+      "category": "window_enter",
+      "phase": "formal",
+      "index_sha256": "ab2a94d148b3810969195aa848d0bec80e9c8de051cff2a40868f896f55ff321",
+      "status": "valid",
+      "observed_frame_latency_ms": 95.210937,
+      "interval_ms": [
+        42.570312,
+        95.210937
+      ],
+      "start_ns": "1428758788792275",
+      "armed_ns": "1428755225710504",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "ENTER_CONFIRMED 9 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 4467,
+        "first_present": 4468,
+        "last_absent_ns": "1428758831362587",
+        "first_present_ns": "1428758884003212",
+        "last_absent_sha256": "cb3ee7e7b9bc0d8e9210ac11e1e683c52c78054f87fd98886e6b7af5e9ff275e",
+        "first_present_sha256": "031e2a774551f8bd6efbf31eb02d14203af5e90f9b4775cda022f2b750da0cee"
+      },
+      "statistics_seq": 969,
+      "observed_frame_latency_ns": "95210937",
+      "interval_ns": [
+        "42570312",
+        "95210937"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0018",
+      "category": "window_enter",
+      "phase": "formal",
+      "index_sha256": "202d0e74b8be5db4198a5286359a847ef7ecd4f1e801b2631b2b3efde382b37f",
+      "status": "valid",
+      "observed_frame_latency_ms": 93.785416,
+      "interval_ms": [
+        57.044271,
+        93.785416
+      ],
+      "start_ns": "1428781690481334",
+      "armed_ns": "1428778080339147",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "ENTER_CONFIRMED 10 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 4728,
+        "first_present": 4729,
+        "last_absent_ns": "1428781747525605",
+        "first_present_ns": "1428781784266750",
+        "last_absent_sha256": "7c3512381edb19fabadae97085a8c1196c5a85d70f070d7d59261add837248eb",
+        "first_present_sha256": "5e0a4d1dacf9664e72e40b86fee0d06cf30a1489bfe65ed3dfcef89173f830a5"
+      },
+      "statistics_seq": 991,
+      "observed_frame_latency_ns": "93785416",
+      "interval_ns": [
+        "57044271",
+        "93785416"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0019",
+      "category": "window_enter",
+      "phase": "formal",
+      "index_sha256": "449c8b0f259ca8fc6a7e35ae424d94e767f3038b5579dd9e0f941c6f6afab3a6",
+      "status": "valid",
+      "observed_frame_latency_ms": 123.864583,
+      "interval_ms": [
+        76.801562,
+        123.864583
+      ],
+      "start_ns": "1428804797998518",
+      "armed_ns": "1428801079087581",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "ENTER_CONFIRMED 11 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 4994,
+        "first_present": 4995,
+        "last_absent_ns": "1428804874800080",
+        "first_present_ns": "1428804921863101",
+        "last_absent_sha256": "198343cd6b8e879b77cb9b493673fbdac4834144d9f4b0cf53b11852335f5cfb",
+        "first_present_sha256": "226d3d47f5ce9f84292be7371d4d90bfb82d40809e43584bf9f53cc4c59b7a07"
+      },
+      "statistics_seq": 1014,
+      "observed_frame_latency_ns": "123864583",
+      "interval_ns": [
+        "76801562",
+        "123864583"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0020",
+      "category": "window_enter",
+      "phase": "formal",
+      "index_sha256": "2f7d1dd0c83017a891e0c385d16051ebde9952e40f3a9d1bbddcf05ba35d3f9c",
+      "status": "valid",
+      "observed_frame_latency_ms": 79.236979,
+      "interval_ms": [
+        41.579167,
+        79.236979
+      ],
+      "start_ns": "1428827998936535",
+      "armed_ns": "1428824351887056",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "ENTER_CONFIRMED 12 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 5255,
+        "first_present": 5256,
+        "last_absent_ns": "1428828040515702",
+        "first_present_ns": "1428828078173514",
+        "last_absent_sha256": "3b9994c8934f16b8fd9c7537a19af954b1ce1258dccb58cb7864503ec5622c34",
+        "first_present_sha256": "3f69b866b3fda390ea39db3696faf47426b6c61994c92fdfb7ce993068cf68b2"
+      },
+      "statistics_seq": 1037,
+      "observed_frame_latency_ns": "79236979",
+      "interval_ns": [
+        "41579167",
+        "79236979"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0021",
+      "category": "window_enter",
+      "phase": "formal",
+      "index_sha256": "f1276e55b10648e0c7aecf6d4236d1f172cac37e1aff26cb4f590768b78e34e4",
+      "status": "valid",
+      "observed_frame_latency_ms": 98.14375,
+      "interval_ms": [
+        61.808333,
+        98.14375
+      ],
+      "start_ns": "1428850882925594",
+      "armed_ns": "1428847315619865",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "ENTER_CONFIRMED 13 fully visible",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 5516,
+        "first_present": 5517,
+        "last_absent_ns": "1428850944733927",
+        "first_present_ns": "1428850981069344",
+        "last_absent_sha256": "abcba1301ccc4ca8792c3967ff8ec60fdb30ff3b6863d6f02902c9e10b70c0f4",
+        "first_present_sha256": "3d61f2a31e1c15788cba3bc54d0b42b39c25e2d153239bfe1d453481ac347353"
+      },
+      "statistics_seq": 1060,
+      "observed_frame_latency_ns": "98143750",
+      "interval_ns": [
+        "61808333",
+        "98143750"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0022",
+      "category": "interrupt_return",
+      "phase": "warmup",
+      "index_sha256": "e10970481e4e4c092e2021bc09494571b75bf86edad5b49a13dea56e682baacc",
+      "status": "unreadable",
+      "observed_frame_latency_ms": null,
+      "interval_ms": null,
+      "start_ns": "1429105586470347",
+      "armed_ns": "1429102155952639",
+      "reason": "Not reviewed; capture lifecycle retained"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0023",
+      "category": "interrupt_return",
+      "phase": "formal",
+      "index_sha256": "45c16450591ccec09c1139871d0e33c1d5f738da17c65010564a99c68b9bbad0",
+      "status": "valid",
+      "observed_frame_latency_ms": 143.182813,
+      "interval_ms": [
+        90.310938,
+        143.182813
+      ],
+      "start_ns": "1429140307320862",
+      "armed_ns": "1429136785183363",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "C++ revision=1 ticks stop and complete TASK07 PS prompt returns",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 6021,
+        "first_present": 6022,
+        "last_absent_ns": "1429140397631800",
+        "first_present_ns": "1429140450503675",
+        "last_absent_sha256": "9900d35a58ada9b7001ea87610261c3c3a182090a6aa5a5147c4fd7b477c5ae9",
+        "first_present_sha256": "fcd866c1e814966a600469a53f13c1f2fa13283076356fc31171eb10548b286d"
+      },
+      "statistics_seq": 1345,
+      "observed_frame_latency_ns": "143182813",
+      "interval_ns": [
+        "90310938",
+        "143182813"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0024",
+      "category": "interrupt_return",
+      "phase": "formal",
+      "index_sha256": "529a6b863b7eeabe06759da8ed06cb72d6393521b7acf3ae4d6466b857d60d82",
+      "status": "valid",
+      "observed_frame_latency_ms": 171.778646,
+      "interval_ms": [
+        135.251041,
+        171.778646
+      ],
+      "start_ns": "1429175085387524",
+      "armed_ns": "1429171543072941",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "C++ revision=1 ticks stop and complete TASK07 PS prompt returns",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 6281,
+        "first_present": 6282,
+        "last_absent_ns": "1429175220638565",
+        "first_present_ns": "1429175257166170",
+        "last_absent_sha256": "bffd07039a556dbee5e3901a1e394b6abc4262d3bb2b6d5c1785791b9cb1d4e4",
+        "first_present_sha256": "e1a7d44ec17c6ce6286586d0a9322016bc5c9f4f7c5aced93d3805c00a29a8f0"
+      },
+      "statistics_seq": 1379,
+      "observed_frame_latency_ns": "171778646",
+      "interval_ns": [
+        "135251041",
+        "171778646"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0025",
+      "category": "interrupt_return",
+      "phase": "formal",
+      "index_sha256": "e6292178749ca0d466242753d77577a99e1173fe5c2540962b4c053c5b174e45",
+      "status": "valid",
+      "observed_frame_latency_ms": 188.383854,
+      "interval_ms": [
+        149.794271,
+        188.383854
+      ],
+      "start_ns": "1429210045614081",
+      "armed_ns": "1429206504002623",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "C++ revision=1 ticks stop and complete TASK07 PS prompt returns",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 6540,
+        "first_present": 6541,
+        "last_absent_ns": "1429210195408352",
+        "first_present_ns": "1429210233997935",
+        "last_absent_sha256": "8d0c1bc785ed2b016778bc0e822a976aa8f6a5da54cb9909d74b0d52a27a05da",
+        "first_present_sha256": "a1fa2af84313d3c901c03f981b83bc5a4608aab9b34af23d86456698eff6a34e"
+      },
+      "statistics_seq": 1414,
+      "observed_frame_latency_ns": "188383854",
+      "interval_ns": [
+        "149794271",
+        "188383854"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0026",
+      "category": "interrupt_return",
+      "phase": "formal",
+      "index_sha256": "7a3301b413c0f07475e2bb912b5b9bfc05477eddb9be42a3d943c0d74b79c0a2",
+      "status": "valid",
+      "observed_frame_latency_ms": 169.391146,
+      "interval_ms": [
+        132.483333,
+        169.391146
+      ],
+      "start_ns": "1429245036610430",
+      "armed_ns": "1429241412867201",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "C++ revision=1 ticks stop and complete TASK07 PS prompt returns",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 6796,
+        "first_present": 6797,
+        "last_absent_ns": "1429245169093763",
+        "first_present_ns": "1429245206001576",
+        "last_absent_sha256": "8bdb84611778c72b5dc72ff5b25e3a8046a6f661d64fa492956ec5c991186695",
+        "first_present_sha256": "b6c2f6b3c2e0ea033f049c869a3543e7b2dbd85b98836e6a87adf1a550e8361f"
+      },
+      "statistics_seq": 1449,
+      "observed_frame_latency_ns": "169391146",
+      "interval_ns": [
+        "132483333",
+        "169391146"
+      ]
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0027",
+      "category": "interrupt_return",
+      "phase": "formal",
+      "index_sha256": "8a1b35915965da238507242bd4b57a37c266243dd426815cd1557ab8236d7a4e",
+      "status": "valid",
+      "observed_frame_latency_ms": 502.701041,
+      "interval_ms": [
+        128.187499,
+        502.701041
+      ],
+      "start_ns": "1429280144216154",
+      "armed_ns": "1429276528041675",
+      "reason": "Two visual passes: chronological decoded-frame navigation, then reversed operation order boundary reread; partial text is absent. Interrupt also checked at final captured frame.",
+      "reviewer": "Codex-visual-2026-10-13",
+      "rereviewer": "Codex-visual-2026-10-13",
+      "reviewer_kind": "ai",
+      "rereviewer_kind": "ai",
+      "rule": "C++ revision=1 ticks stop and complete TASK07 PS prompt returns",
+      "rereviewed": true,
+      "same_reviewer_rereview": true,
+      "same_person_rereview": false,
+      "selected_boundary": {
+        "last_absent": 7066,
+        "first_present": 7067,
+        "last_absent_ns": "1429280272403653",
+        "first_present_ns": "1429280646917195",
+        "last_absent_sha256": "2592af34200917d18f9e4dd1ddd9186d9278b6a37efbce2a94aa512d29342b4f",
+        "first_present_sha256": "f3ae79e9618fcda9a94b651d878e670b6f4bb8874b235279e8b5242b6f4008ec"
+      },
+      "statistics_seq": 1483,
+      "observed_frame_latency_ns": "502701041",
+      "interval_ns": [
+        "128187499",
+        "502701041"
+      ]
+    }
+  ],
+  "collector_processing": {
+    "copy_ns": {
+      "count": 4660,
+      "median_ms": 3.811458,
+      "min_ms": 1.120833,
+      "max_ms": 21.938542
+    },
+    "compress_ns": {
+      "count": 4660,
+      "median_ms": 7.2890625,
+      "min_ms": 2.222916,
+      "max_ms": 37.796875
+    },
+    "write_ns": {
+      "count": 4660,
+      "median_ms": 1.9794275,
+      "min_ms": 0.152604,
+      "max_ms": 11.455729
+    }
+  },
+  "capture_gaps": {
+    "queue_overflow": 400
+  },
+  "raw_formal_attempts": 23,
+  "formal_scope": [
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0005"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0006"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0007"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0008"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0009"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0011"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0012"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0013"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0014"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0015"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0017"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0018"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0019"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0020"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0021"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0023"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0024"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0025"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0026"
+    },
+    {
+      "experiment": "39cabb58-849c-433a-add1-c57396b64be9",
+      "session": "2c37ad3a-d066-4518-bf0c-6241b6b99263",
+      "operation_id": "0027"
+    }
+  ],
+  "formal_attempts": 20,
+  "formal_statuses": {
+    "valid": 20
+  },
+  "by_category": {
+    "pointer_feedback": {
+      "count": 5,
+      "median_ms": 88.884375,
+      "min_ms": 78.807292,
+      "max_ms": 97.140625
+    },
+    "window_text": {
+      "count": 5,
+      "median_ms": 120.061458,
+      "min_ms": 91.478646,
+      "max_ms": 363.907813
+    },
+    "window_enter": {
+      "count": 5,
+      "median_ms": 95.210937,
+      "min_ms": 79.236979,
+      "max_ms": 123.864583
+    },
+    "interrupt_return": {
+      "count": 5,
+      "median_ms": 171.778646,
+      "min_ms": 143.182813,
+      "max_ms": 502.701041
+    }
+  },
+  "summary": {
+    "count": 20,
+    "median_ms": 102.44218749999999,
+    "min_ms": 78.807292,
+    "max_ms": 502.701041
+  }
+}

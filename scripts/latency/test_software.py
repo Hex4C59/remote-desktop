@@ -39,6 +39,61 @@ class FeedbackTest(unittest.TestCase):
     def analyze(self):
         return software.analyze(self.root,dict(schema='software-review-v1',samples=[self.annotation]))
 
+    def ai_annotations(self):
+        self.annotation.update(reviewer='codex', rereviewer='codex', reviewer_kind='ai', rereviewer_kind='ai')
+        return dict(schema='software-review-v2', samples=[self.annotation], authorization=dict(
+            mode='user_authorized_ai_visual', requested_by='user', date='2026-10-13', instruction='Please complete the review'))
+
+    def test_authorized_ai_review_keeps_provenance_and_integer_difference(self):
+        result = software.analyze(self.root, self.ai_annotations())
+        row = result['samples'][0]
+        self.assertEqual(result['boundary_review_counts'], {'ai': 1})
+        self.assertEqual(result['boundary_rereview_counts'], {'ai': 1})
+        self.assertTrue(row['same_reviewer_rereview'])
+        self.assertFalse(row['same_person_rereview'])
+        self.assertEqual(row['observed_frame_latency_ns'], '30000000')
+        self.assertEqual(row['interval_ns'], ['0', '30000000'])
+
+    def test_ai_review_cannot_hide_in_legacy_or_omit_user_delegation(self):
+        annotations = self.ai_annotations()
+        annotations.pop('authorization')
+        with self.assertRaises(ValueError): software.analyze(self.root, annotations)
+        annotations = self.ai_annotations(); annotations['schema'] = 'software-review-v1'
+        with self.assertRaises(ValueError): software.analyze(self.root, annotations)
+        annotations = self.ai_annotations(); self.annotation.pop('reviewer_kind')
+        with self.assertRaises(ValueError): software.analyze(self.root, annotations)
+
+    def test_ai_review_gap_retains_two_pass_boundary_but_no_valid_latency(self):
+        self.rows.insert(-1,dict(self.rows[0],event='gap',observed_ns=str(self.start),reason='queue_overflow'))
+        self.write();self.annotation['index_sha256']=software.digest(self.sample/'events.jsonl')
+        result = software.analyze(self.root, self.ai_annotations())
+        row = result['samples'][0]
+        self.assertEqual(row['status'], 'incomplete')
+        self.assertEqual(result['boundary_rereview_counts'], {'ai': 1})
+        self.assertEqual(row['selected_boundary']['first_present'], 2)
+        self.assertIsNone(row['observed_frame_latency_ms'])
+        self.assertEqual(result['summary']['count'], 0)
+
+    def test_formal_scope_keeps_other_attempts_and_rejects_foreign_identity(self):
+        annotations = self.ai_annotations()
+        second = self.root/'0002';second.mkdir()
+        rows = [dict(r,operation_id='0002') for r in self.rows]
+        (second/'events.jsonl').write_text('\n'.join(json.dumps(r) for r in rows)+'\n')
+        for source in self.sample.glob('*.zlib'):
+            (second/source.name).write_bytes(source.read_bytes())
+        annotations['formal_scope'] = [{k:self.annotation[k] for k in ('experiment','session','operation_id')}]
+        result = software.analyze(self.root,annotations)
+        self.assertEqual(result['raw_formal_attempts'],2)
+        self.assertEqual(result['formal_attempts'],1)
+        self.assertEqual(len(result['samples']),2)
+        self.assertEqual(result['formal_statuses'],{'valid':1})
+        annotations['formal_scope'][0]['session']='old'
+        with self.assertRaises(ValueError):software.analyze(self.root,annotations)
+
+    def test_v2_exclusion_needs_both_review_passes(self):
+        annotations = self.ai_annotations();self.annotation.update(status='excluded',reason='method check',rereviewed=False)
+        with self.assertRaises(ValueError): software.analyze(self.root, annotations)
+
     def test_integer_clock_and_preroll_interval(self):
         row = self.analyze()['samples'][0]
         self.assertEqual(row['observed_frame_latency_ms'],30)

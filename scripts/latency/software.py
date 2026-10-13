@@ -2,6 +2,7 @@
 """Reproduce software observations from same-clock records and reviewed frames."""
 import argparse
 from collections import Counter, defaultdict
+from datetime import date
 import hashlib
 import json
 from pathlib import Path
@@ -67,14 +68,50 @@ def summary(values):
             'min_ms': min(values) if values else None, 'max_ms': max(values) if values else None}
 
 
+def review_authorization(value):
+    """Validate the recorded user delegation; this is audit metadata, not a signature."""
+    if value is None:
+        return None
+    if not isinstance(value, dict) or value.get('mode') != 'user_authorized_ai_visual':
+        raise ValueError('Unknown review authorization')
+    if value.get('requested_by') != 'user' or not isinstance(value.get('instruction'), str) or not value['instruction'].strip():
+        raise ValueError('AI review needs the user delegation record')
+    try:
+        if date.fromisoformat(value['date']).isoformat() != value['date']:
+            raise ValueError('Non-canonical date')
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError('Review authorization needs an ISO date') from error
+    return value.copy()
+
+
+def review_provenance(annotation, schema, authorization):
+    kinds = [annotation.get(name, 'human' if schema == 'software-review-v1' else None)
+             for name in ('reviewer_kind', 'rereviewer_kind')]
+    if any(kind not in {'human', 'ai'} for kind in kinds):
+        raise ValueError('Review source must be explicit in v2')
+    if 'ai' in kinds and (schema != 'software-review-v2' or authorization is None):
+        raise ValueError('AI review needs v2 and explicit user authorization')
+    if schema == 'software-review-v2' and not all((annotation.get('reviewer'), annotation.get('rereviewer'),
+            annotation.get('rule'), annotation.get('rereviewed') is True)):
+        raise ValueError('V2 attempts need a criterion and both review passes')
+    same = annotation.get('reviewer') == annotation.get('rereviewer') and kinds[0] == kinds[1]
+    return {'reviewer': annotation.get('reviewer', ''), 'rereviewer': annotation.get('rereviewer', ''),
+            'reviewer_kind': kinds[0], 'rereviewer_kind': kinds[1],
+            'rule': annotation.get('rule', ''), 'rereviewed': annotation.get('rereviewed') is True,
+            'same_reviewer_rereview': same, 'same_person_rereview': same and kinds[0] == 'human'}
+
+
 def analyze(directory, annotations):
-    if annotations.get('schema') != 'software-review-v1':
+    schema = annotations.get('schema')
+    if schema not in {'software-review-v1', 'software-review-v2'}:
         raise ValueError('Unknown annotation schema')
+    authorization = review_authorization(annotations.get('authorization'))
     chosen = {}
     for row in annotations['samples']:
         key = (row['experiment'], row['session'], row['operation_id'])
         if key in chosen:
             raise ValueError('Duplicate annotations')
+        review_provenance(row, schema, authorization)
         chosen[key] = row
     output = []
     evidence = samples(directory)
@@ -101,7 +138,8 @@ def analyze(directory, annotations):
         status = annotation['status']
         if status not in STATUSES:
             raise ValueError('Unknown review status')
-        result.update(status=status, reason=annotation.get('reason', ''), reviewer=annotation.get('reviewer', ''))
+        result.update(status=status, reason=annotation.get('reason', ''),
+                      **review_provenance(annotation, schema, authorization))
         end_status = (sample['end'] or {}).get('status')
         if status == 'valid':
             if end_status != 'captured' or sample['fatal'] or not sample['action']:
@@ -119,6 +157,11 @@ def analyze(directory, annotations):
                 raise ValueError('Invalid feedback time ordering/window')
             if any(low < ns(frame['observed_ns']) < high for frame in sample['frames']):
                 raise ValueError('Boundary frames must be consecutive observations')
+            result['selected_boundary'] = {
+                'last_absent': before['frame_id'], 'first_present': after['frame_id'],
+                'last_absent_ns': before['observed_ns'], 'first_present_ns': after['observed_ns'],
+                'last_absent_sha256': before['sha256'], 'first_present_sha256': after['sha256']}
+            result['statistics_seq'] = sample['action']['statistics_seq']
             if any(low <= ns(gap['observed_ns']) <= high for gap in sample['gaps']):
                 result.update(status='incomplete', reason='Frame gap intersects feedback boundary')
             elif before['width'] != after['width'] or before['height'] != after['height'] or before['rotation'] != after['rotation']:
@@ -126,11 +169,8 @@ def analyze(directory, annotations):
             else:
                 result['observed_frame_latency_ms'] = (high - start) / 1_000_000
                 result['interval_ms'] = [max(0, low - start) / 1_000_000, (high - start) / 1_000_000]
-                result['statistics_seq'] = sample['action']['statistics_seq']
-                result['rule'] = annotation['rule']
-                result['rereviewed'] = True
-                result['rereviewer'] = annotation['rereviewer']
-                result['same_person_rereview'] = annotation['reviewer'] == annotation['rereviewer']
+                result['observed_frame_latency_ns'] = str(high - start)
+                result['interval_ns'] = [str(max(0, low - start)), str(high - start)]
         elif not result['reason']:
             raise ValueError('Non-valid attempt needs a reason')
         # Send failure and lifecycle termination are facts, not review choices.
@@ -139,17 +179,32 @@ def analyze(directory, annotations):
         output.append(result)
     if chosen:
         raise ValueError('Annotations reference another experiment/session/operation')
-    formal = [r for r in output if r['phase'] == 'formal']
+    raw_formal = [r for r in output if r['phase'] == 'formal']
+    scope = annotations.get('formal_scope')
+    if scope is None:
+        formal = raw_formal
+    else:
+        keys = [(r['experiment'], r['session'], r['operation_id']) for r in scope]
+        available = {(r['experiment'], r['session'], r['operation_id']) for r in raw_formal}
+        if not keys or len(set(keys)) != len(keys) or not set(keys) <= available:
+            raise ValueError('Formal scope must name unique captured formal attempts')
+        formal = [r for r in raw_formal if (r['experiment'], r['session'], r['operation_id']) in set(keys)]
     groups = defaultdict(list)
     for row in formal:
         if row['status'] == 'valid':
             groups[row['category']].append(row['observed_frame_latency_ms'])
-    return {'schema': 'software-feedback-analysis-v1', 'endpoint': 'VideoSink.onFrame_entry',
+    reviewed_boundaries = [r for r in formal if 'selected_boundary' in r]
+    return {'schema': 'software-feedback-analysis-v1', 'review_schema': schema,
+            'review_authorization': authorization,
+            'boundary_review_counts': dict(Counter(r['reviewer_kind'] for r in reviewed_boundaries)),
+            'boundary_rereview_counts': dict(Counter(r['rereviewer_kind'] for r in reviewed_boundaries if r['rereviewed'])),
+            'endpoint': 'VideoSink.onFrame_entry',
             'physical_display_measurement': False, 'measurement_enabled': True, 'samples': output,
             'collector_processing': {name: summary([ns(frame[name])/1_000_000
                 for sample in evidence for frame in sample['frames']])
                 for name in ('copy_ns', 'compress_ns', 'write_ns')},
             'capture_gaps': dict(Counter(gap['reason'] for sample in evidence for gap in sample['gaps'])),
+            'raw_formal_attempts': len(raw_formal), 'formal_scope': scope,
             'formal_attempts': len(formal), 'formal_statuses': dict(Counter(r['status'] for r in formal)),
             'by_category': {name: summary(values) for name, values in groups.items()},
             'summary': summary([r['observed_frame_latency_ms'] for r in formal if r['status'] == 'valid'])}

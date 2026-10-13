@@ -5,7 +5,7 @@ from collections import Counter
 import json
 from pathlib import Path
 
-from software import GROUPS, digest, ns, stages, summary
+from software import GROUPS, digest, ns, review_authorization, review_provenance, stages, summary
 
 
 def read_json(path):
@@ -97,6 +97,20 @@ def baseline(stats_path, stage_path, feedback_path, manifest_path, workload_path
     for name in ('controller','controlled_host','network','versions','artifact_sha256','workload_reviewer'):
         if not context.get(name):
             raise ValueError('Missing run context: '+name)
+    review_schema = feedback.get('review_schema', 'software-review-v1')
+    if review_schema not in {'software-review-v1', 'software-review-v2'}:
+        raise ValueError('Unknown feedback review schema')
+    authorization = review_authorization(feedback.get('review_authorization'))
+    workload_kind = context.get('workload_reviewer_kind', 'human')
+    if workload_kind not in {'human', 'ai'}:
+        raise ValueError('Unknown workload review source')
+    if workload_kind == 'ai':
+        workload_authorization = review_authorization(context.get('review_authorization'))
+        if workload_authorization is None or workload_authorization != authorization:
+            raise ValueError('AI workload review needs matching user delegation')
+    for row in feedback['samples']:
+        if any(row.get(name) for name in ('reviewer', 'reviewer_kind', 'rereviewer_kind')):
+            review_provenance(row, review_schema, authorization)
     start, finish = ns(manifest['start_ns']),ns(manifest['end_ns'])
     receiver, seq_range = statistics_window(stats_path,manifest)
     local = stages(stage_path,manifest['session'],seq_range)
@@ -131,6 +145,9 @@ def baseline(stats_path, stage_path, feedback_path, manifest_path, workload_path
               'receiver':receiver,'source_resolutions':source,'submitted_resolutions':submitted,
               'stages':local,'stage_association':'latest_delivered_receiver_sequence_approximation_not_clock_sync',
               'workload':workload,'context':context,'feedback_attempts':attempts,
+              'review_authorization':authorization,
+              'review_counts':dict(Counter(r.get('reviewer_kind','human') for r in attempts if r.get('reviewer'))),
+              'rereview_counts':dict(Counter(r.get('rereviewer_kind','human') for r in attempts if r.get('rereviewed'))),
               'feedback_statuses':dict(Counter(r['status'] for r in attempts)),'by_category':references,
               'next_experiment_defaults':{'feedback_reference_ms':{g:r['median_ms'] for g,r in references.items()},
                   'bandwidth_kbps':bitrate*.75 if bitrate is not None else None,'added_one_way_delay_ms':50,'random_loss_percent':1},

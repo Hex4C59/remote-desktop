@@ -29,6 +29,18 @@ python3 scripts/latency/software.py stages .local/run/stages.jsonl .local/run/st
 
 输出包含所选帧观察耗时 `(反馈入口 − 发送前时间)`、相邻判读帧形成的区间、各状态数量、正式有效样本的中位数与范围。下界早于发送时刻时截为0；它不是屏幕显示时间或完整触摸链路延迟。反馈边界与缺口相交或尺寸/旋转变化时自动标为不完整。索引和所选原始帧 SHA256 绑定复核，旧会话标注不能用于新证据。
 
+## 用户委托Agent复核的记录方式
+
+默认页面输出 `software-review-v1`，按原人工流程使用。若用户明确将剩余视觉判读委托Agent，另用 `software-review-v2` 记录，CLI分析支持此版本；现有人工页面的导入仍仅接受v1。不得只给OCR候选补上复核者名称就视作完成，也不得把AI判读写成人工。
+
+v2顶层增加 `authorization`：`mode=user_authorized_ai_visual`、`requested_by=user`、ISO日期 `date`、用户授权原话 `instruction`。每行必须填写 `reviewer_kind`／`rereviewer_kind`（human或ai）、复核与复读者、完整反馈判据和 `rereviewed=true`，包括失败／排除行。任一AI参与而没有该委托记录时拒绝分析；v1不能承载AI行。授权字段用于审计，不是身份认证或签名。一次复核范围的改变不自动改写既有原始协议，应公开说明本轮结项口径与原要求的区别。
+
+实际阅读解码图像，先按时间顺序检查完整反馈，随后重读全部正式边界。结果保留复核来源、同一复核者标记及原始帧哈希；同一AI复读标为 `same_reviewer_rereview=true`、`same_person_rereview=false`。AI和人工数量分别报告，不能宣称独立复核。自动降为不完整的样本仍保留所选帧和两遍复核来源，但没有有效耗时。
+
+原始日志formal还包含方法验证时，可在复核文件顶层用 `formal_scope` 明确列出预先固定的实验／会话／操作身份。分析验证这些身份存在且是formal，只将其计入正式统计；`raw_formal_attempts`和完整samples保留其余记录，不改写原phase，也不能事后删去失败尝试。未指定范围时沿用全部formal。
+
+v2实例及本轮40次真实视觉复核见[授权复核记录](../validation/task07-authorized-visual-review.md)。结果同时保留十进制字符串整数差值 `observed_frame_latency_ns`／`interval_ns` 和便于阅读的毫秒数。较长相邻回调间隔应公开其区间宽度；没有保存缺口不能据此填出未收到的帧。
+
 ## 测量开销对照
 
 同一设备、桌面负载、目标配置分别运行关闭和开启测量的120秒对照。关闭组不传 `--software-trace`、不启用 Android 测量；开启组开启两端观测，并按相同操作节奏采集图像。每组使用独立会话，明确记录所用任务06序号及控制端单调时钟窗口。

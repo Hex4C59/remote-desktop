@@ -41,6 +41,42 @@ class BaselineTest(unittest.TestCase):
             self.write('feedback.json',self.feedback),self.write('manifest.json',self.manifest),
             self.write('workload.jsonl',self.audit),self.write('context.json',self.context))
 
+    def test_authorized_ai_review_is_separate_from_human_and_target(self):
+        authority=dict(mode='user_authorized_ai_visual',requested_by='user',date='2026-10-13',instruction='Finish review')
+        self.feedback.update(review_schema='software-review-v2',review_authorization=authority)
+        for row in self.feedback['samples']:
+            row.update(reviewer_kind='ai',rereviewer_kind='ai',rereviewer='test',rereviewed=True,rule='complete feedback')
+        self.context.update(workload_reviewer_kind='ai',review_authorization=authority)
+        self.feedback['samples'][0].update(status='incomplete',observed_frame_latency_ms=None)
+        result=self.analyze()
+        self.assertTrue(result['collection_completed'])
+        self.assertEqual(result['review_counts'],{'ai':20})
+        self.assertEqual(result['rereview_counts'],{'ai':20})
+        self.assertEqual(result['by_category']['text_submit']['count'],4)
+        self.context.pop('review_authorization')
+        with self.assertRaises(ValueError):self.analyze()
+
+    def test_v2_unreviewed_attempt_is_retained_without_completing_collection(self):
+        self.feedback['review_schema']='software-review-v2'
+        for row in self.feedback['samples']:
+            row.update(reviewer_kind='human',rereviewer_kind='human',rereviewer='test',rereviewed=True,rule='complete feedback')
+        row=self.feedback['samples'][0]
+        for name in ('reviewer','reviewer_kind','rereviewer_kind','rereviewer','rereviewed','rule'):
+            row.pop(name)
+        row.update(status='unreadable',observed_frame_latency_ms=None)
+        result=self.analyze()
+        self.assertFalse(result['collection_completed'])
+        self.assertEqual(len(result['feedback_attempts']),20)
+        self.assertEqual(result['feedback_statuses']['unreadable'],1)
+
+    def test_unknown_review_schema_rejected(self):
+        self.feedback['review_schema']='unknown'
+        with self.assertRaises(ValueError):self.analyze()
+
+    def test_ai_feedback_without_matching_review_schema_rejected(self):
+        self.feedback['samples'][0]['reviewer_kind']='ai'
+        with self.assertRaises(ValueError):self.analyze()
+
     def test_complete_synthetic_run_and_separate_target(self):
         result=self.analyze()
         self.assertTrue(result['collection_completed']);self.assertTrue(result['target_720p30_reached'])
