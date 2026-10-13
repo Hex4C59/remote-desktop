@@ -3,7 +3,7 @@ import("//webrtc.gni")
 if (is_android) {
   import("//build/config/android/rules.gni")
   rtc_android_library("receiver_java") {
-    sources = [ "android/dev/remotedesktop/probe/ProbeActivity.java", "android/dev/remotedesktop/probe/PairingConnection.java", "android/dev/remotedesktop/probe/VideoStatistics.java", "android/dev/remotedesktop/probe/SoftwareLatency.java" ]
+    sources = [ "android/dev/remotedesktop/probe/ProbeActivity.java", "android/dev/remotedesktop/probe/PairingConnection.java", "android/dev/remotedesktop/probe/VideoStatistics.java", "android/dev/remotedesktop/probe/SoftwareLatency.java", "android/dev/remotedesktop/probe/ArchiveIntegrity.java" ]
     deps = [
       "//sdk/android:base_java",
       "//sdk/android:default_video_codec_factory_java",

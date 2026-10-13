@@ -109,7 +109,7 @@ public final class ProbeActivity extends Activity {
   private volatile SoftwareLatency softwareLatency;
   private long measurementStatisticsSequence;
   private Button measurementButton, exportMeasurementButton;
-  private static final int EXPORT_MEASUREMENT = 701;
+  private static final int EXPORT_MEASUREMENT = 701, VERIFY_ARCHIVE = 702;
   private boolean exportingMeasurement, measurementPickerPending;
   private SoftwareLatency.Evidence exportMeasurement;
   private SoftwareLatency.ExportTask observedExport;
@@ -152,6 +152,10 @@ public final class ProbeActivity extends Activity {
     savedEvidenceButton.setText("导出已保存测量证据");
     savedEvidenceButton.setOnClickListener(view -> selectSavedMeasurement());
     connectionFields.addView(savedEvidenceButton);
+    Button verifyArchiveButton = new Button(this);
+    verifyArchiveButton.setText("校验已导出 ZIP");
+    verifyArchiveButton.setOnClickListener(view -> selectArchiveForVerification());
+    connectionFields.addView(verifyArchiveButton);
     connectionForm.addView(connectionFields);
     layout.addView(connectionForm);
     connectButton.setOnClickListener(view -> startPairing());
@@ -203,6 +207,10 @@ public final class ProbeActivity extends Activity {
     configureWindowInsets(layout);
     setContentView(layout);
     if (savedInstanceState != null) {
+      if (savedInstanceState.getBoolean("pending_archive_check", false)) {
+        exportingMeasurement = true;
+        measurementPickerPending = true;
+      }
       String pendingExperiment = savedInstanceState.getString("pending_measurement_export");
       if (pendingExperiment != null) {
         try {
@@ -553,16 +561,46 @@ public final class ProbeActivity extends Activity {
     }
   }
 
+  private void selectArchiveForVerification() {
+    if (exportingMeasurement || (!stopping && pairing != null)) return;
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/zip");
+    exportingMeasurement = true;
+    measurementPickerPending = true;
+    exportMeasurement = null;
+    connectButton.setEnabled(false);
+    sessionButton.setEnabled(false);
+    try { startActivityForResult(intent, VERIFY_ARCHIVE); }
+    catch (android.content.ActivityNotFoundException error) {
+      finishMeasurementExport("设备未提供文件读取入口");
+    }
+  }
+
   @Override protected void onSaveInstanceState(Bundle state) {
     if (measurementPickerPending && exportMeasurement != null) {
       state.putString("pending_measurement_export", exportMeasurement.id());
     }
+    if (measurementPickerPending && exportMeasurement == null) state.putBoolean("pending_archive_check", true);
     if (observedExport != null) state.putString("running_measurement_export", observedExport.experiment);
     super.onSaveInstanceState(state);
   }
 
   @Override protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
+    if (request == VERIFY_ARCHIVE) {
+      measurementPickerPending = false;
+      if (result != RESULT_OK || data == null || data.getData() == null) {
+        finishMeasurementExport("已取消校验");
+        return;
+      }
+      try {
+        observedExport = SoftwareLatency.verifyArchive(getApplicationContext().getContentResolver(), data.getData(), getCacheDir());
+        observedExport.observe(exportChanged);
+        refreshMeasurementExport();
+      } catch (IOException error) { finishMeasurementExport("另一个校验或导出仍在进行"); }
+      return;
+    }
     if (request != EXPORT_MEASUREMENT) return;
     SoftwareLatency.Evidence evidence = exportMeasurement;
     measurementPickerPending = false;
@@ -572,7 +610,7 @@ public final class ProbeActivity extends Activity {
     }
     try {
       observedExport = SoftwareLatency.export(evidence,
-          getApplicationContext().getContentResolver(), data.getData());
+          getApplicationContext().getContentResolver(), data.getData(), getCacheDir());
       observedExport.observe(exportChanged);
       refreshMeasurementExport();
     } catch (IOException error) { finishMeasurementExport("另一个导出仍在进行；原始证据仍保留"); }
@@ -581,7 +619,7 @@ public final class ProbeActivity extends Activity {
   private void refreshMeasurementExport() {
     if (observedExport == null) return;
     if (observedExport.busy()) {
-      status.setText("正在导出测量证据，请等待完成");
+      status.setText("正在处理测量 ZIP（导出／回读校验），请等待完成");
       exportingMeasurement = true;
       connectButton.setEnabled(false);
       sessionButton.setEnabled(false);

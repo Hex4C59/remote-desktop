@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.os.ParcelFileDescriptor;
 import java.io.ByteArrayOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -363,28 +364,59 @@ final class SoftwareLatency implements VideoSink {
 
   private static volatile ExportTask exportTask;
   static ExportTask exportTask() { return exportTask; }
-  static synchronized ExportTask export(Evidence evidence, ContentResolver resolver, Uri destination)
+  static synchronized ExportTask export(Evidence evidence, ContentResolver resolver, Uri destination, File temporaryDirectory)
       throws IOException {
     if (exportTask != null && exportTask.busy()) throw new IOException("Another export is running");
     ExportTask task = new ExportTask(evidence);
     exportTask = task;
     new Thread(() -> {
       String result = "测量证据已导出";
-      try (OutputStream output = resolver.openOutputStream(destination, "w")) {
-        if (output == null) throw new IOException("Destination unavailable");
-        evidence.export(output);
+      try {
+        ArchiveIntegrity.Receipt written;
+        ParcelFileDescriptor descriptor = resolver.openFileDescriptor(destination, "wt");
+        if (descriptor == null) throw new IOException("Destination unavailable");
+        try (ParcelFileDescriptor.AutoCloseOutputStream output =
+            new ParcelFileDescriptor.AutoCloseOutputStream(descriptor)) {
+          ArchiveIntegrity.Written counted = new ArchiveIntegrity.Written(output);
+          evidence.export(counted.borrowed());
+          output.flush();
+          output.getFD().sync();
+          written = counted.receipt();
+        }
+        ArchiveIntegrity.Receipt readback = ArchiveIntegrity.verify(resolver.openInputStream(destination), temporaryDirectory);
+        written.requireSame(readback);
+        result = "测量证据已导出并回读校验 · " + readback.display();
       } catch (IOException | RuntimeException error) {
-        result = "导出失败；目标文件可能不完整，原始证据仍保留";
+        result = "导出或回读校验失败；目标文件可能不完整，原始证据仍保留";
       }
       task.complete(result);
     }, "measurement-export").start();
+    return task;
+  }
+  static synchronized ExportTask verifyArchive(ContentResolver resolver, Uri source, File temporaryDirectory) throws IOException {
+    if (exportTask != null && exportTask.busy()) throw new IOException("Another export is running");
+    ExportTask task = new ExportTask("archive-check");
+    exportTask = task;
+    new Thread(() -> {
+      String result;
+      try {
+        ArchiveIntegrity.Receipt checked = ArchiveIntegrity.verify(resolver.openInputStream(source), temporaryDirectory);
+        result = "ZIP CRC 校验通过（帧内容仍须离线校验） · " + checked.display();
+      } catch (java.util.zip.ZipException error) {
+        result = "ZIP CRC／结构校验失败；请保留此文件并重新导出原始实验";
+      } catch (IOException | RuntimeException error) {
+        result = "文件读取或校验临时文件失败；原文件仍保留";
+      }
+      task.complete(result);
+    }, "measurement-archive-check").start();
     return task;
   }
   static final class ExportTask {
     final String experiment;
     private volatile String result;
     private volatile WeakReference<Runnable> observer = new WeakReference<>(null);
-    ExportTask(Evidence evidence) { experiment = evidence.id(); }
+    ExportTask(Evidence evidence) { this(evidence.id()); }
+    ExportTask(String experiment) { this.experiment = experiment; }
     boolean busy() { return result == null; }
     String result() { return result; }
     void observe(Runnable changed) {

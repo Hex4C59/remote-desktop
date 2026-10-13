@@ -20,6 +20,24 @@
       "configuration": "Release arm64",
       "passed": true,
       "local_jobs": 4,
+      "apk_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
+      "native_abi": [
+        "arm64-v8a"
+      ],
+      "elf_machine": "AArch64",
+      "apk_bytes": 14401272,
+      "native_library_sha256": "d8966a7beb2a72df734714692bbf51c49ac02d01aaaf504b5731338dacbfb03d",
+      "capture_apk_sha256": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+      "export_only_update_after_600s_session_closed": true,
+      "signing_certificate_sha256": "32a2fc74d731105859e5a85df16d95f102d85b22099b8064c5d8915c61dad1e0",
+      "incremental_build_steps": 10,
+      "source_scope": "Post-session archive integrity only; original capture59 and prior exportdd retained",
+      "build_log_sha256": "576a1cd5552fdf82c048354d38a0045ddbd43f0ca9d324ab11f453f7f1c0a5eb"
+    },
+    "previous_post_capture_android": {
+      "configuration": "Release arm64",
+      "passed": true,
+      "local_jobs": 4,
       "apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
       "native_abi": [
         "arm64-v8a"
@@ -36,7 +54,7 @@
   "checks": {
     "python_unit_tests": {
       "passed": true,
-      "count": 32,
+      "count": 37,
       "data": "synthetic"
     },
     "review_import_regression": "passed",
@@ -59,7 +77,8 @@
       "dropped": 862,
       "passed": true
     },
-    "previous_review_ui": "synthetic_navigation_and_save_verified"
+    "previous_review_ui": "synthetic_navigation_and_save_verified",
+    "archive_integrity_java": "passed"
   },
   "runtime": {
     "hdc_targets": 1,
@@ -68,7 +87,7 @@
     "real_feedback_formal_attempts": 20,
     "measurement_overhead_runs": 2,
     "completed_600s_baselines": 1,
-    "current_artifact_device_regressions": "observed_with_scoped_evidence",
+    "current_artifact_device_regressions": "archive_integrity_only; previousdd_full_matrix_not_upgraded",
     "hdc_targets_at_initial_check": 0,
     "adb_devices_at_initial_check": 0,
     "controller_model": "MRO-W00",
@@ -99,8 +118,70 @@
     "ordinary_window_pointer_observed": true,
     "ordinary_window_text_and_key_association": "observed_on_59c419e2",
     "latest_apk_installation": "observed_success",
-    "latest_apk_transfer_bytes": 14405252,
+    "latest_apk_transfer_bytes": 14401272,
     "latest_artifact_regressions": {
+      "apk_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
+      "scope": "closed_experiment_archive_integrity_only",
+      "cold_launch": "observed",
+      "normal_update_installation": "observed_success",
+      "repeated_exports": 3,
+      "initial_readback_passed": 3,
+      "recovered_full_validation_passed": 2,
+      "recovered_guard_rejected": 1,
+      "late_failed_file_android_check": "CRC_rejected",
+      "late_valid_file_android_check": "passed",
+      "full_input_lifecycle_matrix_rerun": false,
+      "prior_matrix_apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0"
+    },
+    "windows_foreground_last_checked_local": "2026-10-13T10:55:42+08:00",
+    "cleanup_before_resumed_run": {
+      "remaining_owned_interactive_processes": 0,
+      "remaining_owned_scheduled_tasks": 0,
+      "remaining_task07_firewall_rules": 0,
+      "owned_scheduled_tasks_removed": 5,
+      "tablet_timeout_ms": 30000,
+      "tablet_override_timeout_ms": 10000,
+      "tablet_returned_home": true,
+      "existing_hotspot_wlan_and_display_settings_preserved": true
+    },
+    "cleanup": {
+      "utc": "2026-10-13T05:33:11.1115315Z",
+      "owned_fixture_pids_stopped": [
+        33020
+      ],
+      "owned_scheduled_tasks_removed": 1,
+      "remaining_owned_interactive_processes": 0,
+      "remaining_owned_scheduled_tasks": 0,
+      "remaining_task07_firewall_rules": 0,
+      "tablet_power_restored_readback": true,
+      "tablet_timeout_ms": 30000,
+      "tablet_override_timeout_ms": 10000,
+      "tablet_returned_home": true,
+      "hotspot_wlan_changed": false,
+      "display_scale_temporarily_changed": true,
+      "display_scale_restored": true,
+      "display_scale_restored_dpi": 96,
+      "user_window_restoration": {
+        "wegame_window_restored": true,
+        "identity_verified": true,
+        "show_command": 1,
+        "utc": "2026-10-13T05:33:12.7614288Z"
+      },
+      "final_resource_readback": {
+        "utc": "2026-10-13T05:33:49.8899729Z",
+        "remaining_owned_interactive_processes": 0,
+        "remaining_owned_scheduled_tasks": 0,
+        "remaining_task07_firewall_rules": 0,
+        "restoration_task_removed": true
+      }
+    },
+    "baseline_collection_accepted": false,
+    "human_boundary_rereviews": 0,
+    "deployed_current_artifact_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
+    "windows_foreground_condition_resolved": true,
+    "initial_apk_transfer_bytes": 14380485,
+    "capture_apk_transfer_bytes": 14405301,
+    "previous_export_artifact_regressions": {
       "schema": "task07-latest-artifact-regressions-v1",
       "apk_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
       "windows_sender_sha256": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
@@ -201,54 +282,21 @@
       },
       "failed_harness_attempts_preserved": true
     },
-    "windows_foreground_last_checked_local": "2026-10-13T10:55:42+08:00",
-    "cleanup_before_resumed_run": {
-      "remaining_owned_interactive_processes": 0,
+    "archive_integrity_cleanup": {
+      "schema": "archive-integrity-cleanup-v1",
+      "utc": "2026-10-13T08:03:03.0790141Z",
+      "remaining_owned_wpd_readers": 0,
       "remaining_owned_scheduled_tasks": 0,
       "remaining_task07_firewall_rules": 0,
-      "owned_scheduled_tasks_removed": 5,
+      "tablet_returned_home": true,
       "tablet_timeout_ms": 30000,
       "tablet_override_timeout_ms": 10000,
-      "tablet_returned_home": true,
-      "existing_hotspot_wlan_and_display_settings_preserved": true
-    },
-    "cleanup": {
-      "utc": "2026-10-13T05:33:11.1115315Z",
-      "owned_fixture_pids_stopped": [
-        33020
-      ],
-      "owned_scheduled_tasks_removed": 1,
-      "remaining_owned_interactive_processes": 0,
-      "remaining_owned_scheduled_tasks": 0,
-      "remaining_task07_firewall_rules": 0,
       "tablet_power_restored_readback": true,
-      "tablet_timeout_ms": 30000,
-      "tablet_override_timeout_ms": 10000,
-      "tablet_returned_home": true,
       "hotspot_wlan_changed": false,
-      "display_scale_temporarily_changed": true,
-      "display_scale_restored": true,
-      "display_scale_restored_dpi": 96,
-      "user_window_restoration": {
-        "wegame_window_restored": true,
-        "identity_verified": true,
-        "show_command": 1,
-        "utc": "2026-10-13T05:33:12.7614288Z"
-      },
-      "final_resource_readback": {
-        "utc": "2026-10-13T05:33:49.8899729Z",
-        "remaining_owned_interactive_processes": 0,
-        "remaining_owned_scheduled_tasks": 0,
-        "remaining_task07_firewall_rules": 0,
-        "restoration_task_removed": true
-      }
-    },
-    "baseline_collection_accepted": false,
-    "human_boundary_rereviews": 0,
-    "deployed_current_artifact_sha256": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0",
-    "windows_foreground_condition_resolved": true,
-    "initial_apk_transfer_bytes": 14380485,
-    "capture_apk_transfer_bytes": 14405301
+      "display_scale_changed": false,
+      "user_applications_changed": false,
+      "new_remote_control_sessions": 0
+    }
   },
   "review": {
     "standards_hard_violations": 0,
@@ -268,7 +316,7 @@
     "600s raw run completed; collection acceptance awaits human feedback/workload review",
     "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
     "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
-    "First baseline archive had one CRC failure; two reads identical, reexport fully valid; root cause unlocated",
+    "First baseline ZIP has a2486B zero block; repeated exports show Android/shared-storage view differences; fd.sync did not eliminate them; corrupt copies preserved and rejected",
     "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
     "Android API/device process independently unreadable in Harmony Android container",
     "Both physical display latency measurements deferred and unaccepted"
@@ -534,7 +582,7 @@
     "repeat_mtp_copy_same_sha256": true,
     "reexport_archive_sha256": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
     "reexport_crc_and_all_frames": "passed",
-    "first_corruption_cause": "not_determined; corrupt copies preserved; no results derived from corrupt archive",
+    "first_corruption_cause": "not_determined; zero2486B observed, directAndroid original alsoCRCfailed; laterAndroid/WPDview mismatch observed; see export_integrity_continuation",
     "baseline_export_completion_observed_seconds": 23.8,
     "baseline_reexport_completion_observed_seconds": 26.2,
     "speedup_comparison": "Different archive sizes; not a controlled speedup measurement"
@@ -559,7 +607,7 @@
     },
     "user_agents_sha256_preserved": "2f7b1faf7907a1577f17e905f098ff65f357787ab865d81d07051d42bdf2dec0"
   },
-  "initial_build_metadata_scope": "source_base/source_bundle/latest_source describe earlier documented builds; resumed_source and builds identify current narrow changes/artifacts",
+  "initial_build_metadata_scope": "source_base/source_bundle/latest_source/resumed_source describe earlier builds; export_integrity_continuation and task07-export-integrity.json identify the current archive-only sources/build/runtime; capture APK59 and prior full input/lifecycle matrixAPKdd remain separate",
   "final_report_review": {
     "base": "ed4264e700481628a03ff78c2b80cb10f04bfa8f",
     "standards_hard_violations": 0,
@@ -570,5 +618,15 @@
     "spec_finding_severity": "P3",
     "spec_fixed": "Clarify zero accepted samples and unavailable latency references, not zero latency",
     "remaining_actionable_findings": 0
+  },
+  "export_integrity_continuation": {
+    "record": "task07-export-integrity.json",
+    "source_base": "0ca07345a107208e3be7f73e7fd2c0ca0df976b0",
+    "apk_sha256": "a86de4d05eff9388fa172b7dd519ba20a504f21ffdac195fec908b4e9eeae41d",
+    "recovery_passed": 3,
+    "recovery_rejected": 2,
+    "sync_hypothesis": "rejected_by_attempt04",
+    "specific_introducing_module": "not_determined",
+    "raw_images_and_capture_version_unchanged": true
   }
 }
