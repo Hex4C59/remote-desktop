@@ -1,0 +1,47 @@
+{
+  "schema": "lan-run-context-v1",
+  "experiment": "5d47fc4d-7778-493d-8015-78d8910d3830",
+  "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
+  "controller": {
+    "model": "MRO-W00",
+    "system": "OpenHarmony-6.1.1.120",
+    "android_container": "DroiTong 1.0.10.81",
+    "android_api_independently_read": false
+  },
+  "controlled_host": {
+    "system": "Windows 11 Home 10.0.26300 x64",
+    "desktop": "logged-in unlocked Session1",
+    "source_dimensions": [
+      2560,
+      1440
+    ],
+    "dpi": 96
+  },
+  "network": {
+    "kind": "existing Windows Wi-Fi hotspot LAN",
+    "usb_use": "HDC user-interface automation and after-session MTP evidence recovery",
+    "impairment_applied_during_baseline": false
+  },
+  "versions": {
+    "webrtc_revision": "a3553f1c82a5580c91ad1f82baab4b11ed4b34b6",
+    "compiler_file_version": "14.51.36248.0",
+    "workload": "cpp-browse-edit-compile-run-interrupt-v1"
+  },
+  "artifact_sha256": {
+    "capture_apk": "59c419e2e6ab7e714cda4558fb856b08dd35b042305b8556cadd840694521535",
+    "windows_sender": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
+    "post_session_export_apk": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0"
+  },
+  "workload_reviewer": "Codex-visual-2026-10-13",
+  "workload_reviewed": true,
+  "auxiliary_console_snapshots": "stale; not used for acceptance; independent workload audit and full decoded-frame evidence preserved",
+  "measurement_enabled": true,
+  "workload_reviewer_kind": "ai",
+  "review_authorization": {
+    "mode": "user_authorized_ai_visual",
+    "requested_by": "user",
+    "date": "2026-10-13",
+    "instruction": "你帮我做了啊,我授权你完成"
+  },
+  "workload_review_method": "31 ordered audit events; 5 successful compiler exits; decoded full frames show directory, source revision 1..5, compiler output and matching run; all 5 interrupts prompt returns stable to end of capture; UTC audit used for ordering only"
+}

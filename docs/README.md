@@ -62,7 +62,9 @@ docs/
 | [任务04：字符与终端按键](validation/task04-terminal-input.md) | [证据](validation/evidence/task04-terminal-input.json) |
 | [任务05：结束会话与手动重连](validation/task05-session-reconnect.md) | [证据](validation/evidence/task05-session-reconnect.json) |
 | [任务06：视频统计](validation/task06-video-statistics.md) | [证据](validation/evidence/task06-video-statistics.json) |
-| [任务07：软件测量计划与历史外拍准备，未验收](validation/task07-end-to-end-latency.md) | 历史记录引用的证据文件当前仓库未收录 |
+| [任务07：软件测量完成](validation/task07-end-to-end-latency.md) | 用户授权AI视觉复核，20次有效；人工复核0，物理测量延期 |
+| [任务08：十分钟局域网基线](validation/task08-lan-baseline.md) | 采集完成，18次有效、2次边界缺口；720p30目标未达 |
+| [授权视觉复核与逐项边界](validation/task07-authorized-visual-review.md) | 40次正式边界均由同一AI判读并复读，保留哈希、区间和失败 |
 
 历史验证所用提交编号的对应关系见 [Git 提交映射](validation/git-history.md)。
 

@@ -1,7 +1,7 @@
 {
   "schema": "lan-baseline-readiness-v1",
   "checked_date": "2026-10-13",
-  "method": "generic_desktop_operations_with_human_frame_review",
+  "method": "generic_desktop_operations_with_user_authorized_ai_visual_review",
   "implementation": {
     "fixed_cpp_workload": true,
     "receiver_600s_window": true,
@@ -18,11 +18,11 @@
   "runtime": {
     "completed_runs": 1,
     "formal_attempts": 20,
-    "collection_completed": false,
+    "collection_completed": true,
     "target_720p30_reached": false,
     "controller_available": true,
     "sampling_ready": true,
-    "blocker": "human_feedback_boundary_repeat_and_workload_review_pending",
+    "blocker": null,
     "windows_interactive_desktop_checked": true,
     "same_lan_subnet": true,
     "workload_method_validation_cycles": 1,
@@ -40,16 +40,29 @@
       0
     ],
     "continuous_runtime_seconds": 600.0,
-    "raw_window_and_workload_acquisition_completed": true
+    "raw_window_and_workload_acquisition_completed": true,
+    "ai_boundary_reviews": 20,
+    "ai_boundary_rereviews": 20,
+    "human_boundary_reviews": 0,
+    "human_boundary_rereviews": 0,
+    "valid_feedback_attempts": 18,
+    "incomplete_feedback_attempts": 2,
+    "collection_acceptance_policy": "user_authorized_ai_visual_two_pass",
+    "original_human_only_review_satisfied": false
   },
-  "software_references_ms": {},
+  "software_references_ms": {
+    "text_submit": 121.811459,
+    "compile_start": 161.554687,
+    "program_start": 551.302083,
+    "interrupt_return": 203.164062
+  },
   "future_candidates": {
     "bandwidth_kbps": 116.09263849973166,
     "bandwidth_factor": 0.75,
     "added_one_way_delay_ms": 50,
     "random_loss_percent": 1,
     "validation_task": "09",
-    "status": "provisional_from_observed_unaccepted_baseline; task09_path_effect_not_verified"
+    "status": "inputs_from_completed_baseline_under_authorized_ai_review; task09_path_effect_not_verified"
   },
   "physical_measurements": {
     "display_latency": "deferred_unaccepted",
@@ -62,25 +75,32 @@
     "event_count": 31,
     "completed": true,
     "human_reviewed": false,
-    "auxiliary_cached_console_snapshots": "stale_excluded"
+    "auxiliary_cached_console_snapshots": "stale_excluded",
+    "ai_reviewed": true,
+    "reviewer": "Codex-visual-2026-10-13",
+    "reviewer_kind": "ai",
+    "review_method": "31 ordered audit events; 5 successful compiler exits; decoded full frames show directory, source revision 1..5, compiler output and matching run; all 5 interrupts prompt returns stable to end of capture; UTC audit used for ordering only"
   },
   "private_evidence_sha256": {
     "read-cpp-audit.log": "5aef44679f8c8d330d897c9c49a71e1020d25ad407c45ce143be1664872dd4b9",
     "baseline-reexport.zip": "32002be1f354282cf1664fa2348a9c93f48b7708900871ddbc52f2eb9d30ed94",
     "baseline-analysis.json": "a1f0c112cc4aa4866f6e621d9906cd2949bcd47d7cc85f307a02f1ff9a595f91",
     "baseline-context.json": "7bdfd9c9cd9e1796dbbcb34f650d7cc0cf9d43b19b8e4f30d9176c025091ec49",
-    "baseline-feedback-analysis.json": "de8f79e420c80868a810aa27b746d65fbe7b0e997048545322ca60b8be0dc36e"
+    "baseline-feedback-analysis.json": "de8f79e420c80868a810aa27b746d65fbe7b0e997048545322ca60b8be0dc36e",
+    "authorized-review/baseline-review.json": "8fc153a6c09413a786209d8e76d77973df78dc90d8b349a92d63654a685fb304",
+    "authorized-review/baseline-analysis.json": "03189b8bffb8c3b6f4a61dc6eccd04788394dc35d9c401237529deedd2127d9d",
+    "authorized-review/baseline-context.json": "5e7fd9b596d8fc66b3bb82bcc35e70c12710a4b64c893d76d785e0618a139eb4",
+    "authorized-review/lan-baseline-analysis.json": "15d5716275edaaaa8e9b5a5aff386a729c0403b5f75a9d611a181d2c7c497c87"
   },
   "run": {
     "experiment": "5d47fc4d-7778-493d-8015-78d8910d3830",
     "session": "3dc06845-6d3f-4595-b637-a080fe0bce67",
-    "duration_seconds": 600.0,
-    "collection_completed": false,
+    "collection_completed": true,
     "collection_criteria": {
       "continuous_600_seconds": true,
-      "five_fixed_cycles": false,
+      "five_fixed_cycles": true,
       "four_attempts_per_cycle": true,
-      "all_attempts_reviewed": false,
+      "all_attempts_reviewed": true,
       "statistics_available": true,
       "stages_available": true
     },
@@ -94,6 +114,9 @@
       "no_missing_sequences": true
     },
     "target_rule": "720p submissions/decodes, average FPS >=30, coverage >=99%, no reported freeze/sequence loss",
+    "physical_display_measurement": false,
+    "measurement_enabled": true,
+    "duration_seconds": 600.0,
     "receiver": {
       "statistics_samples": 594,
       "valid_window_ms": 600000.0,
@@ -287,47 +310,79 @@
         "windows_sender": "b0ad25bab71ae6c156e30dccac3e32e5babdd14eaa8081d2be954f3a57cd1a9e",
         "post_session_export_apk": "dd4434f702e4677b557517ff71224fa3fd0e1713c1c4924437ff108db12969a0"
       },
-      "workload_reviewer": "pending_human",
-      "workload_reviewed": false,
+      "workload_reviewer": "Codex-visual-2026-10-13",
+      "workload_reviewed": true,
       "auxiliary_console_snapshots": "stale; not used for acceptance; independent workload audit and full decoded-frame evidence preserved",
-      "measurement_enabled": true
+      "measurement_enabled": true,
+      "workload_reviewer_kind": "ai",
+      "review_authorization": {
+        "mode": "user_authorized_ai_visual",
+        "requested_by": "user",
+        "date": "2026-10-13",
+        "instruction": "你帮我做了啊,我授权你完成"
+      },
+      "workload_review_method": "31 ordered audit events; 5 successful compiler exits; decoded full frames show directory, source revision 1..5, compiler output and matching run; all 5 interrupts prompt returns stable to end of capture; UTC audit used for ordering only"
+    },
+    "review_authorization": {
+      "mode": "user_authorized_ai_visual",
+      "requested_by": "user",
+      "date": "2026-10-13",
+      "instruction": "你帮我做了啊,我授权你完成"
+    },
+    "review_counts": {
+      "ai": 20
+    },
+    "rereview_counts": {
+      "ai": 20
     },
     "feedback_statuses": {
-      "unreadable": 20
+      "incomplete": 2,
+      "valid": 18
     },
     "by_category": {
       "text_submit": {
-        "count": 0,
-        "median_ms": null,
-        "min_ms": null,
-        "max_ms": null
+        "count": 3,
+        "median_ms": 121.811459,
+        "min_ms": 120.611979,
+        "max_ms": 151.561979
       },
       "compile_start": {
-        "count": 0,
-        "median_ms": null,
-        "min_ms": null,
-        "max_ms": null
+        "count": 5,
+        "median_ms": 161.554687,
+        "min_ms": 152.760938,
+        "max_ms": 206.438542
       },
       "program_start": {
-        "count": 0,
-        "median_ms": null,
-        "min_ms": null,
-        "max_ms": null
+        "count": 5,
+        "median_ms": 551.302083,
+        "min_ms": 543.502083,
+        "max_ms": 1267.444271
       },
       "interrupt_return": {
-        "count": 0,
-        "median_ms": null,
-        "min_ms": null,
-        "max_ms": null
+        "count": 5,
+        "median_ms": 203.164062,
+        "min_ms": 172.228125,
+        "max_ms": 237.741145
       }
+    },
+    "next_experiment_defaults": {
+      "feedback_reference_ms": {
+        "text_submit": 121.811459,
+        "compile_start": 161.554687,
+        "program_start": 551.302083,
+        "interrupt_return": 203.164062
+      },
+      "bandwidth_kbps": 116.09263849973166,
+      "added_one_way_delay_ms": 50,
+      "random_loss_percent": 1
     },
     "provenance": {
       "receiver-statistics-1791866337255034.jsonl": "51440cd273823adf63a057379707570bc5e2602d218570215bc2c66746fd9b54",
       "stages.jsonl": "53d1b2876aa6912ef36e96b694458e75e92ab9920321043ecfcc2f787972ea2a",
-      "baseline-feedback-analysis.json": "de8f79e420c80868a810aa27b746d65fbe7b0e997048545322ca60b8be0dc36e",
+      "baseline-analysis.json": "03189b8bffb8c3b6f4a61dc6eccd04788394dc35d9c401237529deedd2127d9d",
       "baseline.json": "a2bc989cb108a2d2f61f127a383eb72781ad844f942016efe12488cf422c7924",
       "workload.jsonl": "1cca698cca9650fde441bc6172b4c04d3a05fbd6d33a530c6e15066e147bbb0e",
-      "baseline-context.json": "7bdfd9c9cd9e1796dbbcb34f650d7cc0cf9d43b19b8e4f30d9176c025091ec49"
+      "baseline-context.json": "5e7fd9b596d8fc66b3bb82bcc35e70c12710a4b64c893d76d785e0618a139eb4"
     }
   },
   "raw_evidence": {
@@ -371,17 +426,21 @@
     },
     "capture_gaps": {
       "queue_overflow": 20
-    }
+    },
+    "ai_reviewed": true,
+    "ai_rereviewed": true
   },
   "limitations": [
-    "Human boundary selection and repeat review: 0; no accepted software feedback reference medians",
-    "600s raw run completed; collection acceptance awaits human feedback/workload review",
+    "User-authorized same-AI two-pass visual review; human reviews remain 0; original human-only criterion not fulfilled",
+    "Text-submit operations0001 and0005 incomplete because a queue-overflow gap intersects their selected boundary; excluded from reference statistics",
+    "Program-start cycles2/3 show visible transient text degradation and wide frame intervals; these are retained in ranges, not hidden",
     "Strict720p30 target not reached: weighted29.285337fps and91reported freezes",
     "Old formal Windows acquisition status labels are wrong; raw evidence preserved and fix validated in new traces",
     "First baseline ZIP has a2486B zero block; repeated exports show Android/shared-storage view differences; fd.sync did not eliminate them; corrupt copies preserved and rejected",
     "Cached console text snapshots were stale; excluded; actual decoded frames and separate workload audit retained",
     "Android API/device process independently unreadable in Harmony Android container",
-    "Both physical display latency measurements deferred and unaccepted"
+    "Both physical display latency measurements deferred and unaccepted",
+    "Two historical regression/cleanup log hash bindings unresolved; see task07 evidence qualifications; baseline frame/statistics/workload hashes and consolidated regression/cleanup JSON hashes verified"
   ],
   "regressions": {
     "schema": "task07-latest-artifact-regressions-v1",
@@ -527,5 +586,57 @@
     "sync_hypothesis": "rejected_by_attempt04",
     "specific_introducing_module": "not_determined",
     "raw_statistics_and_capture_versions_unchanged": true
+  },
+  "previous_acceptance_snapshot": {
+    "scope": "before_user_delegated_remaining_visual_review",
+    "collection_completed": false,
+    "human_boundary_reviews": 0,
+    "software_references_ms": {}
+  },
+  "review_authorization": {
+    "mode": "user_authorized_ai_visual",
+    "requested_by": "user",
+    "date": "2026-10-13",
+    "instruction": "你帮我做了啊,我授权你完成"
+  },
+  "authorized_review_records": {
+    "annotations": "task08-authorized-review.json",
+    "feedback": "task08-authorized-feedback.json",
+    "context": "task08-authorized-context.json",
+    "method": "../task07-authorized-visual-review.md"
+  },
+  "historical_provenance_qualifications": [
+    {
+      "file": "regression-network-cut.log",
+      "recorded_sha256": "d8f0ab098665510b1d7e47ee265b795bdeb35d54a725a8ae2cf3a1d3ec5e03c4",
+      "retained_sha256": "d3f238cdc0c46992bfe6885cc6639974fa91f2edbbaf78e2cfb38da7a5487670",
+      "status": "historical_binding_unresolved",
+      "matching_original_found": false,
+      "search_scope": "retained local task07 log/raw/json files at most2MiB",
+      "search_files": 637,
+      "effect": "not used to calculate the40new feedback boundaries; existing regression/cleanup byte binding qualified, not upgraded"
+    },
+    {
+      "file": "cleanup-runtime.log",
+      "recorded_sha256": "bb8090b135896d506540ac23a37912c6c0db0c1a547520ac1dbe723cf63c6a7c",
+      "retained_sha256": "11541c7931d9056fe286fd7f7d98a370a110475ac4aa2c89ac0e71c290e101c2",
+      "status": "historical_binding_unresolved",
+      "matching_original_found": false,
+      "search_scope": "retained local task07 log/raw/json files at most2MiB",
+      "search_files": 637,
+      "effect": "not used to calculate the40new feedback boundaries; existing regression/cleanup byte binding qualified, not upgraded"
+    }
+  ],
+  "authorized_review_code_audit": {
+    "base_commit": "e2eff8f4c4f6c65ffc07a889cc3dc2e1af7d6c8a",
+    "standards_introduced_findings": 0,
+    "standards_preexisting_provenance_finding": 1,
+    "standards_reporting_finding_addressed_by_explicit_qualification": true,
+    "spec_findings": 0,
+    "remaining_actionable_reporting_findings": 0,
+    "historical_bindings_still_unresolved": 2,
+    "python_tests_passed": 46,
+    "visual_reviewers_independent_of_code_audit_agents": true,
+    "record": "../task07-software-review.md"
   }
 }
