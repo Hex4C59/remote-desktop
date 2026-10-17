@@ -13,6 +13,7 @@
 | 按规格或编号任务实施 | [implement](.agents/skills/implement/SKILL.md) |
 | 绘制项目架构、流程、时序或状态图 | [archify](.agents/skills/archify/SKILL.md) |
 | 审查变更，包括实施完成后的审查 | [code-review](.agents/skills/code-review/SKILL.md) |
+| 提交项目改动或编写提交信息 | [git-commit](.agents/skills/git-commit/SKILL.md) |
 | 诊断故障或性能退化 | [diagnosing-bugs](.agents/skills/diagnosing-bugs/SKILL.md) |
 | 要求技术调研并保存有来源的结论 | [research](.agents/skills/research/SKILL.md) |
 | 要求测试先行或 red-green-refactor | [tdd](.agents/skills/tdd/SKILL.md) |
