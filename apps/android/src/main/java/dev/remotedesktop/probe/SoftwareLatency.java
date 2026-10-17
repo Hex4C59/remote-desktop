@@ -58,6 +58,14 @@ final class SoftwareLatency implements VideoSink {
   private boolean baselineFinished;
   private final java.util.Map<String, Integer> baselineCounts = new java.util.HashMap<>();
   private volatile String display = "软件测量已开启";
+  private int pendingRunRecords;
+  private long droppedRunRecords;
+  private boolean runLogFailed;
+  private volatile String negotiationJson = "{}";
+  private Writer runLog; // background-owned, shared with the bounded evidence worker
+  private static final Set<String> RUN_PHASES = new HashSet<>(Arrays.asList(
+      "normal_start", "normal_end", "apply_requested", "impairment_start",
+      "impairment_end", "clear_requested", "clear_confirmed", "recovery_end"));
 
   private static final class Image {
     final long sequence, time, copyNs, compressNs;
@@ -99,6 +107,8 @@ final class SoftwareLatency implements VideoSink {
         && SystemClock.elapsedRealtimeNanos() - active.armedNs >= SECOND && !active.failed);
   }
   String display() { return display; }
+  String experiment() { return experiment; }
+  String negotiationJson() { return negotiationJson; }
   synchronized void arm(String category, String expected, boolean warmup) {
     if (closed || active != null || expected.trim().isEmpty()) return;
     String id = String.format(java.util.Locale.ROOT, "%04d", ++ordinal);
@@ -195,6 +205,58 @@ final class SoftwareLatency implements VideoSink {
       } catch (IOException | JSONException error) { display = "基线记录保存失败"; }
       changed.run();
     });
+  }
+
+  synchronized void negotiation(String local, String remote) {
+    if (closed) return;
+    try {
+      JSONObject row = new JSONObject().put("event", "negotiation");
+      for (String side : new String[] {"local", "remote"}) {
+        org.json.JSONArray lines = new org.json.JSONArray();
+        String description = "local".equals(side) ? local : remote;
+        for (String line : description.split("\\r?\\n")) {
+          if (line.startsWith("m=") || line.startsWith("a=mid:") || line.startsWith("a=group:BUNDLE ")) lines.put(line);
+        }
+        row.put(side, lines);
+      }
+      negotiationJson = row.toString();
+      appendRun(row);
+    } catch (JSONException error) { runLogFailed = true; }
+  }
+  synchronized void statistics(String sampleJson) {
+    if (closed) return;
+    try {
+      appendRun(new JSONObject().put("event", "receiver_sample")
+          .put("sample", new JSONObject(sampleJson)));
+    } catch (JSONException error) { runLogFailed = true; }
+  }
+  synchronized boolean markPhase(String phase, long statisticsSequence) {
+    if (closed || (active != null && active.startNs != 0) || !RUN_PHASES.contains(phase)) return false;
+    try {
+      if (!appendRun(new JSONObject().put("event", "phase").put("phase", phase)
+          .put("observed_ns", Long.toString(SystemClock.elapsedRealtimeNanos()))
+          .put("statistics_seq", statisticsSequence).put("frame_id", frameSequence))) return false;
+      if (active == null) display = "实验阶段已记录 · " + phase;
+      changed.run();
+      return true;
+    } catch (JSONException error) { runLogFailed = true; return false; }
+  }
+  private boolean appendRun(JSONObject row) throws JSONException {
+    row.put("schema", "impaired-run-events-v1").put("experiment", experiment)
+        .put("session", session).put("clock", "elapsedRealtimeNanos");
+    if (pendingRunRecords >= 64) { ++droppedRunRecords; return false; }
+    final String text = row.toString();
+    ++pendingRunRecords;
+    if (!background.post(() -> {
+      try {
+        if (runLog == null) runLog = new OutputStreamWriter(new FileOutputStream(
+            new File(directory, "run.jsonl"), true), StandardCharsets.UTF_8);
+        runLog.write(text + "\n");
+        runLog.flush();
+      } catch (IOException error) { synchronized (this) { runLogFailed = true; } }
+      finally { synchronized (this) { --pendingRunRecords; } }
+    })) { --pendingRunRecords; ++droppedRunRecords; return false; }
+    return true;
   }
 
   @Override public void onFrame(VideoFrame frame) {
@@ -469,14 +531,25 @@ final class SoftwareLatency implements VideoSink {
     }
   }
 
-  synchronized void close() {
+  synchronized void close(String reason) {
     if (closed) return;
+    try {
+      appendRun(new JSONObject().put("event", "session_ended")
+          .put("observed_ns", Long.toString(SystemClock.elapsedRealtimeNanos())).put("reason", reason));
+    } catch (JSONException error) { runLogFailed = true; }
     closed = true;
     finishBaseline(true);
     if (active != null) finish(active, "session_ended");
     background.post(() -> {
       File pending = new File(directory, "session-closed.json.pending");
       try {
+        if (runLog != null) { runLog.close(); runLog = null; }
+        try (Writer state = new OutputStreamWriter(new FileOutputStream(
+            new File(directory, "run-log-status.json")), StandardCharsets.UTF_8)) {
+          state.write(new JSONObject().put("schema", "impaired-log-status-v1")
+              .put("experiment", experiment).put("session", session)
+              .put("write_failed", runLogFailed).put("dropped_records", droppedRunRecords).toString());
+        }
         try (Writer marker = new OutputStreamWriter(new FileOutputStream(pending), StandardCharsets.UTF_8)) {
           marker.write(new JSONObject().put("schema", "software-evidence-closed-v1")
               .put("experiment", experiment).put("session", session).toString());

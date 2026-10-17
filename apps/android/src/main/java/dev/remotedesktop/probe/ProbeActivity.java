@@ -108,7 +108,7 @@ public final class ProbeActivity extends Activity {
   private boolean textPending, dockedKeyboardVisible, statusBarsHidden;
   private volatile SoftwareLatency softwareLatency;
   private long measurementStatisticsSequence;
-  private Button measurementButton, exportMeasurementButton;
+  private Button measurementButton, exportMeasurementButton, measurementPhaseButton;
   private static final int EXPORT_MEASUREMENT = 701, VERIFY_ARCHIVE = 702;
   private boolean exportingMeasurement, measurementPickerPending;
   private SoftwareLatency.Evidence exportMeasurement;
@@ -389,6 +389,21 @@ public final class ProbeActivity extends Activity {
     measurementButton.setText("软件测量（未开启）");
     measurementButton.setOnClickListener(view -> configureMeasurement());
     terminalControls.addView(measurementButton);
+    measurementPhaseButton = new Button(this);
+    measurementPhaseButton.setText("记录实验阶段");
+    measurementPhaseButton.setVisibility(View.GONE);
+    measurementPhaseButton.setOnClickListener(view -> {
+      if (!inputReady() || softwareLatency == null) return;
+      String[] phases = {"normal_start", "normal_end", "apply_requested", "impairment_start",
+          "impairment_end", "clear_requested", "clear_confirmed", "recovery_end"};
+      new android.app.AlertDialog.Builder(this).setTitle("选择实验阶段")
+          .setItems(phases, (dialog, which) -> {
+            if (!softwareLatency.markPhase(phases[which], measurementStatisticsSequence)) {
+              status.setText("请等待当前采样完成");
+            }
+          }).setNegativeButton("取消", null).show();
+    });
+    terminalControls.addView(measurementPhaseButton);
     exportMeasurementButton = new Button(this);
     exportMeasurementButton.setText("导出测量证据");
     exportMeasurementButton.setVisibility(View.GONE);
@@ -493,9 +508,18 @@ public final class ProbeActivity extends Activity {
       try {
         softwareLatency = new SoftwareLatency(getExternalFilesDir(null), statistics.session,
             () -> ui.post(this::updateMeasurementControls));
-        worker.post(() -> { if (!stopping && video != null) video.addSink(softwareLatency); });
+        worker.post(() -> {
+          if (!stopping && video != null && peer != null) {
+            video.addSink(softwareLatency);
+            org.webrtc.SessionDescription local = peer.getLocalDescription();
+            org.webrtc.SessionDescription remote = peer.getRemoteDescription();
+            softwareLatency.negotiation(local == null ? "" : local.description,
+                remote == null ? "" : remote.description);
+          }
+        });
       } catch (IOException error) { status.setText("无法创建软件测量目录"); return; }
     }
+    updateMeasurementControls();
     if (softwareLatency.busy()) { status.setText("当前样本尚未完成"); return; }
     LinearLayout fields = new LinearLayout(this);
     fields.setOrientation(LinearLayout.VERTICAL);
@@ -519,6 +543,7 @@ public final class ProbeActivity extends Activity {
   private void updateMeasurementControls() {
     if (softwareLatency == null) return;
     if (!stopping) measurementButton.setText(softwareLatency.display());
+    measurementPhaseButton.setVisibility(stopping ? View.GONE : View.VISIBLE);
     exportMeasurementButton.setVisibility(stopping ? View.VISIBLE : View.GONE);
     exportMeasurementButton.setEnabled(softwareLatency.exportReady() && !exportingMeasurement);
   }
@@ -946,8 +971,12 @@ public final class ProbeActivity extends Activity {
       long observedNs = SystemClock.elapsedRealtimeNanos();
       if (observedNs - requestedNs <= 3_000_000_000L) {
         try {
-          VideoStatistics.Sample sample = statistics.sample(report, observedNs);
-            measurementStatisticsSequence = sample.sequence;
+          SoftwareLatency measurement = softwareLatency;
+          VideoStatistics.Sample sample = statistics.sample(report, observedNs,
+              measurement == null ? null : measurement.experiment(),
+              measurement == null ? null : measurement.negotiationJson());
+          measurementStatisticsSequence = sample.sequence;
+          if (softwareLatency != null) softwareLatency.statistics(sample.json);
           runOnUiThread(() -> {
             if (stopping) return;
             statisticsObservedNs = observedNs;
@@ -1030,7 +1059,7 @@ public final class ProbeActivity extends Activity {
         video.removeSink(renderer);
         if (softwareLatency != null) video.removeSink(softwareLatency);
       }
-      if (softwareLatency != null) softwareLatency.close();
+      if (softwareLatency != null) softwareLatency.close(reason);
       if (channel != null) { channel.unregisterObserver(); channel.close(); channel.dispose(); }
       if (peer != null) peer.dispose();
       if (factory != null) factory.dispose();

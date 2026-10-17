@@ -26,7 +26,7 @@ final class VideoStatistics {
     }
   }
 
-  Sample sample(RTCStatsReport report, long observedNs) throws JSONException {
+  Sample sample(RTCStatsReport report, long observedNs, String experiment, String negotiationJson) throws JSONException {
     RTCStats inbound = null;
     int matches = 0;
     for (RTCStats stat : report.getStatsMap().values()) {
@@ -119,7 +119,43 @@ final class VideoStatistics {
         .put("window_ms", nullable(windowMs)).put("decoded_fps", nullable(fps))
         .put("received_payload_kbps", nullable(kbps)).put("mean_decode_ms", nullable(decodeMs))
         .put("raw", raw).put("ui", text);
+    if (experiment != null) record.put("transport", transport(report))
+        .put("measurement_experiment", experiment).put("negotiation", new JSONObject(negotiationJson));
     return new Sample(number, text, record.toString());
+  }
+
+  // Addresses remain in opt-in local evidence; no network-wide inference from PID alone.
+  private static JSONObject transport(RTCStatsReport report) throws JSONException {
+    org.json.JSONArray transports = new org.json.JSONArray();
+    for (RTCStats stat : report.getStatsMap().values()) {
+      if (!"transport".equals(stat.getType())) continue;
+      JSONObject item = new JSONObject().put("id", stat.getId());
+      for (String key : new String[] {"selectedCandidatePairId", "dtlsState", "iceState",
+          "bytesSent", "bytesReceived", "packetsSent", "packetsReceived"}) {
+        item.put(key, nullable(stat.getMembers().get(key)));
+      }
+      Object pairId = stat.getMembers().get("selectedCandidatePairId");
+      RTCStats pair = report.getStatsMap().get(pairId);
+      if (pair != null) {
+        JSONObject selected = new JSONObject().put("id", pair.getId());
+        for (String key : new String[] {"localCandidateId", "remoteCandidateId", "state",
+            "nominated", "currentRoundTripTime", "bytesSent", "bytesReceived"}) {
+          selected.put(key, nullable(pair.getMembers().get(key)));
+        }
+        for (String side : new String[] {"local", "remote"}) {
+          RTCStats candidate = report.getStatsMap().get(pair.getMembers().get(side + "CandidateId"));
+          if (candidate == null) continue;
+          JSONObject endpoint = new JSONObject();
+          for (String key : new String[] {"address", "ip", "port", "protocol", "candidateType", "networkType"}) {
+            endpoint.put(key, nullable(candidate.getMembers().get(key)));
+          }
+          selected.put(side, endpoint);
+        }
+        item.put("selected", selected);
+      }
+      transports.put(item);
+    }
+    return new JSONObject().put("schema", "selected-transport-v1").put("transports", transports);
   }
 
   private static String identity(RTCStats stat) {
@@ -146,7 +182,7 @@ final class VideoStatistics {
     return value != null && old != null && value < old;
   }
 
-  private static Object nullable(Double value) { return value == null ? JSONObject.NULL : value; }
+  private static Object nullable(Object value) { return value == null ? JSONObject.NULL : value; }
   private static String format(Double value) {
     return value == null ? "—" : String.format(Locale.ROOT, "%.1f", value);
   }
