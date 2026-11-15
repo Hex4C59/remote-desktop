@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$manifest = Get-Content (Join-Path $SourceRoot 'docs\design\webrtc-build-candidate.json') -Raw | ConvertFrom-Json
+$manifest = Get-Content (Join-Path $SourceRoot 'scripts\webrtc\webrtc-build-candidate.json') -Raw | ConvertFrom-Json
 $revision = & git -C $WebRtcRoot rev-parse HEAD
 if ($LASTEXITCODE -ne 0 -or $revision -ne $manifest.webrtc.revision) {
     throw 'WebRTC checkout does not match the project revision.'

@@ -3,7 +3,7 @@ set -euo pipefail
 webrtc_root="${1:?Usage: build-webrtc-probe.sh WEBRTC_SRC [JOBS]}"
 job_count="${2:-16}"
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-expected_revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["webrtc"]["revision"])' "$project_root/docs/design/webrtc-build-candidate.json")"
+expected_revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["webrtc"]["revision"])' "$project_root/scripts/webrtc/webrtc-build-candidate.json")"
 [[ "$(git -C "$webrtc_root" rev-parse HEAD)" == "$expected_revision" ]] || { echo 'WebRTC revision mismatch' >&2; exit 1; }
 # Assemble the existing libwebrtc overlay from application and probe sources.
 overlay="$webrtc_root/remote_desktop_probe"
