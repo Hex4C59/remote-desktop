@@ -1,11 +1,14 @@
 param(
     [Parameter(Mandatory=$true)][string]$Address,
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\pairing-tests',
+    [string]$OutputRoot,
     [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 # Run on the interactive Windows desktop with a fresh sender --serve already
 # running. ADB drives normal visible fields; no SDP or credential Intent extras.
 $ErrorActionPreference = 'Stop'
+if (-not $OutputRoot) {
+    $OutputRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'build\pairing-tests'
+}
 $adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 Add-Type @'
 using System;

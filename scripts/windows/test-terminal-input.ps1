@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$Address,
     [Parameter(Mandatory=$true)][string]$Sender,
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\terminal-tests',
+    [string]$OutputRoot,
     [switch]$TextOnly,
     [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
@@ -9,6 +9,9 @@ param(
 # LogonType Interactive also works), with one USB-authorized Android device.
 # ADB operates only the normal UI. The terminal is an independent OS observer.
 $ErrorActionPreference = 'Stop'
+if (-not $OutputRoot) {
+    $OutputRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'build\terminal-tests'
+}
 $adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 Add-Type @'
 using System;

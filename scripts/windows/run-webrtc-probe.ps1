@@ -1,10 +1,13 @@
 param(
     [Parameter(Mandatory = $true)][string]$Sender,
     [ValidateSet('pattern', 'desktop')][string]$Source = 'pattern',
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\interop',
+    [string]$OutputRoot,
     [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 $ErrorActionPreference = 'Stop'
+if (-not $OutputRoot) {
+    $OutputRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'build\interop'
+}
 $adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 $runId = [Guid]::NewGuid().ToString('N')
 $runDirectory = Join-Path $OutputRoot $runId

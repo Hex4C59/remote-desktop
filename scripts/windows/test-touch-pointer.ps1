@@ -1,13 +1,16 @@
 param(
     [Parameter(Mandatory=$true)][string]$Address,
     [Parameter(Mandatory=$true)][string]$Sender,
-    [string]$OutputRoot = 'D:\code\remote-desktop\build\touch-tests',
+    [string]$OutputRoot,
     [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$DeviceSerial
 )
 # Run in the logged-in interactive Windows session (a scheduled task using
 # LogonType Interactive also works), with one USB-authorized Android device.
 # ADB operates only the normal UI. The terminal is an independent OS observer.
 $ErrorActionPreference = 'Stop'
+if (-not $OutputRoot) {
+    $OutputRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'build\touch-tests'
+}
 $adbTarget=if ($DeviceSerial) { @('-s',$DeviceSerial) } else { @('-d') }
 Add-Type @'
 using System;
