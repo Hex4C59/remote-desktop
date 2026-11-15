@@ -11,7 +11,7 @@
 
 ## libwebrtc 构建
 
-当前仍使用固定版本 libwebrtc 的 GN 构建，入口见 [构建说明](../docs/guides/webrtc-probes.md)。两端脚本将源码组装到外部 libwebrtc checkout 的 `remote_desktop_probe/` 下：
+当前仍使用固定版本 libwebrtc 的 GN 构建，入口见[根 README 的构建与运行](../README.md#构建与运行)。两端脚本将源码组装到外部 libwebrtc checkout 的 `remote_desktop_probe/` 下：
 
 | 仓库源码 | 生成目录中的位置 |
 | --- | --- |

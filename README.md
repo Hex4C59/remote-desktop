@@ -1,74 +1,105 @@
 # Android → Windows 远程桌面
 
-面向 RTC 视频工程校招的一个月原型：在局域网内，通过 Android 查看 Windows 桌面视频并操作终端。已通过原生 WebRTC 两端构建及真机真实桌面视频、合成视频及消息回显验证，尚未实现完整远程桌面应用。
+面向 RTC 视频工程校招的局域网原型：Android 手机连接已登录的 Windows 电脑，查看实时桌面，并通过触屏和终端按键操作。项目自己组织桌面采集、帧提交、配对、输入和会话流程，复用原生 libwebrtc 的编解码、加密与传输能力。
 
-完整文档入口见 [文档导航](docs/README.md)。
+当前是开发原型，不是完整远程桌面产品。
 
-## 已有内容
+## 当前状态
 
-- [范围与访谈记录](docs/design/project-brief.md)、[领域术语](CONTEXT.md)、[技术路线调研](docs/design/technical-options.md)。
-- [Windows 工具链核查](docs/guides/windows-environment.md)。
-- Windows 桌面探针：验证构建、进程会话和 Desktop Duplication 单帧访问，不保存屏幕像素。
-- SSH 命令、文件上传下载和本地日志保存入口。
-- [WebRTC 构建与文件联调](docs/guides/webrtc-probes.md)：Windows C++ 被控端、Android 控制端及合成视频探针。
+已通过真机验证：
 
-任务01已完成：[真实桌面验证记录](docs/validation/task01-desktop-video.md)。任务02提供[地址与临时口令连接](docs/design/pairing-protocol.md)，正常使用不再交换SDP文件。任务03已支持[触屏定位与左键点击](docs/design/pointer-input.md)，并通过[真实终端验收](docs/validation/task03-touch-pointer.md)。任务04增加[字符与终端按键](docs/design/terminal-input.md)，包括 Enter、Tab、方向键和 Ctrl+C，见[完整终端会话验收](docs/validation/task04-terminal-input.md)。
+- Windows 真实桌面经 libwebrtc 发送到 Android 显示。
+- 地址加 64 字符临时口令配对，正常使用不需要交换 SDP 文件。
+- 触屏定位与左键点击；英文、数字、符号及 Enter、Tab、方向键、Ctrl+C。
+- 同时只允许一个活动控制端；结束会话、断线或切后台后由用户手动重连。
+- 视频码率与帧率统计；Windows 本地软件耗时和操作到反馈帧耗时测量。
+- 十分钟局域网基线已采集。
 
-## 源码目录
+尚未完成或未验收：
+
+- 十分钟 720p30 目标未达到；弱网带宽、延迟、丢包实验正在实施，瓶颈优化对照尚未开始。
+- 物理画面显示延迟和操作反馈延迟未测量，不能用软件耗时替代。
+- DXGI 鼠标光标未合成；多显示器、macOS 与 Linux 桌面端尚未实现。
+
+## 构建与运行
+
+### 前置条件
+
+- Windows 被控端：已登录、未锁屏的交互桌面。桌面探针使用 VS2022 C++ 工具；WebRTC 两端构建使用 VS2026 C++ 工具和 Windows SDK 10.0.28000。
+- Android 控制端：arm64-v8a 真机，Android 8.0（API 26）以上。
+- libwebrtc 源码与 depot_tools 放在仓库外，版本固定在 `scripts/webrtc/webrtc-build-candidate.json`。升级版本必须重新验证两端构建与互通。
+- Android 在 Linux（开发环境为 Ubuntu）上构建，使用 WebRTC 自带的 GN、SDK/NDK/JDK，不依赖系统 Gradle。
+
+### Windows 被控端
+
+在仓库根目录执行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\build-webrtc-probe.ps1 -WebRtcRoot <webrtc-src>
+```
+
+输出为 `<webrtc-src>\out\remote-desktop-win\sender.exe`。脚本把 `apps/windows/src/`、`apps/android/src/main/`、`probes/webrtc/*.cpp` 和 `scripts/webrtc/BUILD.gn` 组装到外部 checkout 的 `remote_desktop_probe/` 后再构建。
+
+### Android 控制端
+
+```bash
+bash scripts/linux/build-webrtc-probe.sh <webrtc-src> 16
+```
+
+输出为 `<webrtc-src>/out/remote-desktop-arm64/apks/RemoteDesktopProbe.apk`。安装到已授权的设备：
+
+```powershell
+adb -d install -r <webrtc-src>\out\remote-desktop-arm64\apks\RemoteDesktopProbe.apk
+```
+
+### 连接
+
+1. 在 Windows 交互桌面运行 `<webrtc-src>\out\remote-desktop-win\sender.exe --serve`。配对窗口显示电脑 IPv4 地址、端口 `18443` 和 64 字符临时口令，口令 5 分钟内有效，只接受一个会话。
+2. 在 Android 应用输入 `电脑IPv4:18443` 和口令，点击“连接”。
+3. 点击“结束会话”主动结束。切后台、离开应用或网络断开也会结束当前会话，需要手动重连。
+
+手机与电脑须在同一可互通局域网。连接失败时先检查地址和口令是否过期，再检查 Windows 防火墙是否允许 TCP 18443 入站。
+
+## 源码结构
 
 ```text
 apps/
-  windows/src/               Windows 被控端 C++ 实现
-  android/src/main/          Android 控制端 Manifest 与 Java 实现
-  macos/                     macOS 桌面端预留目录，尚未实现
-  linux/                     Linux 桌面端预留目录，尚未实现
+  windows/src/                    Windows 被控端 C++ 实现
+  android/src/main/               Android 控制端 Manifest 与 Java 实现
+  macos/、linux/                  桌面端预留目录，尚未实现
 probes/
-  windows_desktop.cpp        独立的 Windows 单帧采集探针
-  webrtc/pattern_source.cpp  合成视频测试源
-scripts/                    构建、联调与测量脚本及配置
-  webrtc/BUILD.gn            两端共用的 libwebrtc 构建配置
+  windows_desktop.cpp             独立的 Windows 单帧采集探针
+  webrtc/pattern_source.cpp       合成视频测试源
+  webrtc/software_trace_smoke.cpp 软件阶段写盘冒烟测试
+scripts/
+  webrtc/BUILD.gn                 两端共用的 libwebrtc 构建配置
+  webrtc/webrtc-build-candidate.json  固定的 WebRTC 与工具链版本
+  windows/                        Windows 构建、联调与验证脚本
+  linux/                          Android APK 的 Linux 构建入口
+  latency/                        软件耗时、基线与弱网结果分析
+tools/network-shaper/             Windows 网络限流工具
 ```
 
-平台状态和构建目录映射见 [apps/README.md](apps/README.md)。macOS、Linux 当前仅建立目录，尚无可运行应用；`scripts/linux/` 是 Android 的 Linux 构建入口。
+平台状态与生成目录映射见 [apps/README.md](apps/README.md)。`build/` 和 `.local/` 被 Git 忽略，用于构建产物、日志和本地配置。
 
 ## Windows 桌面探针
 
-要求 Windows、VS2022 C++ 工具和其内置 CMake。此探针使用现有工具链；完整 libwebrtc 的工具链要求单独记录在[候选版本清单](docs/design/webrtc-build-candidate.json)。
-
-在 Windows 项目目录执行：
+该探针验证 Windows 桌面采集能力，不经过 WebRTC。要求 Windows、VS2022 C++ 工具及其内置 CMake。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\build-probe.ps1
 ```
 
-随后从已登录、未锁定的 Windows 本地桌面执行：
+构建完成后，从已登录、未锁定的 Windows 本地桌面执行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\run-desktop-probe.ps1
 ```
 
-采集日志位于 `build/windows-probe/interactive-probe.log`。`frame_acquired=true` 且 `exit_code=0` 才表示该次采集成功；SSH Session 0 下跳过桌面检查不代表采集通过。当前探针验证第一个附着的输出，最终应用的显示器选择尚未实现。
+采集日志位于 `build/windows-probe/interactive-probe.log`。只有 `frame_acquired=true` 且 `exit_code=0` 才表示该次采集成功；SSH Session 0 下跳过桌面检查不代表采集通过。当前探针验证第一个附着的输出，最终应用的显示器选择尚未实现。
 
-## 从 Ubuntu 执行远程操作
+## 测量与实验
 
-连接配置和主机密钥保存在被 Git 忽略的 `.local/windows.json` 和 `.local/windows_known_hosts`，依赖已配置的 SSH 身份。配置格式如下：
-
-```json
-{"host": "WINDOWS_IP", "user": "WINDOWS_USERNAME"}
-```
-
-首次连接先通过普通 SSH 流程确认并记录主机密钥；辅助脚本使用严格校验，不自动信任新主机。
-
-```bash
-python3 scripts/windows-remote.py --script local-command.ps1 --log .local/logs/command.log
-python3 scripts/windows-remote.py --upload local-file.txt D:/code/remote-desktop/local-file.txt
-python3 scripts/windows-remote.py --download D:/code/remote-desktop/build/windows-probe/interactive-probe.log .local/logs/interactive-probe.log
-```
-
-`--script` 通过 PowerShell 编码命令执行本地脚本内容，不提供远端文件的 `$PSScriptRoot`；需要该变量的脚本应先上传，再用短脚本调用其远端路径。构建前须同步修改的源文件。命令超时只代表本地 SSH 等待结束，不能据此断定远端进程已经停止。
-
-## 第一阶段状态
-
-见[验证记录](docs/validation/phase-one-status.md)。Ubuntu 上的 C++ 工具存在不代表 Windows 功能可用；构建通过也不代表媒体互通已经完成。
-
-历史验证记录中的提交编号对应关系见[GitHub 提交映射](docs/validation/git-history.md)。
+- `scripts/latency/` 用同一时钟记录重算软件阶段耗时、十分钟基线和独立弱网实验，只依赖 Python 标准库。检查命令：`python -m unittest discover -s scripts/latency -p "test_*.py"`。
+- `tools/network-shaper/` 是基于 WinDivert 2.2.2-A 的 Windows 限流工具，构建入口为 `scripts/windows/build-network-shaper.ps1`。实验一次只改变带宽、延迟或丢包中的一项，结束后恢复网络设置。
+- 软件处理耗时、操作到反馈帧耗时和物理画面延迟是不同指标，名称与边界见 [CONTEXT.md](CONTEXT.md)。构建通过、单次合成视频或短时探针均不能证明真机链路、720p30 或性能验收通过。

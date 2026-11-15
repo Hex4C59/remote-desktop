@@ -1,34 +1,37 @@
-## Agent skills
+## 项目速览
 
-### 技能入口
+Android 控制端（Java）查看并操作 Windows 被控端（C++）的局域网远程桌面原型，媒体链路复用固定版本原生 libwebrtc。当前是开发原型，功能与性能边界以 README 为准。
 
-根据用户请求所处阶段，主动读取下表对应的 `SKILL.md` 后执行，用户无需重复提醒技能名称。技能未显示在当前会话列表时，按本地链接读取；具体步骤以技能正文为准。
+## 变更边界
 
-| 请求或阶段 | 读取的技能 |
-| --- | --- |
-| 讨论新功能或重大方案，目标、范围或关键选择尚未明确 | [grilling](.agents/skills/grilling/SKILL.md) |
-| 澄清领域术语，或记录重要架构取舍 | [domain-modeling](.agents/skills/domain-modeling/SKILL.md) |
-| 将已讨论的内容形成规格 | [to-spec](.agents/skills/to-spec/SKILL.md) |
-| 将规格或计划拆成有依赖关系的任务 | [to-tickets](.agents/skills/to-tickets/SKILL.md) |
-| 按规格或编号任务实施 | [implement](.agents/skills/implement/SKILL.md) |
-| 绘制项目架构、流程、时序或状态图 | [archify](.agents/skills/archify/SKILL.md) |
-| 审查变更，包括实施完成后的审查 | [code-review](.agents/skills/code-review/SKILL.md) |
-| 提交项目改动或编写提交信息 | [git-commit](.agents/skills/git-commit/SKILL.md) |
-| 诊断故障或性能退化 | [diagnosing-bugs](.agents/skills/diagnosing-bugs/SKILL.md) |
-| 要求技术调研并保存有来源的结论 | [research](.agents/skills/research/SKILL.md) |
-| 要求测试先行或 red-green-refactor | [tdd](.agents/skills/tdd/SKILL.md) |
-| 创建或修改技能、`AGENTS.md`、`CLAUDE.md` | [writing-for-agents](.agents/skills/writing-for-agents/SKILL.md) |
+- 删除或改写看起来是有意为之的功能、代码或验证记录前，先问用户，不要自行按“冗余”或“未使用”处理。
+- 依赖过旧导致的类型错误，通过升级依赖解决；不要为了消错而删除或降级代码。
+- 小改动直接实施，并执行与该改动相称的检查。编译通过不代表真机链路可用，也不构成性能结论。
 
-已有明确规格或任务时，从对应阶段继续；常规小改动直接实施并执行适合该改动的检查。讨论形成的术语和架构取舍按 `domain-modeling` 的条件记录。
+## 构建与运行
 
-### Issue tracker
+- 应用源码只在 `apps/windows/src/` 和 `apps/android/src/main/`；`probes/` 保留独立探针，不要复制旧实现覆盖应用源码。
+- libwebrtc 与 depot_tools 在仓库外；固定版本见 `scripts/webrtc/webrtc-build-candidate.json`。升级版本必须重新验证两端构建与互通，不能只改清单。
+- 构建脚本把 `apps/windows/src/`、`apps/android/src/main/`、`probes/webrtc/*.cpp` 和 `scripts/webrtc/BUILD.gn` 组装到外部 checkout 的 `remote_desktop_probe/`。改路径时同步两个构建脚本和 GN 配置。
+- Android 没有 Gradle 工程，APK 由 libwebrtc 源码树的 GN 构建，不要新增 Gradle 工程替代现有流程。
+- 根 `CMakeLists.txt` 只构建单帧桌面探针，不构建应用。桌面探针使用 VS2022 内置 CMake；WebRTC 构建使用 VS2026 与 Windows SDK 10.0.28000，两者不要混用。
+- 桌面采集只在已登录、未锁屏的交互会话有效；SSH Session 0 的枚举结果或跳过不能当作桌面能力证据。
+- 脚本默认输出到仓库 `build/`；不要写死已退役的 `D:\code\remote-desktop` 路径。
 
-规格与任务使用本地 Markdown；创建、读取或更新时先读 `docs/agents/issue-tracker.md`。
+## 文档与证据
 
-### Triage labels
+- 原 `docs/`、`.scratch/` 已移除，不恢复、不引用；新增设计或验证记录前先问用户放在哪里。
+- `.local/`、`build/` 被 Git 忽略；SDP、配对口令、截图、原始测量证据和主机信息不得提交。
+- 软件处理耗时、操作到反馈帧耗时与物理画面延迟按 `CONTEXT.md` 的名称区分，不互相替代，也不把短时探针写成 720p30 或性能验收通过。
+- 构建通过只代表编译成功；合成视频、单帧采集和文件联调都不等于真机链路验收。
+- Python 工具检查：`python -m unittest discover -s scripts/latency -p "test_*.py"`。
 
-使用默认五个分类标签；分诊或设置任务状态时先读 `docs/agents/triage-labels.md`。
+## 代码风格
 
-### Domain docs
+- 注释用直白中文讲清“为什么”，不堆术语黑话；代码本身能说明的不要重复注释。
+- 单行建议 80–100 字符，最多 120；超出时拆分逻辑，不要压缩可读性。
+- 不写用户没要求的防御性代码和兼容层：只在入口校验一次输入，内部调用不重复校验，不吞异常，不留未使用的参数、分支或回退路径。
 
-采用 single-context 布局；探索代码或编写规格前，按 `docs/agents/domain.md` 读取术语和相关 ADR。
+## 提交
+
+准备提交、整理暂存或编写提交信息时，按 [git-commit](.agents/skills/git-commit/SKILL.md) 执行。
