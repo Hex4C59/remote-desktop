@@ -1,0 +1,88 @@
+import("//webrtc.gni")
+import("//build/config/linux/pkg_config.gni")
+
+assert(is_linux && !is_android, "The Linux sender requires Linux x64/Xorg.")
+pkg_config("desktop_config") {
+  packages = [ "gtk+-3.0", "x11", "xtst", "xrandr" ]
+}
+
+rtc_executable("linux_sender") {
+  sources = [
+    "remote_desktop_probe/sender.cpp",
+    "remote_desktop_probe/connection_diagnostics.h",
+    "remote_desktop_probe/desktop_source.cpp",
+    "remote_desktop_probe/desktop_source.h",
+    "remote_desktop_probe/desktop_session.cpp",
+    "remote_desktop_probe/desktop_session.h",
+    "remote_desktop_probe/x11_display.h",
+    "remote_desktop_probe/x11_input.cpp",
+    "remote_desktop_probe/x11_input.h",
+    "remote_desktop_probe/input_protocol.h",
+    "remote_desktop_probe/pairing_server.cpp",
+    "remote_desktop_probe/pairing_server.h",
+    "remote_desktop_probe/frame_source.h",
+    "remote_desktop_probe/software_trace.h",
+    "remote_desktop_probe/video_statistics_log.cpp",
+    "remote_desktop_probe/video_statistics_log.h",
+  ]
+  include_dirs = [ "." ]
+  configs += [ ":desktop_config" ]
+  deps = [
+    "//api:create_modular_peer_connection_factory",
+    "//api:data_channel_interface",
+    "//api:enable_media_with_defaults",
+    "//api:jsep",
+    "//api:make_ref_counted",
+    "//api:media_stream_interface",
+    "//api:peer_connection_interface",
+    "//api:rtc_error",
+    "//api:scoped_refptr",
+    "//api:set_local_description_observer_interface",
+    "//api:set_remote_description_observer_interface",
+    "//api:rtc_stats_api",
+    "//api/video:video_broadcaster",
+    "//api/video:video_frame",
+    "//modules/desktop_capture:desktop_capture",
+    "//pc:video_track_source",
+    "//rtc_base:ssl_adapter",
+    "//rtc_base:ssl",
+    "//rtc_base:threading",
+    "//third_party/boringssl",
+    "//third_party/jsoncpp",
+    "//third_party/libyuv",
+  ]
+}
+
+# Test-only executables exercise the platform seams on an isolated Xvfb. They
+# never relax linux_sender's logind gate or provide another product entry mode.
+rtc_executable("linux_input_fixture") {
+  sources = [ "tests/input_fixture.cpp", "remote_desktop_probe/x11_input.cpp" ]
+  include_dirs = [ "." ]
+  configs += [ ":desktop_config" ]
+  deps = [ "//api:scoped_refptr", "//api/video:video_frame" ]
+  ldflags = [ "-Wl,--wrap=XTestFakeKeyEvent", "-Wl,--wrap=XTestFakeButtonEvent" ]
+}
+rtc_executable("linux_desktop_fixture") {
+  sources = [ "tests/desktop_fixture.cpp", "remote_desktop_probe/desktop_source.cpp" ]
+  include_dirs = [ "." ]
+  configs += [ ":desktop_config" ]
+  deps = [
+    "//api:scoped_refptr", "//api/video:video_frame",
+    "//modules/desktop_capture:desktop_capture", "//third_party/libyuv",
+  ]
+}
+rtc_executable("linux_pairing_fixture") {
+  sources = [ "tests/pairing_fixture.cpp", "remote_desktop_probe/pairing_server.cpp" ]
+  include_dirs = [ "." ]
+  configs += [ ":desktop_config" ]
+  deps = [ "//rtc_base:ssl_adapter", "//rtc_base:ssl", "//rtc_base:threading", "//third_party/boringssl" ]
+}
+group("linux_validation") {
+  deps = [ ":linux_sender", ":linux_input_fixture", ":linux_desktop_fixture", ":linux_pairing_fixture", ":linux_connection_fixture" ]
+}
+
+rtc_executable("linux_connection_fixture") {
+  sources = [ "tests/connection_fixture.cpp" ]
+  deps = []
+  include_dirs = [ "." ]
+}
