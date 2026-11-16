@@ -1,6 +1,6 @@
 ## 项目速览
 
-Android 控制端（Java）查看并操作 Windows 被控端（C++）的局域网远程桌面原型，媒体链路复用固定版本原生 libwebrtc。当前是开发原型，功能与性能边界以 README 为准。
+Android 控制端（Java）查看并操作 Windows 被控端（C++）的局域网远程桌面原型，媒体链路复用固定版本原生 libwebrtc。当前是开发原型，功能与性能边界以 README 为准，目标架构与里程碑见 `ARCHITECTURE.md`。
 
 ## 变更边界
 
