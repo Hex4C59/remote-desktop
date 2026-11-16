@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="920" viewBox="0 0 1160 920" role="img" aria-labelledby="rd-title rd-desc">
+  <title id="rd-title">RustDesk 组件与进程职责参考</title>
+  <desc id="rd-desc">RustDesk Windows 安装包包含 Flutter UI、Dart Rust 绑定与原生核心及依赖。官方主分支还提供 Windows 服务和进程管理，以及 Rust 编写的 hbbs 会合服务器、hbbr 中继服务器。主分支证据尚未与本机版本逐项匹配，不将中继等同 TURN，也不推断 Noise。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1160" height="920" fill="#f6f8fb"/>
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#0f172a">
+    <text x="580" y="30" text-anchor="middle" font-size="17" font-weight="600">RustDesk · 安装包观察与官方源码参考</text>
+    <rect x="100" y="56" width="960" height="170" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="88" font-size="17" font-weight="600">Windows UI 宿主 · Flutter / Dart</text>
+    <rect x="140" y="112" width="220" height="62" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="250" y="138" text-anchor="middle" font-weight="600" fill="#163a66">RustDesk.exe / Flutter</text>
+    <text x="250" y="160" text-anchor="middle" font-size="12" fill="#475569">窗口、设备与业务界面</text>
+    <rect x="400" y="112" width="300" height="62" rx="8" fill="#fff8ec" stroke="#f0b45f"/>
+    <text x="550" y="138" text-anchor="middle" font-weight="600" fill="#7a4a12">flutter_rust_bridge</text>
+    <text x="550" y="160" text-anchor="middle" font-size="12" fill="#475569">Dart ↔ Rust 绑定</text>
+    <rect x="740" y="112" width="280" height="62" rx="8" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="880" y="138" text-anchor="middle" font-weight="600" fill="#145c34">纹理 / 光标 / 窗口插件</text>
+    <text x="880" y="160" text-anchor="middle" font-size="12" fill="#475569">插件存在不等于全路径启用</text>
+    <text x="140" y="205" font-size="12.5" fill="#475569">UI 绑定与帧渲染可以分别设计；不能据此判定所有模式单进程或全部零拷贝</text>
+    <line x1="550" y1="226" x2="550" y2="292" stroke="#64748b" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="575" y="266" font-size="12.5" fill="#475569">命令 / 状态与原生接口</text>
+
+    <rect x="100" y="300" width="960" height="230" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="332" font-size="17" font-weight="600">原生核心 · librustdesk.dll（Rust 为主，含原生依赖）</text>
+    <rect x="140" y="356" width="270" height="78" rx="10" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="275" y="381" text-anchor="middle" font-weight="600" fill="#163a66">采集 / 编解码候选</text>
+    <text x="275" y="403" text-anchor="middle" font-size="12" fill="#475569">scrap / codec / hwcodec 等线索</text>
+    <text x="275" y="421" text-anchor="middle" font-size="12" fill="#475569">可用性由设备、构建与协商确认</text>
+    <rect x="440" y="356" width="270" height="78" rx="10" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="575" y="381" text-anchor="middle" font-weight="600" fill="#145c34">连接 / 会合 / Relay</text>
+    <text x="575" y="403" text-anchor="middle" font-size="12" fill="#475569">公开源码中的自有消息与连接流程</text>
+    <text x="575" y="421" text-anchor="middle" font-size="12" fill="#475569">不能与本项目 WebRTC 直接互通</text>
+    <rect x="740" y="356" width="280" height="78" rx="10" fill="#f0e8ff" stroke="#9b7fd8"/>
+    <text x="880" y="381" text-anchor="middle" font-weight="600" fill="#3a1f6e">签名 / 密钥 / 加密</text>
+    <text x="880" y="403" text-anchor="middle" font-size="12" fill="#475569">源码可见 sign / box_ / secretbox</text>
+    <text x="880" y="421" text-anchor="middle" font-size="12" fill="#475569">不从依赖名推断 Noise 协议</text>
+    <text x="140" y="472" font-size="12.5" fill="#475569">输入、剪贴板、文件与虚拟设备等职责需按平台和具体路径确认</text>
+    <text x="140" y="501" font-size="12.5" fill="#475569">字符串次数、硬件接口名与 DLL 大小不构成功能启用或性能证据</text>
+
+    <rect x="100" y="574" width="960" height="90" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="606" font-size="17" font-weight="600">Windows 官方源码 · 服务与其他进程 / 用户会话的管理</text>
+    <text x="140" y="641" font-size="12.5" fill="#475569">run_service / launch_server 等路径；UAC、登录与输入能力取决于具体权限和部署模式</text>
+
+    <rect x="100" y="708" width="960" height="164" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="740" font-size="17" font-weight="600">官方自建服务端 · Rust Cargo 工程</text>
+    <rect x="140" y="766" width="410" height="70" rx="10" fill="#fff8ec" stroke="#f0b45f"/>
+    <text x="345" y="793" text-anchor="middle" font-weight="600" fill="#7a4a12">hbbs · 会合服务器</text>
+    <text x="345" y="816" text-anchor="middle" font-size="12" fill="#475569">设备注册 / 会合 / 连接协调</text>
+    <rect x="590" y="766" width="430" height="70" rx="10" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="805" y="793" text-anchor="middle" font-weight="600" fill="#145c34">hbbr · 中继服务器</text>
+    <text x="805" y="816" text-anchor="middle" font-size="12" fill="#475569">自有 relay 转发，不能等同标准 TURN</text>
+    <text x="580" y="902" text-anchor="middle" font-size="12.5" fill="#475569">本机样本：1.4.9+67 · 公开 master 尚未与安装版本逐项匹配 · 具体许可证按文件核对</text>
+  </g>
+</svg>

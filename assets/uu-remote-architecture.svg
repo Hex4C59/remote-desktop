@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="840" viewBox="0 0 1160 840" role="img" aria-labelledby="uu-title uu-desc">
+  <title id="uu-title">UU 远程 Windows 组件与证据范围</title>
+  <desc id="uu-desc">根据本机 GameViewer Windows 安装包观察分组展示 Qt5、WebView2、JS Bridge、媒体 DLL、程序和驱动。未还原完整调用与进程关系，未分析移动端安装包，QUIC 用途与多端代码共享范围尚未证实。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1160" height="840" fill="#f6f8fb"/>
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#0f172a">
+    <text x="580" y="30" text-anchor="middle" font-size="17" font-weight="600">UU 远程 · Windows 安装包观察</text>
+    <rect x="100" y="72" width="960" height="180" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="104" font-size="17" font-weight="600">原生 UI 与 Web 资源</text>
+    <rect x="140" y="130" width="220" height="56" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="250" y="153" text-anchor="middle" font-weight="600" fill="#163a66">GameViewer / Qt5</text>
+    <text x="250" y="173" text-anchor="middle" font-size="12" fill="#475569">Windows 程序与窗口组件</text>
+    <rect x="400" y="130" width="260" height="56" rx="8" fill="#dce9ff" stroke="#6f9ee0"/>
+    <text x="530" y="153" text-anchor="middle" font-weight="600" fill="#163a66">WebView2 / HTML / JS / CSS</text>
+    <text x="530" y="173" text-anchor="middle" font-size="12" fill="#475569">安装包内的业务页面资源</text>
+    <rect x="730" y="130" width="290" height="56" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="875" y="153" text-anchor="middle" font-weight="600" fill="#163a66">UUYCBridge</text>
+    <text x="875" y="173" text-anchor="middle" font-size="12" fill="#475569">JS 与宿主的命令 / 回调接口</text>
+    <line x1="668" y1="158" x2="722" y2="158" stroke="#64748b" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="140" y="221" font-size="12.5" fill="#475569">脚本含 Windows / macOS / iOS / Android 分支；不能据此证明所有平台共用完整 Web UI</text>
+
+    <rect x="100" y="300" width="960" height="204" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="332" font-size="17" font-weight="600">程序与媒体模块 · 按观察分组，内部调用关系未还原</text>
+    <rect x="140" y="356" width="270" height="78" rx="10" fill="#f0e8ff" stroke="#9b7fd8"/>
+    <text x="275" y="381" text-anchor="middle" font-weight="600" fill="#3a1f6e">Service / Server / Healthd</text>
+    <text x="275" y="402" text-anchor="middle" font-size="12" fill="#475569">程序与进程线索</text>
+    <text x="275" y="420" text-anchor="middle" font-size="12" fill="#475569">另见 crashpad_handler</text>
+    <rect x="440" y="356" width="270" height="78" rx="10" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="575" y="381" text-anchor="middle" font-weight="600" fill="#145c34">streamer.dll</text>
+    <text x="575" y="402" text-anchor="middle" font-size="12" fill="#475569">WebRTC / 编解码相关线索</text>
+    <text x="575" y="420" text-anchor="middle" font-size="12" fill="#475569">实际使用路径未逐项确认</text>
+    <rect x="740" y="356" width="280" height="78" rx="10" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="880" y="381" text-anchor="middle" font-weight="600" fill="#163a66">nemu-api / remote-nemu-api</text>
+    <text x="880" y="402" text-anchor="middle" font-size="12" fill="#475569">render / codec / graph 等接口线索</text>
+    <text x="880" y="420" text-anchor="middle" font-size="12" fill="#475569">未证实 NEMU 全称与多端共享比例</text>
+    <text x="140" y="471" font-size="12.5" fill="#475569">STUN / TURN / QUIC 与平台符号可用于继续调查，不能单凭字符串确定传输协议或代码复用</text>
+
+    <rect x="100" y="548" width="960" height="180" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="580" font-size="17" font-weight="600">平台组件 · 存在、加载与实际使用分别确认</text>
+    <rect x="140" y="610" width="200" height="76" rx="10" fill="#f0e8ff" stroke="#9b7fd8"/>
+    <text x="240" y="640" text-anchor="middle" font-weight="600" fill="#3a1f6e">nevaudio.sys</text>
+    <text x="240" y="663" text-anchor="middle" font-size="12" fill="#475569">虚拟音频相关</text>
+    <rect x="365" y="610" width="200" height="76" rx="10" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="465" y="640" text-anchor="middle" font-weight="600" fill="#163a66">GameViewerIddDriver</text>
+    <text x="465" y="663" text-anchor="middle" font-size="12" fill="#475569">间接显示驱动相关</text>
+    <rect x="590" y="610" width="200" height="76" rx="10" fill="#f0e8ff" stroke="#9b7fd8"/>
+    <text x="690" y="640" text-anchor="middle" font-weight="600" fill="#3a1f6e">uuycinput.sys</text>
+    <text x="690" y="663" text-anchor="middle" font-size="12" fill="#475569">输入相关驱动</text>
+    <rect x="815" y="610" width="205" height="76" rx="10" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="917.5" y="640" text-anchor="middle" font-weight="600" fill="#145c34">ViGEmBus.sys</text>
+    <text x="917.5" y="663" text-anchor="middle" font-size="12" fill="#475569">虚拟手柄相关</text>
+    <text x="580" y="778" text-anchor="middle" font-size="12.5" fill="#475569">样本：GameViewer 4.46.0.4716 · 未分析 APK / IPA / macOS 安装包</text>
+    <text x="580" y="804" text-anchor="middle" font-size="12.5" fill="#475569">可参考 UI / 核心 / 平台能力的边界；不据此改写本项目技术栈或推导性能收益</text>
+  </g>
+</svg>
