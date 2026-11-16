@@ -137,7 +137,7 @@ public final class ProbeActivity extends Activity {
     addressInput.setImeOptions(EditorInfo.IME_ACTION_NEXT | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
     addressInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     codeInput = new EditText(this);
-    codeInput.setHint("Windows 显示的临时配对口令（64 位）");
+    codeInput.setHint("被控电脑显示的临时配对口令（64 位）");
     codeInput.setSingleLine(true);
     codeInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
     codeInput.setSaveEnabled(false);
