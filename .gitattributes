@@ -1,2 +1,0 @@
-# Preserve validated diagram bytes; renderer output may contain trailing spaces.
-.archify/**/*.html -text linguist-generated=true whitespace=-blank-at-eol
