@@ -19,7 +19,8 @@
 
 - 十分钟 720p30 目标未达到；弱网带宽、延迟、丢包实验正在实施，瓶颈优化对照尚未开始。
 - 物理画面显示延迟和操作反馈延迟未测量，不能用软件耗时替代。
-- DXGI 鼠标光标未合成；多显示器、macOS 与 Linux 桌面端尚未实现。
+- DXGI 鼠标光标未合成；多显示器与 macOS 桌面端尚未实现。
+- Linux Xorg 被控端已有独立分支移植代码，主干尚未重新构建与真机验收；范围见 [apps/linux/README.md](apps/linux/README.md)。
 
 ## 构建与运行
 
@@ -66,7 +67,8 @@ adb -d install -r <webrtc-src>\out\remote-desktop-arm64\apks\RemoteDesktopProbe.
 apps/
   windows/src/                    Windows 被控端 C++ 实现
   android/src/main/               Android 控制端 Manifest 与 Java 实现
-  macos/、linux/                  桌面端预留目录，尚未实现
+  linux/src/                     Linux Xorg 被控端移植代码，待主干构建与真机验收
+  macos/                         macOS 桌面端预留目录，尚未实现
 probes/
   windows_desktop.cpp             独立的 Windows 单帧采集探针
   webrtc/pattern_source.cpp       合成视频测试源
@@ -75,7 +77,7 @@ scripts/
   webrtc/BUILD.gn                 两端共用的 libwebrtc 构建配置
   webrtc/webrtc-build-candidate.json  固定的 WebRTC 与工具链版本
   windows/                        Windows 构建、联调与验证脚本
-  linux/                          Android APK 的 Linux 构建入口
+  linux/                          Android APK、Linux 被控端及独立 APK 的构建入口
   latency/                        软件耗时、基线与弱网结果分析
 tools/network-shaper/             Windows 网络限流工具
 ```
@@ -102,4 +104,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\run-desktop-
 
 - `scripts/latency/` 用同一时钟记录重算软件阶段耗时、十分钟基线和独立弱网实验，只依赖 Python 标准库。检查命令：`python -m unittest discover -s scripts/latency -p "test_*.py"`。
 - `tools/network-shaper/` 是基于 WinDivert 2.2.2-A 的 Windows 限流工具，构建入口为 `scripts/windows/build-network-shaper.ps1`。实验一次只改变带宽、延迟或丢包中的一项，结束后恢复网络设置。
-- 软件处理耗时、操作到反馈帧耗时和物理画面延迟是不同指标，名称与边界见 [CONTEXT.md](CONTEXT.md)。构建通过、单次合成视频或短时探针均不能证明真机链路、720p30 或性能验收通过。
+- 软件处理耗时、操作到反馈帧耗时和物理画面延迟是不同指标，名称与边界见 [ARCHITECTURE.md 8.0 术语](ARCHITECTURE.md#80-术语)。构建通过、单次合成视频或短时探针均不能证明真机链路、720p30 或性能验收通过。

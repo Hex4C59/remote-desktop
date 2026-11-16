@@ -1,95 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="820" viewBox="0 0 1160 820" role="img" aria-labelledby="arch-title arch-desc">
-  <title id="arch-title">远程桌面总体架构</title>
-  <desc id="arch-desc">控制端与被控端通过控制面和媒体面连接；控制面负责认证、在线状态、信令和 TURN 凭据，媒体面优先直连、失败时中继。</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="980" viewBox="0 0 1160 980" role="img" aria-labelledby="arch-title arch-desc">
+  <title id="arch-title">远程桌面目标架构</title>
+  <desc id="arch-desc">M1 目标架构：Android Java 控制端与 Windows 用户会话代理，通过 Go WSS 控制面协调授权、恢复与续期，WebRTC 优先直连并以 coturn 中继。会话状态串行处理，采集、输入与统计分别调度，持帧任务结束后完成资源释放。Linux 移植代码尚待主干验收。</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
     </marker>
-    <marker id="arrow-dashed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c08a3e"/>
-    </marker>
   </defs>
+  <rect width="1160" height="980" fill="#f6f8fb"/>
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#0f172a">
+    <text x="580" y="30" text-anchor="middle" font-size="17" font-weight="600">远程桌面目标架构 · M1 待实现与验收</text>
 
-  <rect width="1160" height="820" fill="#f6f8fb"/>
+    <rect x="100" y="56" width="960" height="212" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="86" font-size="17" font-weight="600">控制端 · Android 前台应用（Java）</text>
+    <rect x="140" y="116" width="170" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="225" y="138" text-anchor="middle" dominant-baseline="central" fill="#163a66">UI / 能力与状态</text>
+    <rect x="350" y="116" width="240" height="44" rx="8" fill="#dce9ff" stroke="#6f9ee0"/>
+    <text x="470" y="138" text-anchor="middle" dominant-baseline="central" font-weight="600" fill="#163a66">SessionController</text>
+    <rect x="650" y="100" width="360" height="44" rx="8" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="830" y="122" text-anchor="middle" dominant-baseline="central" fill="#145c34">MediaClient / 原生 Renderer</text>
+    <rect x="650" y="160" width="360" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="830" y="182" text-anchor="middle" dominant-baseline="central" fill="#163a66">InputController / 按压状态</text>
+    <line x1="310" y1="138" x2="342" y2="138" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 590 138 H 620 V 122 H 642" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 620 138 V 182 H 642" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="140" y="230" fill="#475569">命令与状态分开；视频帧走原生渲染接口；测量最多 2 个在途持帧任务</text>
+    <text x="140" y="251" font-size="12.5" fill="#475569">先停止收帧并等待持帧任务结束，再释放相关媒体与 EGL 资源</text>
 
-  <!-- 控制端 -->
-  <rect x="100" y="48" width="960" height="160" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
-  <text x="124" y="78" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="17" font-weight="600" fill="#0f172a">控制端（Android 优先）</text>
+    <rect x="100" y="360" width="420" height="212" rx="16" fill="#fff8ec" stroke="#f0b45f" stroke-width="1.5"/>
+    <text x="124" y="392" font-size="17" font-weight="600" fill="#7a4a12">控制面 · Go / WSS</text>
+    <text x="124" y="432">持钥认证 / 稳定设备身份 / 在线状态</text>
+    <text x="124" y="464">本地授权确认 / 能力与权限 / 信令</text>
+    <text x="124" y="496">恢复协调 / token 与 TURN 凭据续发</text>
+    <text x="124" y="542" font-size="12.5" fill="#8a6a3a">凭据经 WSS 发往两端；不转发画面</text>
 
-  <rect x="170" y="116" width="150" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
-  <text x="245" y="138" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" fill="#163a66">UI</text>
+    <rect x="640" y="360" width="420" height="212" rx="16" fill="#eafaf1" stroke="#5fc08a" stroke-width="1.5"/>
+    <text x="664" y="392" font-size="17" font-weight="600" fill="#145c34">媒体面 · WebRTC / coturn</text>
+    <text x="664" y="432">ICE 选择直连或 TURN 中继路径</text>
+    <text x="664" y="464">DTLS-SRTP 视频 / SCTP over DTLS 输入</text>
+    <text x="664" y="496">两端应用新 TURN 凭据后再使用新配置</text>
+    <text x="664" y="542" font-size="12.5" fill="#2f7a52">M1 TURN：UDP/TCP 3478 + 可达 relay 端口</text>
 
-  <rect x="390" y="116" width="200" height="44" rx="8" fill="#dce9ff" stroke="#6f9ee0"/>
-  <text x="490" y="138" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" font-weight="600" fill="#163a66">SessionController</text>
+    <path d="M 470 268 V 308 H 310 V 352" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="305" y="294" font-size="12.5" fill="#475569">WSS · 授权 / 恢复 / 续期</text>
+    <path d="M 980 268 V 352" fill="none" stroke="#64748b" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="958" y="324" text-anchor="end" font-size="12.5" fill="#475569">视频 + DataChannel</text>
 
-  <rect x="660" y="116" width="150" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
-  <text x="735" y="138" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" fill="#163a66">Renderer</text>
+    <rect x="100" y="676" width="960" height="244" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
+    <text x="124" y="706" font-size="17" font-weight="600">被控端 · Windows 已登录、未锁屏的用户会话代理</text>
+    <rect x="140" y="756" width="170" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="225" y="778" text-anchor="middle" dominant-baseline="central" fill="#163a66">本地授权 / 结束入口</text>
+    <rect x="350" y="756" width="240" height="44" rx="8" fill="#dce9ff" stroke="#6f9ee0"/>
+    <text x="470" y="778" text-anchor="middle" dominant-baseline="central" font-weight="600" fill="#163a66">SessionController</text>
+    <rect x="650" y="736" width="360" height="44" rx="8" fill="#eafaf1" stroke="#5fc08a"/>
+    <text x="830" y="758" text-anchor="middle" dominant-baseline="central" fill="#145c34">采集 / 编码 · 有界待处理帧</text>
+    <rect x="650" y="796" width="360" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
+    <text x="830" y="818" text-anchor="middle" dominant-baseline="central" fill="#163a66">InputService · 独立串行执行</text>
+    <line x1="310" y1="778" x2="342" y2="778" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 590 778 H 620 V 758 H 642" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 620 778 V 818 H 642" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="140" y="870" fill="#475569">公共 C++：协议 / 桌面会话 / 帧接口 / 统计；DXGI、输入与桌面权限由平台适配</text>
+    <text x="140" y="897" font-size="12.5" fill="#475569">状态串行；统计后台写盘；撤权先停输入；资源释放完成后才开放新会话</text>
 
-  <line x1="320" y1="138" x2="382" y2="138" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="590" y1="138" x2="652" y2="138" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
-
-  <!-- 控制面 -->
-  <rect x="120" y="300" width="400" height="180" rx="12" fill="#fff8ec" stroke="#f0b45f" stroke-width="1.5"/>
-  <text x="144" y="334" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="17" font-weight="600" fill="#7a4a12">控制面</text>
-
-  <circle cx="132" cy="370" r="3" fill="#d08a2e"/>
-  <text x="144" y="370" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">认证 / 设备注册</text>
-  <circle cx="132" cy="402" r="3" fill="#d08a2e"/>
-  <text x="144" y="402" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">在线状态 / 会话</text>
-  <circle cx="132" cy="434" r="3" fill="#d08a2e"/>
-  <text x="144" y="434" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">信令 / TURN 凭据</text>
-
-  <text x="144" y="464" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12" fill="#8a6a3a">只协调连接，不转发画面</text>
-
-  <!-- 媒体面 -->
-  <rect x="640" y="300" width="400" height="180" rx="12" fill="#eafaf1" stroke="#5fc08a" stroke-width="1.5"/>
-  <text x="664" y="334" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="17" font-weight="600" fill="#145c34">媒体面</text>
-
-  <circle cx="652" cy="370" r="3" fill="#2f9e68"/>
-  <text x="664" y="370" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">STUN：发现公网地址</text>
-  <circle cx="652" cy="402" r="3" fill="#2f9e68"/>
-  <text x="664" y="402" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">ICE：尝试直连</text>
-  <circle cx="652" cy="434" r="3" fill="#2f9e68"/>
-  <text x="664" y="434" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#3b3f46">TURN：直连失败时中继</text>
-
-  <text x="664" y="464" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12" fill="#2f7a52">媒体加密传输，中继只转发</text>
-
-  <!-- 被控端 -->
-  <rect x="100" y="584" width="960" height="188" rx="16" fill="#ffffff" stroke="#d7dee8" stroke-width="1.5"/>
-  <text x="124" y="614" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="17" font-weight="600" fill="#0f172a">被控端（Windows 优先）</text>
-
-  <rect x="150" y="648" width="180" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
-  <text x="240" y="670" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" fill="#163a66">Tray / Agent</text>
-
-  <rect x="390" y="648" width="200" height="44" rx="8" fill="#dce9ff" stroke="#6f9ee0"/>
-  <text x="490" y="670" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" font-weight="600" fill="#163a66">SessionController</text>
-
-  <rect x="700" y="626" width="190" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
-  <text x="795" y="648" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" fill="#163a66">Capture / Encode</text>
-
-  <rect x="700" y="674" width="190" height="44" rx="8" fill="#e8f1ff" stroke="#8fb4e8"/>
-  <text x="795" y="696" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14.5" fill="#163a66">InputInjector</text>
-
-  <line x1="330" y1="670" x2="382" y2="670" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
-
-  <path d="M 590 670 H 650 V 648 H 692" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M 590 670 H 650 V 696 H 692" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-
-  <!-- 控制端到控制面 / 媒体面 -->
-  <path d="M 460 160 V 246 H 320 V 292" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <text x="390" y="232" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#475569">WSS 信令</text>
-
-  <path d="M 540 160 V 262 H 820 V 292" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <text x="680" y="248" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#475569">WebRTC 媒体 + DataChannel</text>
-
-  <!-- 被控端到控制面 / 媒体面 -->
-  <path d="M 460 648 V 540 H 320 V 488" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <text x="390" y="526" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#475569">注册 / 心跳 / 授权</text>
-
-  <path d="M 540 648 V 552 H 820 V 488" fill="none" stroke="#64748b" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <text x="680" y="538" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#475569">WebRTC 媒体 + DataChannel</text>
-
-  <!-- 控制面签发 TURN 凭据 -->
-  <path d="M 520 390 H 632" fill="none" stroke="#c08a3e" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#arrow-dashed)"/>
-  <text x="576" y="378" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="11.5" fill="#8a5a12">TURN 临时凭据</text>
+    <path d="M 470 676 V 632 H 310 V 580" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="340" y="608" font-size="12.5" fill="#475569">注册 / 授权 / 被控端发起协商</text>
+    <path d="M 980 676 V 580" fill="none" stroke="#64748b" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="958" y="644" text-anchor="end" font-size="12.5" fill="#475569">视频 + DataChannel</text>
+    <text x="580" y="953" text-anchor="middle" font-size="12.5" fill="#475569">Linux Xorg 已有移植代码，主干待验收；完整 JNI 运行时、系统服务与新 UI 栈分别评估</text>
+  </g>
 </svg>

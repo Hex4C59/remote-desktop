@@ -32,6 +32,9 @@ Linux 被控端使用独立的 overlay 与输出目录，不复用 `remote_deskt
 
 生成目录维持现有 C++ include 路径、GN 目标、Android 包名及产物名称。不要直接把本目录或 `scripts/webrtc/` 复制到 libwebrtc checkout 来构建。
 
-`scripts/linux/build-webrtc-probe.sh` 在 Linux 上构建 Android APK；Linux 桌面被控端用 `scripts/linux/build-linux-sender.sh` 构建，两者产物目录互不影响。根目录 CMake 仍只构建 `probes/windows_desktop.cpp`，不构建上述应用。
+`scripts/linux/build-webrtc-probe.sh` 在 Linux 上构建 Android APK；Linux 桌面被控端用 `scripts/linux/build-linux-sender.sh` 构建，两者产物目录互不影响。
+另有 `scripts/linux/build-linux-controller-apk.sh`，生成独立的 `remote_desktop_linux_android/` overlay 与 `out/remote-desktop-linux-controller/` 输出；仍使用 `scripts/webrtc/BUILD.gn` 和同一 Android 包名。
+四套组装入口、对应 GN 目标与迁移验证要求见 [ARCHITECTURE.md 5.2](../ARCHITECTURE.md#52-构建迁移与切换条件)。
+根目录 CMake 仍只构建 `probes/windows_desktop.cpp`，不构建上述应用。
 
 2026-10-10 的目录整理只迁移现有实现并更新构建路径。历史任务与证据中的旧源码路径保留，描述的是当时的源码布局。
