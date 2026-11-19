@@ -1,0 +1,249 @@
+{
+  "protocol_version": 1,
+  "note": "虚构凭据，只用于信封与控制消息编解码。真实口令、密钥、屏幕内容与主机信息不得写入本文件。",
+  "vectors": [
+    {
+      "name": "质询（会话尚未建立）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"session.challenge\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"expires_in_ms\":30000}}",
+      "expect": {
+        "ok": true,
+        "type": "session.challenge",
+        "session": null,
+        "negotiation": null,
+        "seq": 1
+      }
+    },
+    {
+      "name": "配对请求（首次）",
+      "direction": "client->server",
+      "note": "公钥与临时公钥是 91 字节 SPKI 占位值，签名 71 字节 DER，password_proof 32 字节，只用于信封解码",
+      "input": "{\"v\":1,\"type\":\"pair.request\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"device_id\":\"client-test-device\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"ephemeral_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"password_proof\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
+      "expect": {
+        "ok": true,
+        "type": "pair.request",
+        "session": null,
+        "negotiation": null,
+        "seq": 2
+      }
+    },
+    {
+      "name": "配对受理",
+      "direction": "server->client",
+      "note": "同上，字段长度均为占位值",
+      "input": "{\"v\":1,\"type\":\"pair.accept\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{\"device_id\":\"server-test-host\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"ephemeral_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"password_proof\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
+      "expect": {
+        "ok": true,
+        "type": "pair.accept",
+        "session": null,
+        "negotiation": null,
+        "seq": 2
+      }
+    },
+    {
+      "name": "配对确认（用户已核对短校验码）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"pair.confirm\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{}}",
+      "expect": {
+        "ok": true,
+        "type": "pair.confirm",
+        "session": null,
+        "negotiation": null,
+        "seq": 3
+      }
+    },
+    {
+      "name": "会话请求（带签名）",
+      "direction": "client->server",
+      "note": "签名是 71 字节 DER 占位值；段落长度与字段名不影响信封解码",
+      "input": "{\"v\":1,\"type\":\"session.request\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"device_id\":\"client-test-device\",\"permissions\":[\"view\",\"mouse\",\"keyboard\"],\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
+      "expect": {
+        "ok": true,
+        "type": "session.request",
+        "session": null,
+        "negotiation": null,
+        "seq": 3
+      }
+    },
+    {
+      "name": "配对拒绝（口令错误）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"pair.reject\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{\"reason\":\"bad_password\"}}",
+      "expect": {
+        "ok": true,
+        "type": "pair.reject",
+        "session": null,
+        "negotiation": null,
+        "seq": 3
+      }
+    },
+    {
+      "name": "会话拒绝（签名或质询无效）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"session.reject\",\"session\":null,\"negotiation\":null,\"seq\":4,\"payload\":{\"reason\":\"bad_signature\"}}",
+      "expect": {
+        "ok": true,
+        "type": "session.reject",
+        "session": null,
+        "negotiation": null,
+        "seq": 4
+      }
+    },
+    {
+      "name": "保活应答",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"pong\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":9,\"payload\":{\"t\":123456}}",
+      "expect": {
+        "ok": true,
+        "type": "pong",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 9
+      }
+    },
+    {
+      "name": "会话受理（同一 seq 双向独立计数）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"session.accept\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":3,\"payload\":{\"permissions\":[\"view\",\"mouse\",\"keyboard\"]}}",
+      "expect": {
+        "ok": true,
+        "type": "session.accept",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 3
+      }
+    },
+    {
+      "name": "媒体参数协商（代次 1）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"media.offer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":4,\"payload\":{\"codec\":\"h264-baseline\",\"width\":1280,\"height\":720,\"max_fps\":30,\"max_bitrate_bps\":4000000,\"keyframe_interval_frames\":60}}",
+      "expect": {
+        "ok": true,
+        "type": "media.offer",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": 1,
+        "seq": 4
+      }
+    },
+    {
+      "name": "媒体接受，回显同一代次",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":4,\"payload\":{\"accept\":true}}",
+      "expect": {
+        "ok": true,
+        "type": "media.answer",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": 1,
+        "seq": 4
+      }
+    },
+    {
+      "name": "媒体拒绝（不支持编解码）",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":5,\"payload\":{\"accept\":false,\"reason\":\"unsupported_codec\"}}",
+      "expect": {
+        "ok": true,
+        "type": "media.answer",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": 1,
+        "seq": 5
+      }
+    },
+    {
+      "name": "首帧就绪",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"session.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":6,\"payload\":{}}",
+      "expect": {
+        "ok": true,
+        "type": "session.ready",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 6
+      }
+    },
+    {
+      "name": "输入代次确认",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"input.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":7,\"payload\":{\"input_epoch\":1}}",
+      "expect": {
+        "ok": true,
+        "type": "input.ready",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 7
+      }
+    },
+    {
+      "name": "保活（双向消息）",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"ping\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":8,\"payload\":{\"t\":123456}}",
+      "expect": {
+        "ok": true,
+        "type": "ping",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 8
+      }
+    },
+    {
+      "name": "bye（双向）",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"bye\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":9,\"payload\":{\"reason\":\"user\"}}",
+      "expect": {
+        "ok": true,
+        "type": "bye",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 9
+      }
+    },
+    {
+      "name": "error 回指序号",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"error\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":10,\"payload\":{\"code\":\"stale_seq\",\"in_reply_to_seq\":8}}",
+      "expect": {
+        "ok": true,
+        "type": "error",
+        "session": "7f1a5c8e-0000-4000-8000-000000000001",
+        "negotiation": null,
+        "seq": 10
+      }
+    },
+    {
+      "name": "主版本为 2",
+      "direction": "both",
+      "input": "{\"v\":2,\"type\":\"media.offer\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{}}",
+      "expect": {
+        "ok": false,
+        "code": "unsupported_version"
+      }
+    },
+    {
+      "name": "缺少 seq",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"ping\",\"session\":null,\"negotiation\":null,\"payload\":{}}",
+      "expect": {
+        "ok": false,
+        "code": "malformed_envelope"
+      }
+    },
+    {
+      "name": "seq 小于 1",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"bye\",\"session\":null,\"negotiation\":null,\"seq\":0,\"payload\":{}}",
+      "expect": {
+        "ok": false,
+        "code": "malformed_envelope"
+      }
+    },
+    {
+      "name": "未知消息类型",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"offer\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{}}",
+      "expect": {
+        "ok": false,
+        "code": "unsupported_type"
+      }
+    }
+  ]
+}
