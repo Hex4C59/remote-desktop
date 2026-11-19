@@ -1,0 +1,286 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="M1 分层与线程" id="rd-m1-arch">
+    <mxGraphModel dx="1640" dy="1140" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1640" pageHeight="1140" background="#f8fafc" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ===== 标题 ===== -->
+        <mxCell id="title" value="远程桌面目标架构 · M1 局域网直连（无控制面服务器）" style="text;html=0;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#0f172a;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="18" width="1520" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="分层与依赖方向见 docs/architecture.md 5.1；线程与队列见 docs/threading.md 第 2 节" style="text;html=0;align=center;verticalAlign=middle;fontSize=13;fontColor=#475569;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="52" width="1520" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 被控端面板 ===== -->
+        <mxCell id="srv-panel" value="" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="70" y="86" width="720" height="396" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-title" value="被控端 · Windows（src/app/server）" style="text;html=0;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#0f172a;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="90" y="94" width="680" height="28" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="srv-app" value="第 6 层 · app/server　控制台 UI · 本地结束入口 · 配对码显示" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#60a5fa;strokeWidth=1.5;fontSize=13;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="132" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-session" value="第 5 层 · session/　SessionController — 状态机 · 授权门禁 · 超时 · 输入代次" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ede9fe;strokeColor=#a78bfa;strokeWidth=1.5;fontSize=13;fontColor=#3b1d70;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="192" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-biz" value="" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dcfce7;strokeColor=#4ade80;strokeWidth=1.5;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="252" width="680" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-biz-label" value="第 5 层 · 业务模块（同层互不依赖，DEP-03）" style="text;html=0;align=left;verticalAlign=middle;fontSize=12;fontColor=#14532d;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="102" y="256" width="400" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="srv-capture" value="capture/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="104" y="280" width="124" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-codec" value="codec/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="238" y="280" width="124" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-transport" value="transport/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="372" y="280" width="124" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-input" value="input/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="506" y="280" width="124" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-telemetry" value="telemetry/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="640" y="280" width="124" height="46" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="srv-platform" value="第 4 层 · platform/win　DXGI 采集 · 输入注入 · 交互会话与锁屏状态" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fef3c7;strokeColor=#fbbf24;strokeWidth=1.5;fontSize=13;fontColor=#78350f;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="352" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="srv-include" value="第 3 层 · include/remotedesktop　公共契约（只依赖标准库；DEP-01 禁止反向依赖 src/）" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f1f5f9;strokeColor=#94a3b8;strokeWidth=1.5;fontSize=12.5;fontColor=#334155;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="412" width="680" height="46" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 控制端面板 ===== -->
+        <mxCell id="cli-panel" value="" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="870" y="86" width="720" height="396" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-title" value="控制端 · Windows（src/app/client）" style="text;html=0;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#0f172a;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="890" y="94" width="680" height="28" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cli-app" value="第 6 层 · app/client　窗口 · 渲染表面 · 输入事件采集" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#60a5fa;strokeWidth=1.5;fontSize=13;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="132" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-session" value="第 5 层 · session/　SessionController — 状态机 · 重连编排 · 输入代次确认" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ede9fe;strokeColor=#a78bfa;strokeWidth=1.5;fontSize=13;fontColor=#3b1d70;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="192" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-biz" value="" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dcfce7;strokeColor=#4ade80;strokeWidth=1.5;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="252" width="680" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-biz-label" value="第 5 层 · 业务模块（同层互不依赖，DEP-03）" style="text;html=0;align=left;verticalAlign=middle;fontSize=12;fontColor=#14532d;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="902" y="256" width="400" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cli-codec" value="codec/（解码）" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="925" y="280" width="150" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-transport" value="transport/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="1085" y="280" width="150" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-input" value="input/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="280" width="150" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-telemetry" value="telemetry/" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#4ade80;strokeWidth=1.5;fontSize=12.5;fontFamily=Microsoft YaHei;fontColor=#14532d;" vertex="1" parent="1">
+          <mxGeometry x="1405" y="280" width="150" height="46" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cli-platform" value="第 4 层 · platform/win　窗口与渲染上下文 · 输入捕获" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fef3c7;strokeColor=#fbbf24;strokeWidth=1.5;fontSize=13;fontColor=#78350f;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="352" width="680" height="48" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-include" value="第 3 层 · include/remotedesktop　同一份公共契约（两端共享）" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f1f5f9;strokeColor=#94a3b8;strokeWidth=1.5;fontSize=12.5;fontColor=#334155;fontFamily=Microsoft YaHei;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="412" width="680" height="46" as="geometry"/>
+        </mxCell>
+
+        <!-- 两端 transport 之间：局域网直连 -->
+        <mxCell id="lan-link" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=0;strokeColor=#dc2626;strokeWidth=2.5;edgeStyle=none;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="798" y="303" as="sourcePoint"/>
+            <mxPoint x="862" y="303" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lan-label" value="局域网&#10;直连" style="text;html=0;align=center;verticalAlign=middle;fontSize=11;fontColor=#b91c1c;fontFamily=Microsoft YaHei;labelBackgroundColor=#f8fafc;" vertex="1" parent="1">
+          <mxGeometry x="788" y="262" width="84" height="34" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="top-note" value="M1 无控制面服务器：控制端用被控端地址直连，配对与授权在两端之间完成（docs/protocol.md 第 3 节）。箭头表示依赖方向，只能向下。" style="text;html=0;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#475569;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="488" width="1520" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 线程与队列 ===== -->
+        <mxCell id="pipe-title" value="线程与队列：每次跨线程移交都是一条有界边沿" style="text;html=0;align=center;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#0f172a;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="516" width="1520" height="28" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="row1-label" value="被控端 · 发送路径" style="text;html=0;align=left;verticalAlign=middle;fontSize=13.5;fontStyle=1;fontColor=#1e3a5f;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="550" width="300" height="22" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="b-capture" value="【Capture 线程】&#10;platform 取帧&#10;只采集与描述格式" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="578" width="250" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-slot" value="帧槽（队列）&#10;容量 = 1，覆盖式&#10;新帧释放并顶替旧帧" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fce7f3;strokeColor=#ec4899;strokeWidth=2;fontSize=12.5;fontColor=#831843;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="360" y="578" width="190" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-encode" value="【Encode 线程】&#10;取帧编码&#10;单帧 ≤ 33 ms 预算" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="590" y="578" width="230" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-sendq" value="发送队列（队列）&#10;≤ 2 帧等价字节&#10;丢最旧的非参考帧" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fce7f3;strokeColor=#ec4899;strokeWidth=2;fontSize=12.5;fontColor=#831843;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="860" y="578" width="200" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-srv-net" value="【Network 线程】&#10;分片 · 加密 · 保活&#10;只做收发，不编码" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="578" width="240" height="88" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a1" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b-capture" target="b-slot">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" value="移交帧引用&#10;不拷贝像素" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=11;fontColor=#475569;fontFamily=Microsoft YaHei;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="b-slot" target="b-encode">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="b-encode" target="b-sendq">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a4" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="b-sendq" target="b-srv-net">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="row2-label" value="控制端 · 接收路径" style="text;html=0;align=left;verticalAlign=middle;fontSize=13.5;fontStyle=1;fontColor=#1e3a5f;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="712" width="300" height="22" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="b-cli-net" value="【Network 线程】&#10;收包 · 重组 · 解密&#10;不做解码与渲染" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="70" y="740" width="240" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-reasm" value="重组缓冲（队列）&#10;分片上限 + 在途帧上限&#10;缺片即丢帧，不等待" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fce7f3;strokeColor=#ec4899;strokeWidth=2;fontSize=12.5;fontColor=#831843;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="350" y="740" width="190" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-decode" value="【Decode 线程】&#10;解码为可渲染帧&#10;不碰 UI 资源" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="580" y="740" width="230" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-latest" value="最新帧（队列）&#10;1–2 帧，覆盖式&#10;UI 慢就丢帧" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fce7f3;strokeColor=#ec4899;strokeWidth=2;fontSize=12.5;fontColor=#831843;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="850" y="740" width="190" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="b-ui" value="【UI 线程】&#10;窗口与渲染提交&#10;不读网络、不解码" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=12.5;fontColor=#0c2d6b;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="740" width="250" height="88" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a5" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b-cli-net" target="b-reasm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a6" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="b-reasm" target="b-decode">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a7" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="b-decode" target="b-latest">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a8" value="覆盖式&#10;不排队" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=11;fontColor=#475569;fontFamily=Microsoft YaHei;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="b-latest" target="b-ui">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 局域网跨端连接 -->
+        <mxCell id="wire" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#dc2626;strokeWidth=2.5;rounded=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="b-srv-net" target="b-cli-net">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1370" y="622"/>
+              <mxPoint x="1370" y="698"/>
+              <mxPoint x="190" y="698"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wire-label" value="局域网直连 · UDP 通道复用（M1 无中继、无控制面服务器）" style="text;html=0;align=center;verticalAlign=middle;fontSize=12;fontColor=#b91c1c;fontFamily=Microsoft YaHei;labelBackgroundColor=#f8fafc;" vertex="1" parent="1">
+          <mxGeometry x="550" y="668" width="520" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 硬约束 ===== -->
+        <mxCell id="rules-box" value="" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fffbeb;strokeColor=#f59e0b;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="70" y="862" width="1520" height="148" as="geometry"/>
+        </mxCell>
+        <mxCell id="rules-title" value="硬约束（违反即回退）" style="text;html=0;align=left;verticalAlign=middle;fontSize=14.5;fontStyle=1;fontColor=#78350f;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="872" width="400" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule1" value="· 帧槽容量必须为 1。Capture 在槽满时覆盖旧帧，不等待、不重试、不分配内存、不取互斥量。" style="text;html=0;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#422006;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="898" width="1470" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule2" value="· Encode 不得等待 Network；Network 只能以异步原子标记回压，禁止同步等待“发送完成”。" style="text;html=0;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#422006;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="920" width="1470" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule3" value="· 同层模块互不依赖（DEP-03）：帧由 app 层在 capture 与 codec 之间连接，capture 不得 #include codec。" style="text;html=0;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#422006;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="942" width="1470" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule4" value="· 进入 Ending 先关输入门禁并释放按压，再停采集，最后释放资源；不等待对端 bye。" style="text;html=0;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#422006;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="964" width="1470" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule5" value="· 以上规则由 ctest --preset debug 的 arch.layers 检查（DEP-01..05、THREAD-01/02）；规格契约见 specs/spec-screen-frame-handoff.md。" style="text;html=0;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#422006;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="94" y="986" width="1470" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== 图例 ===== -->
+        <mxCell id="lg1" value="" style="rounded=0;fillColor=#dbeafe;strokeColor=#60a5fa;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="94" y="1028" width="16" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg1t" value="第 6 层 / 线程" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="116" y="1025" width="120" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg2" value="" style="rounded=0;fillColor=#ede9fe;strokeColor=#a78bfa;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="246" y="1028" width="16" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg2t" value="session" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="268" y="1025" width="90" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg3" value="" style="rounded=0;fillColor=#dcfce7;strokeColor=#4ade80;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="366" y="1028" width="16" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg3t" value="业务模块（第 5 层）" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="388" y="1025" width="160" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg4" value="" style="rounded=0;fillColor=#fef3c7;strokeColor=#fbbf24;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="558" y="1028" width="16" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg4t" value="platform（第 4 层）" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="580" y="1025" width="150" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg5" value="" style="rounded=0;fillColor=#fce7f3;strokeColor=#ec4899;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="742" y="1028" width="16" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg5t" value="队列（有界，带溢出策略）" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="764" y="1025" width="190" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg6" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;edgeStyle=none;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="976" y="1035" as="sourcePoint"/>
+            <mxPoint x="1036" y="1035" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg6t" value="实线：每帧必经" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="1042" y="1025" width="130" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg7" value="" style="endArrow=block;endFill=1;html=0;strokeColor=#475569;strokeWidth=2;dashed=1;edgeStyle=none;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1180" y="1035" as="sourcePoint"/>
+            <mxPoint x="1240" y="1035" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg7t" value="虚线：队列缓冲后移交" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="1246" y="1025" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg8" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=0;strokeColor=#dc2626;strokeWidth=2.5;edgeStyle=none;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1440" y="1035" as="sourcePoint"/>
+            <mxPoint x="1500" y="1035" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg8t" value="跨端直连" style="text;html=0;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#334155;fontFamily=Microsoft YaHei;" vertex="1" parent="1">
+          <mxGeometry x="1506" y="1025" width="90" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
