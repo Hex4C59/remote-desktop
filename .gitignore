@@ -1,5 +1,6 @@
 /.agent/
-/.agents/
+# .agents/ 已纳入版本库：其中的 skill 是项目协作规范的一部分，
+# 被 AGENTS.md 与 docs/ 引用，不随本地环境变化。
 /.local/
 /build/
 __pycache__/
