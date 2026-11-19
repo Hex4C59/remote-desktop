@@ -1,8 +1,16 @@
 # 跨平台架构参考：RustDesk 安装包观察与源码核对
 
+> **性质：第三方产品观察记录，不是本项目契约。**
+> 本目录（`docs/references/`）只存放对外部软件的调查，
+> 不构成技术选型依据，也不被 `specs/` 或 `src/` 引用。
+> 本项目的架构、线程与协议以 [../architecture.md](../architecture.md)、
+> [../threading.md](../threading.md)、[../protocol.md](../protocol.md) 为准。
+
 本文保留 2026-11-16 对本机 RustDesk `1.4.9+67` 的安装包观察，
 并用官方公开源码交叉核对服务端、连接加密与 Windows 进程职责。
-本项目目标架构以 [ARCHITECTURE.md](../ARCHITECTURE.md) 为准。
+本项目目标架构以 [architecture.md](../architecture.md) 为准。
+本文与 [AGENTS.md](../../AGENTS.md) 的技术栈锁定不冲突：文中观察只用于比较职责边界，
+不构成对本项目传输、构建或语言的选型建议。
 
 安装包观察与公开源码分开标明。本文链接的 `master` 是可变主分支，
 尚未确认与本机 build `29722256` 逐项对应；源码结构不能直接当作该安装版本的运行证据。
@@ -20,9 +28,9 @@ RustDesk 主仓库使用 AGPL-3.0，代码复用须核对具体文件及其适�
 
 ## 2. 组件与职责
 
-[![RustDesk 组件与进程职责参考](../assets/rustdesk-architecture.png)](../assets/rustdesk-architecture.png "点击查看高清 PNG")
+[![RustDesk 组件与进程职责参考](../../assets/references/rustdesk-architecture.png)](../../assets/references/rustdesk-architecture.png "点击查看高清 PNG")
 
-[查看高清 PNG](../assets/rustdesk-architecture.png) · [SVG 源图](../assets/rustdesk-architecture.svg)
+[查看高清 PNG](../../assets/references/rustdesk-architecture.png) · [SVG 源图](../../assets/references/rustdesk-architecture.svg)
 
 Windows 安装包包含 `RustDesk.exe`（约 358 KB）、`flutter_windows.dll`（约 17 MB）
 和 `librustdesk.dll`（约 35 MB），支持 UI 宿主、Flutter 引擎与原生核心的分层理解。
@@ -156,13 +164,14 @@ UI 与原生核心可以在同一进程通过绑定通信；这只是 UI 宿主�
 | --- | --- | --- |
 | UI 与核心通过绑定交互 | 业务命令、状态事件和原生帧渲染分开 | M1 明确接口；保留 Android Java |
 | 桌面平台适配与公共核心 | 协议、会话、帧接口和统计逐步复用 | M1 从 Windows/Linux 实际重复处抽取 |
-| 会合与中继分工 | 控制面协调、媒体中继转发 | 保留 Go + coturn，不替换 WebRTC |
+| 会合与中继分工 | 控制面协调、媒体中继转发 | 不在 M1；M3 引入时另立规格，不照搬 hbbs/hbbr 协议 |
 | 服务与交互进程分工 | 权限、会话与启动管理分别设计 | M1 用户会话代理；服务后续独立设计 |
 | 多种编解码候选 | 按设备与瓶颈建立能力矩阵 | M0/M1/M2 依测量安排，不照搬格式列表 |
 
 Flutter/Rust、Qt/WebView 或其他 UI 栈需要按当前团队、平台与原生渲染需求比较，
-不能仅以“更现代”决定替换。自有传输协议也带来拥塞、恢复、安全和互通维护成本；
-当前没有足够收益支持本项目重写语言、UI 或传输层。
+不能仅以“更现代”决定替换。本项目已按 [AGENTS.md](../../AGENTS.md) 锁定 C++20 + CMake 并自研传输，
+该决定的代价（拥塞控制、丢包恢复、NAT 穿透）已在 [architecture.md](../architecture.md) 4.1 记录；
+本文不据此主张改用 RustDesk 的技术栈。
 
 ## 8. 证据、许可证与相关参考
 
@@ -173,5 +182,6 @@ Flutter/Rust、Qt/WebView 或其他 UI 栈需要按当前团队、平台与原�
 - [RustDesk 官方仓库与许可证](https://github.com/rustdesk/rustdesk)
 - [RustDesk 官方服务端](https://github.com/rustdesk/rustdesk-server)
 - [hbb_common 官方仓库](https://github.com/rustdesk/hbb_common)
-- [ARCHITECTURE.md 关键决策](../ARCHITECTURE.md#4-关键决策)
+- [architecture.md 关键决策](../architecture.md#4-关键决策)
+- [architecture.md 4.1：为什么不用 WebRTC](../architecture.md#41-为什么不用-webrtc)
 - [CROSS-PLATFORM-REFERENCE.md：UU 远程安装包观察](CROSS-PLATFORM-REFERENCE.md)
