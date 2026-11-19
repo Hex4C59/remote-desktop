@@ -3,3 +3,7 @@
 /.local/
 /build/
 __pycache__/
+/test-results/
+
+# 本地依赖源码（离线回退用，不提交）
+/.local/deps/
