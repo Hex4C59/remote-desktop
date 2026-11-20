@@ -87,7 +87,9 @@ approved-by: （批准后填）
 | 文件 | 范围 | 状态 |
 | --- | --- | --- |
 | [spec-lan-vertical-slice.md](spec-lan-vertical-slice.md) | M1 局域网纵向切片（里程碑级，含多个功能） | `draft` |
-| [spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) | 屏幕捕获帧的移交与所有权（首个功能规格，16 条验收场景） | `approved` |
+| [spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) | 屏幕捕获帧的移交与所有权（首个功能规格，22 条验收场景） | `approved` |
+| [spec-platform-win.md](spec-platform-win.md) | Windows 屏幕采集与输入注入契约（DXGI + SendInput，20 条可自动化用例） | `draft` |
+| [spec-review-orchestrator-gates.md](spec-review-orchestrator-gates.md) | Pi 交付流程的阶段准入与审查输入校验 | `draft` |
 
 里程碑级规格描述边界与整体验收，功能级规格描述单个可实现的契约。
 功能级规格必须能追溯到它所属的里程碑规格。

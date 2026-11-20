@@ -95,21 +95,21 @@ L1 实际输出的证据（原文摘录）：
 
 ```bash
 # 53 项单测
-node --experimental-strip-types .pi/extensions/review-orchestrator/verdict.test.ts
-node --experimental-strip-types .pi/extensions/review-orchestrator/l0.test.ts
-node --experimental-strip-types .pi/extensions/review-orchestrator/catalog.test.ts
-node --experimental-strip-types .pi/extensions/review-orchestrator/orchestrator.test.ts
-node --experimental-strip-types .pi/extensions/review-orchestrator/loop.test.ts
+node --experimental-strip-types .pi/orchestrator/tests/review/verdict.test.ts
+node --experimental-strip-types .pi/orchestrator/tests/checks/l0.test.ts
+node --experimental-strip-types .pi/orchestrator/tests/review/catalog.test.ts
+node --experimental-strip-types .pi/orchestrator/tests/workflow/orchestrator.test.ts
+node --experimental-strip-types .pi/orchestrator/tests/workflow/loop.test.ts
 
 # 7 项端到端（真 cmake/ctest + 故障注入，finally 逐字节还原 src/assert.cpp）
-node --experimental-strip-types .pi/extensions/review-orchestrator/verify-e2e.ts
+node --experimental-strip-types .pi/orchestrator/tests/integration/verify-e2e.ts
 
 # 3 项安全（真子进程：只读强制 + abort + 已 abort signal）
-node --experimental-strip-types .pi/extensions/review-orchestrator/verify-safety.ts
+node --experimental-strip-types .pi/orchestrator/tests/integration/verify-safety.ts
 
 # 13 项全链路（临时沙箱，真工具链 + 真 L1/L2 子进程，不碰当前仓库）
 PI_REVIEW_PI_BIN=<path-to-pi-or-cli.js> \
-  node --experimental-strip-types .pi/extensions/review-orchestrator/verify-fullchain.ts
+  node --experimental-strip-types .pi/orchestrator/tests/integration/verify-fullchain.ts
 
 # 项目回归
 ctest --preset debug --output-on-failure
@@ -128,7 +128,7 @@ ctest --preset debug --output-on-failure
 
 | 项 | 命令 | 结果 |
 |---|---|---|
-| 全量单测 | 23 套 `node --experimental-strip-types .pi/extensions/review-orchestrator/<name>.test.ts` | **445 项全绿**（含新增 `commands` 12 项、`machine` 28 项） |
+| 全量单测 | `node --experimental-strip-types --test ".pi/orchestrator/tests/**/*.test.ts"` | **445 项全绿**（含新增 `commands` 12 项、`machine` 28 项） |
 | C9 命令接线 | `verify-commands.ts`（真实 `/orch` 处理器 + 假 Pi 宿主，print 模式） | **13/13**：approve 走 SPEC_HUMAN→PLAN_DRAFT、重复 approve 被拒、resume 读 state.json、abort→ABORTED、reject→ABORTED、changes→SPEC_DRAFT、`start discussion` 写 DECISIONS.md |
 | C11 全流水线 | `verify-fullpipeline.ts` | **13/13**：讨论→Spec（L0/L1/面板/L3 approve）→Plan（覆盖率 L0/L3）→Task→Code；另测 L0 红零 LLM、覆盖率红列出 PB-02、request_changes/reject、连续 L0 红升级 + 人工恢复、证据链可复算 |
 | 项目约束自检 | `ctest --preset debug --output-on-failure` | **10/10**，含 `spec.structure`、`arch.layers` |
@@ -164,7 +164,7 @@ ctest --preset debug --output-on-failure
 
 ### 真实 Pi RPC 命令验证（任务 2）
 
-用 `pi --mode rpc --no-session -e .pi/extensions/review-orchestrator/index.ts` 驱动真实宿主，`/orch` 通过 `prompt` 记录执行，`ctx.ui.select/input` 通过 `extension_ui_response` 协议交互。这不是 print 模式（print 模式不执行扩展命令），也不是假宿主。
+真实宿主使用 Pi RPC 模式，`/orch` 通过 `prompt` 记录执行，`ctx.ui.select/input` 通过 `extension_ui_response` 协议交互。按当前目录布局复现可用 `pi --mode rpc --no-session -e .pi/extensions/review.ts`。
 
 | 场景 | 结果 |
 |---|---|

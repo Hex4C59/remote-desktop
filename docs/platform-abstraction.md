@@ -40,6 +40,10 @@ enum class PlatformError {
   kSessionNotInteractive, // 不在已登录未锁屏的交互会话
   kDisplayChanged,      // 分辨率/DPI/拓扑变化，调用方须重建
   kTimeout,             // 平台调用超时
+  kNoNewFrame,          // 超时内画面无变化，不是错误
+  kAlreadyInitialized,  // 重复 initialize
+  kAccessLost,          // DXGI ACCESS_LOST：采集器不可用，须重建
+  kSecureDesktop,       // 处于安全桌面或锁屏
   kInternal,            // 不可分类，须附上下文
 };
 ```
@@ -48,30 +52,30 @@ enum class PlatformError {
 
 ## 3. 屏幕采集
 
+`FrameDesc` 的唯一定义在
+[spec-screen-frame-handoff.md](../specs/spec-screen-frame-handoff.md) 第 2 节，
+采集侧契约与 Windows 实现见 [spec-platform-win.md](../specs/spec-platform-win.md) 2.1。
+
 ```cpp
-struct FrameDesc {
-  uint32_t width, height;
-  uint32_t stride;            // 字节
-  PixelFormat format;         // 目前 kBGRA8；扩展须改规格
-  uint64_t capture_timestamp_ns;   // 平台单调时钟
-  FrameOwnership ownership;   // 谁负责释放、在哪个线程释放
-};
+// FrameDesc / PixelFormat 的定义见 spec-screen-frame-handoff.md 第 2 节，此处不重述。
+// 帧的所有权由 Frame / FramePool 的引用计数表达，见 spec-screen-frame-handoff.md。
 
 class ScreenCapture {
  public:
   // Thread: capture only
-  virtual std::expected<void, PlatformError> initialize(const CaptureConfig&);
-  virtual std::expected<FrameDesc, PlatformError> acquire_next_frame(std::chrono::milliseconds timeout);
-  virtual void release_frame(const FrameDesc&) noexcept;
-  virtual std::expected<DisplayInfo, PlatformError> display_info() const;
+  virtual std::expected<void, PlatformError> initialize(const CaptureConfig&) = 0;
+  virtual std::expected<FrameDesc, PlatformError> acquire_frame(
+      Frame* frame, std::chrono::milliseconds timeout) = 0;
+  virtual std::expected<DisplayInfo, PlatformError> display_info() const = 0;
   virtual ~ScreenCapture() = default;
 };
 ```
 
 契约：
 
-- `acquire_next_frame` 是唯一阻塞点，且必须尊重 `timeout`；超时返回 `kTimeout`，不得无限等待。
-- 返回的帧在调用 `release_frame` 前保持有效；实现必须说明内部是拷贝、映射还是共享纹理。
+- `acquire_frame` 是唯一阻塞点，且必须尊重 `timeout`；超时返回 `kTimeout`，不得无限等待。
+- 像素写入调用方提供的 `Frame`，采集器不持有帧引用；所有权仍归 `FramePool`。
+- 无画面变化返回 `kNoNewFrame`，与 `kTimeout` 区分（详见 spec-platform-win.md 2.3）。
 - 采集失败要区分“暂时无变化”（不是错误，返回无帧）与“设备丢失”（`kUnavailable`）。
 - DPI 或分辨率变化时返回 `kDisplayChanged`，由调用方重建采集器，不在内部静默适配。
 - 不得在采集路径做缩放、色彩转换或编码。
