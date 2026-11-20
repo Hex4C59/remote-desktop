@@ -143,7 +143,7 @@ ctest --preset debug -R <模块名> --output-on-failure
 ```
 
 当前仓库已建立 `CMakeLists.txt`、`CMakePresets.json` 与 `tests/smoke/`，上述四条命令均已实际运行通过，
-记录在 `test-results/verification-loop.log`。后续步骤只能在同一个 `debug` preset 上增加目标，
+记录在 `test-results/build/verification-loop.log`。后续步骤只能在同一个 `debug` preset 上增加目标，
 不得另行引入构建系统。
 
 ## 7. 线程与资源

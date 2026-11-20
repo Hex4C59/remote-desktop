@@ -5,7 +5,7 @@
 
 **当前处于设计阶段，只有构建与测试回路可用。** 仓库还没有业务实现：`src/` 只有一个空的接口库，
 `tests/` 只有回路自检。`cmake --preset debug`、`cmake --build --preset debug`、
-`ctest --preset debug` 三条命令已实际跑通，见 `test-results/verification-loop.log`。
+`ctest --preset debug` 三条命令已实际跑通，见 `test-results/build/verification-loop.log`。
 
 ## 约束总纲
 
@@ -40,6 +40,7 @@ Release 行为。它不出性能结论，只是让 Debug/Release 两种分支都
 | 文件 | 内容 |
 | --- | --- |
 | [AGENTS.md](AGENTS.md) | 构建命令、技术栈锁定、SDD/TDD、线程模型、代码与禁止事项 |
+| [WORKFLOW.md](WORKFLOW.md) | Pi 编排器的使用步骤、人工审批、恢复与审查证据 |
 | [规格目录说明](specs/README.md) | 规格命名、模板结构、审批状态与自动校验 |
 | [规格：局域网纵向切片](specs/spec-lan-vertical-slice.md) | M1 的范围、接口契约、不变量、验收场景（里程碑级，`draft`） |
 | [规格：帧移交](specs/spec-screen-frame-handoff.md) | 屏幕捕获帧的所有权、单槽覆盖与线程约束，16 条验收场景（功能级，`approved`） |
