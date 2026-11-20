@@ -51,11 +51,13 @@ struct FrameDesc {
 };
 
 // FrameDesc 有效性前置条件（由采集侧在填写 desc_ 时校验，池构造期不校验单帧几何）：
-//   stride >= uint64_t(width) * 4        （禁止 32 位溢出；width > 0）
-//   uint64_t(stride) * height <= frame_bytes（全部按 uint64 计算，禁止溢出后截断）
-//   height > 0
-// Frame::pixels() 返回长度 stride * height 的视图；上述任一条件不成立时，
-// 该 span 会越过池分配的 frame_bytes 缓冲。
+// 校验顺序固定为四步，全部按 uint64 计算，任一步失败即拒绝：
+//   1. width > 0 && height > 0 && stride > 0
+//   2. stride >= uint64_t(width) * 4        （禁止 32 位溢出；kBGRA8 每像素 4 字节）
+//   3. height <= UINT64_MAX / stride        （stride>0 已成立；防止乘积回绕）
+//   4. uint64_t(stride) * height <= frame_bytes
+// 仅当四步全部通过，Frame::pixels() 才允许返回长度 stride * height 的 span；
+// 否则该 span 会越过池分配的 frame_bytes 缓冲。
 // 违反时：若帧已由 try_acquire_free() 取得，先恰好 release() 一次归还池，
 // 再按构建处理——Debug 下触发 RD_ASSERT（死亡测试只断言断言本身），
 // Release 下丢弃该帧、不调用 publish()、下降计数 +1（池计数恢复由 Release 测试验证）。
@@ -72,6 +74,8 @@ class Frame {
   void release() noexcept;
 
   // 显式复制一个引用；每次调用必须配对一次 release()。
+  // 只能在帧已 publish()、内容写入完成且不再可变之后调用；
+  // 写入阶段帧必须独占（refs_==1），禁止 add_ref() 或共享引用。
   // 只能在仍持有有效引用时调用，禁止对已归还池的帧调用。
   // 帧内容在 publish() 之后不可变：所有持有者只能读 desc()/pixels()，
   // 任何持有者不得写 desc_ 或 buffer_；add_ref() 只复制读引用，不建立写权限。
@@ -129,6 +133,11 @@ class FramePool {
   FramePool& operator=(const FramePool&) = delete;
 };
 
+// FramePool 的对象与缓冲所有权：构造时一次性预分配 capacity 个 Frame 对象
+// 及各自 buffer，析构时必须按池所有权逐一析构所有 Frame 对象并释放底层缓冲，
+// 禁止只释放缓冲而跳过对象析构。若析构时仍有未归还帧：Debug 下 RD_ASSERT；
+// Release 下降级计数 +1 后仍完成对象/缓冲回收，绝不泄漏（见不变量 7、FH-11）。
+
 // 职责：Capture → Encode 的单槽覆盖式移交。
 // 线程归属：publish() 只允许 Capture 线程调用；
 //           try_acquire() 只允许 Encode 线程调用。两端各只有一个线程。
@@ -177,6 +186,8 @@ class FrameSlot {
   //   old = slot_.exchange(nullptr, std::memory_order_acq_rel);
   //   if (old) old->release();
   // 原子置空并对槽内最后一帧恰好 release() 一次；不得在热路径调用。
+  // shutdown_done_ 置位后：publish(f) 被忽略（Debug 下 RD_ASSERT，Release 下
+  // 无操作），try_acquire() 恒返回 nullptr，不得再向槽放入任何帧。
   // 重复调用：Debug 下 RD_ASSERT，Release 下无操作（由 shutdown_done_ 检测）。
   void drain_for_shutdown() noexcept;
 
@@ -222,8 +233,9 @@ class FrameSlot {
    `try_acquire_free()` 在耗尽时返回 `nullptr`，绝不分配、绝不阻塞；此时 Capture
    跳过本次采集。任何已取得但因 `FrameDesc` 校验失败而丢弃的帧必须恰好
    `release()` 一次，保证池计数恢复。
-7. **池寿命覆盖所有帧。** 所有帧 `release()` 完成后才允许销毁池；
-   违反属未定义行为，Debug 构建须能检测（析构时仍有未回收帧即断言失败）。
+7. **池寿命覆盖所有帧、析构完整回收。** 所有帧 `release()` 完成后才允许销毁池；
+   违反时 Debug 构建断言失败，Release 下降级计数 +1 后仍按池所有权逐一析构所有
+   Frame 对象并释放缓冲，绝不泄漏。禁止只释放缓冲而跳过对象析构（FH-11）。
 8. **帧不可外部删除。** `Frame` 只能由 `FramePool` 构造与销毁；外部只持有裸指针并
    `release()`，不得 `delete`。此条由 `Frame` 的私有构造/析构加 `friend FramePool` 强制。
 9. **发布不产生额外引用。** `publish(f)` 前后 `f` 的引用计数不变（仅所有权从调用方转到槽）；
@@ -242,6 +254,9 @@ class FrameSlot {
     只读；`add_ref()` 只复制读引用。`publish()`/`try_acquire()` 的 `acq_rel`
     交换建立发布前写入与取得后读取的 happens-before，因此多持有者并发只读
     `desc()`/`pixels()` 无数据竞争；任何持有者并发写帧内容均违反本规格（FH-12）。
+13. **写入期独占、shutdown 后冻结。** 帧在 `publish()` 前由单一 Capture 引用写入，
+    此时 `refs_ == 1`，禁止 `add_ref()` 或共享引用；`drain_for_shutdown()` 之后
+    `publish()` 被忽略、`try_acquire()` 恒返回 `nullptr`，槽不得再接收帧（FH-20）。
 
 ## 4. 线程与资源
 
@@ -269,8 +284,8 @@ libatomic 内部锁；不支持的平台不得声称满足本规格。
 
 ### 4.1 断言机制
 
-不变量 5、7、8，FH-22 的构造参数校验，以及「重复调用
-`drain_for_shutdown()`」在 Debug 构建下断言失败。FH-16/FH-17 的 `FrameDesc`
+不变量 5、7、8，FH-22 的构造参数校验，FH-12 的「写入期 `add_ref()`」，
+以及「重复清槽 / shutdown 后 `publish()`」在 Debug 构建下断言失败。FH-16/FH-17 的 `FrameDesc`
 校验分两种测试：Debug 死亡测试只断言 `RD_ASSERT`（进程终止，不验证池计数恢复）；
 Release 测试断言已 acquire 帧被恰好 `release()` 一次、池计数恢复。实现使用项目自有的 `RD_ASSERT`（定义于
 `include/remotedesktop/assert.h`）：Debug 下为 `assert`；Release 下变为
@@ -293,16 +308,16 @@ Release 测试断言已 acquire 帧被恰好 `release()` 一次、池计数恢�
 | FH-08 | 全部 `release()` 后（单线程） | `in_use()==0`，`free_count()==capacity` |
 | FH-09 | 随机操作序列（属性测试） | 每步后的单线程快照满足守恒；无泄漏 |
 | FH-10 | Debug 下发布时间戳递减的帧 | 死亡测试：`RD_ASSERT` 触发 |
-| FH-11 | Debug 下池析构时仍有帧未释放 | 死亡测试：`RD_ASSERT` 触发 |
-| FH-12 | 显式 `add_ref()` 后两线程各持同一帧的一个引用，再各自 `release()` | 计数归零，帧回池，无重复释放；两线程并发只读 `desc()`/`pixels()` 无数据竞争，帧内容发布后不可变 |
+| FH-11 | Debug 下池析构时仍有帧未释放 | 死亡测试：`RD_ASSERT` 触发；Release 下仍逐一析构所有 Frame 对象并释放缓冲，下降计数 +1 |
+| FH-12 | publish 后显式 `add_ref()`，两线程各持同一帧一个引用再各自 `release()` | 计数归零，帧回池；并发只读 `desc()`/`pixels()` 无数据竞争；写入期（`refs_==1`）调用 `add_ref()` 在 Debug 下 `RD_ASSERT` |
 | FH-13 | `publish(f)` 后读 `f` 的引用计数 | 与 publish 前相等（不变式 9） |
 | FH-14 | 取得帧后不 `release()` 就重新 `try_acquire_free()` 到耗尽 | 总能取到直到容量上限，随后返回 `nullptr` |
 | FH-15 | Release 构建下发布时间戳递减的帧 | 不崩溃，下降计数 +1（断言降级为计数） |
-| FH-16 | `FrameDesc` 零尺寸、`width > UINT32_MAX/4` 导致 `width*4` 溢出、`stride < uint64_t(width)*4` 或 `stride*height` 溢出 | 采集侧校验失败：Debug 死亡测试只断言 `RD_ASSERT`；Release 下已 acquire 的帧恰好 `release()` 一次、不 `publish()`，下降计数 +1，池计数恢复 |
-| FH-17 | `uint64_t(stride) * height > frame_bytes` | 同 FH-16；`pixels()` 不得返回越过池缓冲的 span；Release 下池计数恢复 |
+| FH-16 | 四步校验任一步失败：零尺寸、`width > UINT32_MAX/4`、`stride < uint64_t(width)*4`、`height > UINT64_MAX/stride`、乘积回绕 | 采集侧校验失败：Debug 死亡测试只断言 `RD_ASSERT`；Release 下已 acquire 的帧恰好 `release()` 一次、不 `publish()`，下降计数 +1，池计数恢复 |
+| FH-17 | `uint64_t(stride) * height > frame_bytes`（四步校验第 4 步失败） | 同 FH-16；`pixels()` 不得返回越过池缓冲的 span；Release 下池计数恢复 |
 | FH-18 | 并发：Capture 连续 `publish()` 覆盖、Encode 同时 `try_acquire()` | 每个返回的 `Frame*` 都可安全读 `desc()`/`pixels()`，不出现已回池帧被复用；≥1 秒后引用计数守恒、无重复释放 |
 | FH-19 | 构建期无锁检查 | `static_assert(std::atomic<Frame*>::is_always_lock_free && std::atomic<std::uint32_t>::is_always_lock_free && std::atomic<bool>::is_always_lock_free)`；不满足的平台编译失败并登记 |
-| FH-20 | 关闭流程：两线程 join 后调用 `drain_for_shutdown()` 串行清槽 | 槽内最后一帧被恰好 `release()` 一次，池守恒；重复调用在 Debug 下 `RD_ASSERT`、Release 下无操作；清槽不与热路径 `publish()` 并发 |
+| FH-20 | 两线程 join 后调用 `drain_for_shutdown()`；之后误调 `publish()`/`try_acquire()` | 槽内最后一帧恰好 `release()` 一次、池守恒；shutdown 后 `publish()` 被忽略（Debug `RD_ASSERT`）、`try_acquire()` 恒返回 `nullptr`；重复清槽 Debug `RD_ASSERT` |
 | FH-21 | Release 下已 acquire 的帧因 FH-16/17 校验失败被丢弃 | 丢弃前恰好 `release()` 一次；连续 100 次丢弃后 `free_count()==capacity`（池不被永久占用） |
 | FH-22 | `capacity==0` 或 `frame_bytes<4` | Debug 下 `RD_ASSERT`；Release 下抛 `std::invalid_argument`，不创建池 |
 
