@@ -105,12 +105,6 @@ approved-by: （批准后填）
 | --- | --- | --- |
 | [spec-platform-win.md](spec-platform-win.md) | Windows 屏幕采集与输入注入契约（DXGI + SendInput，20 条可自动化用例） | `draft` |
 
-### 开发与交付工具
-
-| 文件 | 范围 | 状态 |
-| --- | --- | --- |
-| [spec-review-orchestrator-gates.md](spec-review-orchestrator-gates.md) | Pi 交付流程的阶段准入与审查输入校验 | `draft` |
-
 ## 自动校验
 
 [tools/check_specs.py](../tools/check_specs.py) 把本文件的约定变成可执行检查：

@@ -8,5 +8,3 @@ __pycache__/
 
 # 本地依赖源码（离线回退用，不提交）
 /.local/deps/
-# 编排器证据链：含 diff 与源码片段，默认不入库（用 /orch export 导出审查包）
-/.orchestrator/

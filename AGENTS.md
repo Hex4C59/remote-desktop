@@ -135,8 +135,6 @@ ctest --preset debug -R capture --output-on-failure
 
 ## 9. 文档索引（需要细节时读这些）
 
-使用 Pi 编排器执行交付或审查任务前，阅读 [WORKFLOW.md](WORKFLOW.md)。
-
 | 文档 | 内容 |
 |---|---|
 | `docs/architecture.md` | 整体分层、依赖方向（含 DEP-01..05 判定规则）、模块职责、数据流 |
