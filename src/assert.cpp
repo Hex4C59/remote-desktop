@@ -8,25 +8,25 @@
 #include <atomic>
 
 namespace rd {
-namespace {
+  namespace {
 
-std::atomic<std::uint64_t> g_suppressed_asserts{0};
+    std::atomic<std::uint64_t> g_suppressed_asserts{0};
 
-}  // namespace
+  }  // namespace
 
-std::uint64_t suppressed_assert_count() noexcept {
-  return g_suppressed_asserts.load(std::memory_order_relaxed);
-}
+  std::uint64_t suppressed_assert_count() noexcept {
+    return g_suppressed_asserts.load(std::memory_order_relaxed);
+  }
 
-void reset_suppressed_assert_count() noexcept {
-  g_suppressed_asserts.store(0, std::memory_order_relaxed);
-}
+  void reset_suppressed_assert_count() noexcept {
+    g_suppressed_asserts.store(0, std::memory_order_relaxed);
+  }
 
-namespace detail {
+  namespace detail {
 
-void bump_suppressed_assert() noexcept {
-  g_suppressed_asserts.fetch_add(1, std::memory_order_relaxed);
-}
+    void bump_suppressed_assert() noexcept {
+      g_suppressed_asserts.fetch_add(1, std::memory_order_relaxed);
+    }
 
-}  // namespace detail
+  }  // namespace detail
 }  // namespace rd

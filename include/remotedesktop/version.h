@@ -12,13 +12,13 @@
 
 namespace rd {
 
-// 公共接口的版本号。接口契约发生不兼容变更时递增，并同步 docs/ 与 specs/。
-inline constexpr std::uint32_t kAbiVersion = 1;
+  // 公共接口的版本号。接口契约发生不兼容变更时递增，并同步 docs/ 与 specs/。
+  inline constexpr std::uint32_t kAbiVersion = 1;
 
-// 会话标识。由被控端在授权通过后分配，跨消息保持一致。
-using SessionId = std::uint32_t;
+  // 会话标识。由被控端在授权通过后分配，跨消息保持一致。
+  using SessionId = std::uint32_t;
 
-// 输入代次。每次暂停后恢复输入都会分配新值，旧代次的输入一律丢弃。
-using InputEpoch = std::uint32_t;
+  // 输入代次。每次暂停后恢复输入都会分配新值，旧代次的输入一律丢弃。
+  using InputEpoch = std::uint32_t;
 
 }  // namespace rd

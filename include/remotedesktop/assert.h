@@ -18,53 +18,49 @@
 #include <cstdint>
 
 namespace rd {
+  // 断言被抑制（Release 下不成立）的累计次数。
+  // 原子访问，可在任意线程调用。
+  [[nodiscard]] std::uint64_t suppressed_assert_count() noexcept;
 
-// 断言被抑制（Release 下不成立）的累计次数。
-// 原子访问，可在任意线程调用。
-[[nodiscard]] std::uint64_t suppressed_assert_count() noexcept;
-
-// 供测试重置计数，以及遥测取走增量后归零。
-void reset_suppressed_assert_count() noexcept;
-
-namespace detail {
-
-// 仅供 RD_ASSERT 宏使用，业务代码不得直接调用。
-void bump_suppressed_assert() noexcept;
-
-}  // namespace detail
-
+  // 供测试重置计数，以及遥测取走增量后归零。
+  void reset_suppressed_assert_count() noexcept;
 }  // namespace rd
+
+namespace rd::detail {
+  // 仅供 RD_ASSERT 宏使用，业务代码不得直接调用。
+  void bump_suppressed_assert() noexcept;
+}  // namespace rd::detail
 
 #ifndef NDEBUG
 
 #include <cstdio>
 #include <cstdlib>
 
-#define RD_ASSERT(cond)                                                     \
-  do {                                                                      \
-    if (!(cond)) {                                                          \
-      std::fprintf(stderr, "RD_ASSERT failed: %s (%s:%d)\n", #cond,         \
-                   __FILE__, __LINE__);                                     \
-      std::abort();                                                         \
-    }                                                                       \
+#define RD_ASSERT(cond)                                                       \
+  do {                                                                        \
+    if (!(cond)) {                                                            \
+      std::fprintf(stderr, "RD_ASSERT failed: %s (%s:%d)\n", #cond, __FILE__, \
+                   __LINE__);                                                 \
+      std::abort();                                                           \
+    }                                                                         \
   } while (false)
 
-#define RD_ASSERT_MSG(cond, msg)                                            \
-  do {                                                                      \
-    if (!(cond)) {                                                          \
-      std::fprintf(stderr, "RD_ASSERT failed: %s | %s (%s:%d)\n", #cond,    \
-                   (msg), __FILE__, __LINE__);                              \
-      std::abort();                                                         \
-    }                                                                       \
+#define RD_ASSERT_MSG(cond, msg)                                         \
+  do {                                                                   \
+    if (!(cond)) {                                                       \
+      std::fprintf(stderr, "RD_ASSERT failed: %s | %s (%s:%d)\n", #cond, \
+                   (msg), __FILE__, __LINE__);                           \
+      std::abort();                                                      \
+    }                                                                    \
   } while (false)
 
 #else  // NDEBUG
 
-#define RD_ASSERT(cond)                                                     \
-  do {                                                                      \
-    if (!(cond)) {                                                          \
-      ::rd::detail::bump_suppressed_assert();                               \
-    }                                                                       \
+#define RD_ASSERT(cond)                       \
+  do {                                        \
+    if (!(cond)) {                            \
+      ::rd::detail::bump_suppressed_assert(); \
+    }                                         \
   } while (false)
 
 #define RD_ASSERT_MSG(cond, msg) RD_ASSERT(cond)
