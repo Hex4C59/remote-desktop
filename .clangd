@@ -1,0 +1,10 @@
+# clangd 项目配置：编解码器索引只影响编辑器，不参与 CMake / 编译器调用。
+# compile_commands.json 由 debug preset 导出到 build/debug（CMAKE_EXPORT_COMPILE_COMMANDS=ON），
+# 而 clangd 默认不搜索源文件祖先目录的子目录，故显式指路。
+CompileFlags:
+  CompilationDatabase: build/debug
+
+# Include Cleaner 在头文件单独分析时看不到宏体内的符号引用（如 assert.h 的 std::abort），
+# 会误报 unused-includes；该检查不影响构建，故关闭。
+Diagnostics:
+  UnusedIncludes: None

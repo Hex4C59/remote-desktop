@@ -1,0 +1,9 @@
+# 格式基准：Google 风格 + 本仓库约定。
+# - namespace 内容缩进 2 空格（Zed 的 C++ 折叠依赖缩进）。
+# - include 只做块内排序，不跨块重排，避免无关 diff。
+BasedOnStyle: Google
+Language: Cpp
+IndentWidth: 2
+NamespaceIndentation: All
+FixNamespaceComments: true
+IncludeBlocks: Preserve
