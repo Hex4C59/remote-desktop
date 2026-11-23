@@ -97,7 +97,7 @@ approved-by: （批准后填）
 
 | 文件 | 范围 | 状态 |
 | --- | --- | --- |
-| [spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) | 屏幕捕获帧的移交与所有权（首个功能规格，22 条验收场景） | `approved` |
+| [spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) | 屏幕捕获帧的移交与所有权（首个功能规格，23 条验收场景） | `approved` |
 
 ### 平台抽象
 
