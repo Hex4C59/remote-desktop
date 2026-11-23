@@ -5,4 +5,5 @@
 // （不依赖包含顺序、不缺 include）。新增公共头文件时在此追加一行。
 
 #include <remotedesktop/assert.h>
+#include <remotedesktop/frame_handoff.h>
 #include <remotedesktop/version.h>

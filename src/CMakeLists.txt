@@ -15,7 +15,8 @@
 # 核心库：公共头文件的实现。目前只有断言计数。
 # 后续模块作为独立目标加进来，并按 docs/architecture.md 5.1 的依赖方向连接。
 add_library(rd STATIC
-  assert.cpp)
+  assert.cpp
+  frame_handoff.cpp)
 target_include_directories(rd PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)

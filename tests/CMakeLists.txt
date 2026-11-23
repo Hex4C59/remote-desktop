@@ -10,3 +10,4 @@
 
 add_subdirectory(smoke)
 add_subdirectory(unit/core)
+add_subdirectory(unit/capture)
