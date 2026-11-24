@@ -2,12 +2,12 @@
 
 > **性质：第三方产品观察记录，不是本项目契约。**
 > 本目录（`docs/references/`）只存放对外部软件的调查，
-> 不构成技术选型依据，也不被 `specs/` 或 `src/` 引用。
-> 本项目的架构、线程与协议以 [../architecture.md](../architecture.md)、
-> [../threading.md](../threading.md)、[../protocol.md](../protocol.md) 为准。
+> 不构成技术选型依据，也不被 `docs/increments/` 或 `src/` 引用。
+> 本项目的架构、线程与协议以[架构总览](../architecture/overview.md)、
+> [线程模型](../architecture/threading.md)、[控制协议](../protocol/README.md)为准。
 
 本文保留 2026-11-16 对本机网易 UU 远程（GameViewer）Windows 安装包的观察，
-用于比较 UI、媒体与平台适配的职责边界。本项目目标架构以 [architecture.md](../architecture.md) 为准，
+用于比较 UI、媒体与平台适配的职责边界。本项目目标架构以[架构总览](../architecture/overview.md)为准，
 技术栈与构建约束以 [AGENTS.md](../../AGENTS.md) 为准。
 
 证据包括文件、模块、进程、驱动、网络状态、二进制字符串与本地 JavaScript。
@@ -94,13 +94,13 @@ Windows 安装目录包含 Qt5、Microsoft Edge WebView2 和 HTML/JS/CSS 资源�
 
 ### 3.2 共享代码的实施顺序
 
-本项目按 [架构决策 D4](../architecture.md#4-关键决策) 把平台代码集中在 `src/platform/{win,linux,mac}/`，
-公共协议、会话、帧接口与统计放在 `src/` 与 `include/`，由 [platform-abstraction.md](../platform-abstraction.md) 定义契约。
+本项目按 [架构决策 D4](../architecture/overview.md#4-关键决策) 把平台代码集中在 `src/platform/{win,linux,mac}/`，
+公共协议、会话、帧接口与统计放在 `src/` 与 `include/`，由 [平台抽象](../architecture/platform-abstraction.md) 定义契约。
 顺序是：先统一协议与测试向量，再让平台实现接入同一套接口。
 
 完整 C++/JNI 运行时的维护成本（ABI、线程、资源释放、多平台工具链）确实存在；
 本次 Windows 观察不能当作已验证的商业复用模型，Android 支持是否引入见
-[architecture.md](../architecture.md) 第 10 节的待决项。
+[架构总览](../architecture/overview.md) 第 10 节的待决项。
 
 ### 3.3 UI 与驱动的选择条件
 
@@ -115,10 +115,10 @@ WebView 共享业务页面可以作为多端 UI 的备选，需要维护 Bridge�
 
 | 参考线索 | 本项目采用的原则 | 实施阶段 |
 | --- | --- | --- |
-| 媒体模块与业务 UI 分开 | UI 只处理命令/事件，媒体资源有明确所有者 | M1，见 [architecture.md](../architecture.md) 5.2、[threading.md](../threading.md) |
+| 媒体模块与业务 UI 分开 | UI 只处理命令/事件，媒体资源有明确所有者 | M1，见[架构总览](../architecture/overview.md) 5.2、[线程模型](../architecture/threading.md) |
 | 平台相关符号与接口 | 公共协议和桌面模块配合平台适配层 | M1 按 `src/platform/` 实现；Android JNI 另行评估 |
 | JS Bridge 多宿主分支 | 作为多端业务界面的备选接口模式 | 有明确 UI 复用需求时评估 |
-| QUIC 相关字符串 | 仅作为待核实线索 | 不据此改变 [D1](../architecture.md#4-关键决策) 的自研传输路线 |
+| QUIC 相关字符串 | 仅作为待核实线索 | 不据此改变 [D1](../architecture/overview.md#4-关键决策) 的自研传输路线 |
 | 服务、独立程序与驱动 | 分别设计用户会话、权限与部署边界 | M1 用户会话代理；服务和驱动另定范围 |
 
 ## 5. 证据来源与边界
@@ -131,7 +131,7 @@ WebView 共享业务页面可以作为多端 UI 的备选，需要维护 Bridge�
 
 ## 6. 相关参考
 
-- [architecture.md 决策 D4](../architecture.md#4-关键决策)
-- [architecture.md 5.2 职责与所有权](../architecture.md#52-职责与所有权)
-- [threading.md 线程模型](../threading.md)
+- [架构决策 D4](../architecture/overview.md#4-关键决策)
+- [职责与所有权](../architecture/overview.md#52-职责与所有权)
+- [线程模型](../architecture/threading.md)
 - [RUSTDESK-REFERENCE.md：RustDesk 安装包观察与源码参考](RUSTDESK-REFERENCE.md)

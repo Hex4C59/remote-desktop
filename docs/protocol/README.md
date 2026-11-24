@@ -3,7 +3,7 @@
 status: draft
 
 状态：草案，无实现。范围是 M1 局域网纵向切片：Windows 被控端 + 控制端，同一局域网，现场配对一次。
-目标架构与线程约束见 [architecture.md](architecture.md) 与 [AGENTS.md](../AGENTS.md)。
+目标架构与线程约束见 [架构总览](../architecture/overview.md) 与 [AGENTS.md](../../AGENTS.md)。
 
 本文件只定义**控制消息**：JSON 信封、配对、授权、会话状态和媒体参数协商。
 媒体数据、输入事件和可靠流分片走传输层的二进制通道，不在本文件内，也不能塞进 JSON。
@@ -61,7 +61,7 @@ Git 标签 `archive/m0-prototype` 中，不代表现行协议。
 
 `codec` 取值 v1 只允许 `h264-baseline`。`width`/`height`/`max_fps`/`max_bitrate_bps`/
 `keyframe_interval_frames` 都是被控端给出的上限，控制端只能整体接受或不接受，不能部分降级——
-部分降级由被控端在运行中自适应完成，见 architecture.md 5.1。
+部分降级由被控端在运行中自适应完成，见架构总览 5.1。
 
 ## 3. 首次配对
 
@@ -197,7 +197,7 @@ accept 后被控端发 media.offer（negotiation=1）
 ## 7. 测试向量
 
 每个向量给 JSON 输入与预期结果；用虚构凭据，不放真实口令、密钥或主机信息。
-机器可读版本在 [vectors/envelope.json](protocol/vectors/envelope.json)，
+机器可读版本在 [vectors/envelope.json](vectors/envelope.json)，
 每条带 `direction`，取值 `server->client`、`client->server` 或 `both`。
 两端都实现全部消息类型的双向编解码；`direction` 只约束编码侧测试——
 在自己不该发的方向发出即判失败，解码侧不按方向筛用例。
@@ -229,7 +229,7 @@ accept 后被控端发 media.offer（negotiation=1）
 | 偏移 | 长度 | 字段 | 说明 |
 | --- | --- | --- | --- |
 | 0 | 1 | `version` | 传输层版本，v1 为 1 |
-| 1 | 1 | `channel` | 通道号，见 [architecture.md](architecture.md) 6.3 |
+| 1 | 1 | `channel` | 通道号，见 [架构总览](../architecture/overview.md) 6.3 |
 | 2 | 2 | `flags` | 位标志：bit0 帧起始、bit1 帧结束、bit2 关键帧 |
 | 4 | 4 | `payload_len` | 本消息负载字节数，不含消息头 |
 | 8 | 8 | `stream_seq` | 通道内递增序号，用于重组与丢包检测 |
@@ -250,7 +250,7 @@ accept 后被控端发 media.offer（negotiation=1）
 
 - 传输握手在 TCP 之上先完成一次临时密钥交换，派生会话密钥；`pair.*` 与 `session.*` 消息
   可在握手前的明文通道内收发，媒体与输入只能在加密通道内。
-- 通道编号与用途见 [architecture.md](architecture.md) 6.3；控制消息走 `control` 通道，
+- 通道编号与用途见 [架构总览](../architecture/overview.md) 6.3；控制消息走 `control` 通道，
   分片后同样受每端输入队列与发送队列上限约束。
 - 保活由 `ping`/`pong` 在应用层完成，传输层心跳只用于探测链路活性，不参与会话状态判定。
 
@@ -260,4 +260,4 @@ accept 后被控端发 media.offer（negotiation=1）
 - 加密库选型与握手消息的具体形状（受 AGENTS.md §3 依赖审批约束）。
 - 没有摄像头、无法扫描或比对短校验码时的配对回退（真要远程配对再设计 PAKE，例如 SPAKE2）。
 - 私钥轮换与“换机但沿用同一 `device_id`”的处理，v1 一律按新设备重新配对。
-- Android 控制端的消息编解码实现方式（与 architecture.md 第 10 节的平台待决项一并处理）。
+- Android 控制端的消息编解码实现方式（与架构总览第 10 节的平台待决项一并处理）。

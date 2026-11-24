@@ -16,9 +16,9 @@ description: 用测试驱动开发完成缺陷修复或新增、变更的可自�
 ## 第零步：确认规格允许动手
 
 本仓库是 SDD + TDD（[AGENTS.md §4–§5](../../../AGENTS.md)）：行为契约先在
-`specs/spec-*.md` 里定稿，再进入红绿循环。
+`docs/increments/<NNN>-<slug>/spec.md` 中定稿，再进入红绿循环。
 
-- 有对应规格且 `status: approved` → 继续。
+- 有对应规格且 `status: approved` → 核对该功能的 `plan.md` 与 `tasks.md`，按对应任务进入红灯。
 - 规格是 `draft` → 停。功能代码一行都不写，先把规格交用户确认。
 - 没有规格 → 新功能先建规格；纯缺陷修复（行为不变）可跳过规格直接复现。
 - 规格要改 → 先改规格，再改代码。
@@ -36,7 +36,7 @@ description: 用测试驱动开发完成缺陷修复或新增、变更的可自�
 3. 确认目标断言因当前行为不符而失败，记下命令、预期、实际和被测版本。
 4. 核对失败原因：必须是"缺这个行为"，不是笔误、导入错误、fixture 缺失或环境没配好。跑不起来不算红灯，先把环境问题诊断清楚。
 5. 测试意外通过时检查触发条件：可能行为已经存在，先确认是已有覆盖还是断言写错了，再决定改测试还是改预期。
-6. 协议、分帧、时序等不变量补属性测试，并保存触发失败的输入。
+6. 协议、分帧、时序等不变量补属性测试，并保存失败输入、种子与复现命令。
 
 ## 第三步：让测试通过
 
@@ -44,9 +44,8 @@ description: 用测试驱动开发完成缺陷修复或新增、变更的可自�
 
 - 已确认的测试和 fixture 视为只读；要让测试变成绿灯，只能改实现。
 - 每次迭代先重跑目标用例。
-- 构建与测试入口由 [AGENTS.md §2](../../../AGENTS.md) 锁定：`cmake --preset debug`、`cmake --build --preset debug -j`、`ctest --preset debug --output-on-failure`。单跑用例用 `ctest --preset debug -R <新增测试>`。不要改回其他构建系统，也不假设目标名。
-- 当前仓库没有任何构建和测试入口（无 `CMakeLists.txt`、无 `CMakePresets.json`、无 `tests/`）。首次搭建时按 [specs/spec-lan-vertical-slice.md](../../../specs/spec-lan-vertical-slice.md) 第 5 节第 1 步建立 Presets 与 CTest 接线，测试框架用 GoogleTest/GoogleMock；引入框架属新增依赖，先按 AGENTS.md §3 取得批准。
-- 构建入口未建立前，测试跑不起来属于环境缺失，不算红灯；先把入口建好再复现失败。
+- 构建与测试入口由 [AGENTS.md §2](../../../AGENTS.md) 锁定：`cmake --preset debug`、`cmake --build --preset debug -j`、`ctest --preset debug --output-on-failure`。用 `ctest --preset debug -N` 查看已发现的用例，再用 `-R` 单跑目标用例。常见改动与当前用例的对应关系见 [测试与验收](../../../docs/verification/README.md)。
+- 若 CTest 未发现目标用例，先核对构建是否成功、预设是否正确，以及测试目标是否已接入 CTest。
 - 涉及协议或分帧时，除目标用例外还要跑属性测试；协议用例以 `docs/protocol/vectors/envelope.json` 为数据源，不在测试里另抄一份。
 - 目标用例绿了不等于套件绿：完成前跑一遍完整测试命令。任何失败——包括不是这次改动引起的——都要如实报告，不能略过。
 - 如果发现验收依据有误，先明确正确的预期，再从红灯重走一遍。
@@ -54,7 +53,7 @@ description: 用测试驱动开发完成缺陷修复或新增、变更的可自�
 
 ## 第四步：交付证据
 
-把红灯和绿灯的运行输出保存在 `test-results/`（不提交 Git，见 `.gitignore`），交付时列出用例、命令、结果、被测版本和证据路径。
+把红灯和绿灯的运行输出保存在 `test-results/`（见 `.gitignore`），并按 [验收记录约定](../../../docs/verification/README.md#记录实际验收) 关联验收编号、命令、结果、被测版本和证据路径。
 
 默认在工作区完成两阶段。按用户指示暂停评审或提交；若用户要求分开提交，分别在确认红灯和完成绿灯时提交本次测试及实现。
 

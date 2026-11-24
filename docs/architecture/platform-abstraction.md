@@ -6,7 +6,7 @@ status: draft
 业务与协议代码不得直接调用 `SendInput`、XTest、DXGI、Win32 窗口 API 或 Android API。
 
 本文定义接口契约（类型、错误码、线程归属），实现留空。接口变更必须与本文同步，
-且按 [AGENTS.md](../AGENTS.md) 第 8 节的要求先改本文再改代码。
+且按 [AGENTS.md](../../AGENTS.md) 第 8 节的要求先改本文再改代码。
 
 ## 1. 目录与文件归属
 
@@ -53,12 +53,12 @@ enum class PlatformError {
 ## 3. 屏幕采集
 
 `FrameDesc` 的唯一定义在
-[spec-screen-frame-handoff.md](../specs/spec-screen-frame-handoff.md) 第 2 节，
-采集侧契约与 Windows 实现见 [spec-platform-win.md](../specs/spec-platform-win.md) 2.1。
+[屏幕帧移交规格](../increments/002-screen-frame-handoff/spec.md) 第 2 节，
+采集侧契约与 Windows 实现见 [Windows 平台适配规格](../increments/003-platform-win/spec.md) 2.1。
 
 ```cpp
-// FrameDesc / PixelFormat 的定义见 spec-screen-frame-handoff.md 第 2 节，此处不重述。
-// 帧的所有权由 Frame / FramePool 的引用计数表达，见 spec-screen-frame-handoff.md。
+// FrameDesc / PixelFormat 的定义见屏幕帧移交规格第 2 节。
+// Frame / FramePool 引用计数约定帧的所有权。
 
 class ScreenCapture {
  public:
@@ -75,7 +75,7 @@ class ScreenCapture {
 
 - `acquire_frame` 是唯一阻塞点，且必须尊重 `timeout`；超时返回 `kTimeout`，不得无限等待。
 - 像素写入调用方提供的 `Frame`，采集器不持有帧引用；所有权仍归 `FramePool`。
-- 无画面变化返回 `kNoNewFrame`，与 `kTimeout` 区分（详见 spec-platform-win.md 2.3）。
+- 无画面变化返回 `kNoNewFrame`，与 `kTimeout` 区分（详见 Windows 平台适配规格 2.3）。
 - 采集失败要区分“暂时无变化”（不是错误，返回无帧）与“设备丢失”（`kUnavailable`）。
 - DPI 或分辨率变化时返回 `kDisplayChanged`，由调用方重建采集器，不在内部静默适配。
 - 不得在采集路径做缩放、色彩转换或编码。
@@ -183,7 +183,7 @@ class RenderSurface {
 新增或修改本文件中的接口时：
 
 1. 先改本文（接口、错误码、线程归属、不变量）；
-2. 在 `specs/` 补充或更新验收场景；
+2. 在对应增量规格中补充或更新验收场景；
 3. 更新 mock 实现与单元测试；
 4. 最后改平台实现。
 

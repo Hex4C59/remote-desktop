@@ -7,15 +7,15 @@
 
 | 目录 / 文件 | 性质 | 是否约束实现 |
 | --- | --- | --- |
-| `specs/` | 功能级行为契约 | 是。`status: approved` 才可动工 |
-| `docs/architecture.md`、`threading.md`、`protocol.md`、`platform-abstraction.md` | 架构与接口契约 | 是，由 `ctest` 中的 `arch.layers` 检查 |
+| `docs/increments/` | 功能级行为契约 | 是。`status: approved` 才可动工 |
+| [架构总览](../architecture/overview.md)、[线程模型](../architecture/threading.md)、[平台抽象](../architecture/platform-abstraction.md)、[控制协议](../protocol/README.md) | 架构与接口契约 | 是，由 `ctest` 中的 `arch.layers` 检查 |
 | `docs/references/`（本目录） | 对外部产品的观察 | **否** |
 
 放进本目录的内容没有以下效力：
 
 - 不能作为技术选型依据。看到 RustDesk 用 Rust，不等于本项目要用 Rust。
 - 不能作为性能或能力证据。DLL 大小、字符串出现次数都不衡量功能覆盖。
-- 不被 `specs/` 或 `src/` 引用。任何实现决策都不应指向本目录。
+- 不被 `docs/increments/` 或 `src/` 引用。任何实现决策都不应指向本目录。
 
 ## 现有记录
 

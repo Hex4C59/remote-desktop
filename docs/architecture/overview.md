@@ -3,11 +3,11 @@
 status: draft
 
 状态：设计草案，无实现。范围：1 对 1 远程桌面，Windows 被控端优先，控制端首批覆盖 Windows，
-Android 控制端按 `specs/spec-lan-vertical-slice.md` 的待决项单独批准。
+Android 控制端按 `docs/increments/001-lan-vertical-slice/spec.md` 的待决项单独批准。
 
-本文与 [AGENTS.md](../AGENTS.md) 是同一套约束：技术栈、构建入口、线程模型、延迟预算、
+本文与 [AGENTS.md](../../AGENTS.md) 是同一套约束：技术栈、构建入口、线程模型、延迟预算、
 代码约定以 AGENTS.md 为准，本文只展开分层、数据流和模块职责。两者冲突时以 AGENTS.md 为准，
-并回改本文。协议细节见 [protocol.md](protocol.md)，线程与队列细节见 [threading.md](threading.md)，
+并回改本文。协议细节见 [控制协议](../protocol/README.md)，线程与队列细节见 [threading.md](threading.md)，
 平台接口契约见 [platform-abstraction.md](platform-abstraction.md)。
 
 文中所有超时、容量和性能数字都是设计目标，不是实测结果。当前仓库只有构建与测试回路：
@@ -47,13 +47,13 @@ M1 明确不做：
 5. **状态单一所有者。** 会话状态由 SessionController 串行持有；其他模块只消费事件、不各自记账。
 6. **安全默认开启。** 配对口令、会话密钥、屏幕内容和按键内容不进日志、不进 Git。
 7. **不自研密码学。** 加密、签名和随机数一律使用经验证的第三方库；库的引入按 AGENTS.md §3 走审批。
-8. **规格先行。** 功能代码之前先有 `specs/spec-*.md`，接口契约与不变量写清楚。
+8. **规格先行。** 功能代码之前先在 `docs/increments/<NNN>-<slug>/spec.md` 写清接口契约与不变量。
 
 ## 3. 分层与数据流
 
-[![远程桌面目标架构](../assets/architecture.png)](../assets/architecture.png "点击查看高清 PNG")
+[![远程桌面目标架构](../../assets/architecture.png)](../../assets/architecture.png "点击查看高清 PNG")
 
-[查看高清 PNG（3102 × 2104）](../assets/architecture.png) · [可编辑的 draw.io 源文件](../assets/architecture.drawio)
+[查看高清 PNG（3102 × 2104）](../../assets/architecture.png) · [可编辑的 draw.io 源文件](../../assets/architecture.drawio)
 
 下面的文本框图是上图的简化版，便于在终端与 diff 中阅读；两者冲突时以图与 5.1 层次表为准，并重新绘图。
 
@@ -77,7 +77,7 @@ M1 明确不做：
 ```
 
 M1 不引入控制面服务器：控制端用被控端地址直连，配对与授权在两端之间完成，见
-[protocol.md](protocol.md) 第 3 节。引入信令、中继与无人值守属于后续里程碑，
+[控制协议](../protocol/README.md) 第 3 节。引入信令、中继与无人值守属于后续里程碑，
 见第 8 节；在那之前不预埋兼容层。
 
 数据流（被控端 → 控制端）：
@@ -136,7 +136,7 @@ src/
 tests/
   unit/                     # 与 src/ 镜像
   integration/              # 采集 → 编码 → 传输 → 解码 的链路验证
-specs/                      # 规格事实来源
+docs/increments/            # 增量规格、方案与任务
 third_party/                # vendored 依赖，只读
 tools/                      # 测量与构建辅助脚本
 ```
@@ -146,7 +146,7 @@ tools/                      # 测量与构建辅助脚本
 - 公共头文件在 `include/`，私有头文件与源文件同目录；任何跨模块引用走公共头。
 - `src/session`、`src/transport`、`src/telemetry` 不得包含平台头文件。
 - `third_party/` 不得修改；需要改动时用补丁脚本在上游源码之外施加，并记录版本。
-- 新增依赖须先改本文件与 `specs/`，再按 AGENTS.md §3 取得批准。
+- 新增依赖须先改本文件与对应增量规格，再按 AGENTS.md §3 取得批准。
 
 ### 5.1 依赖方向
 
@@ -186,7 +186,7 @@ CMake 层面：每个模块是独立目标（`rd_capture`、`rd_codec` …），
 `target_link_libraries` 只能指向允许的下层目标。
 `tools/check_layers.py` 读取各 `CMakeLists.txt` 的链接关系与实际 `#include`，
 两者任一违反本节即失败；它作为 `arch.layers` 用例接入 CTest。
-允许的例外必须在对应 `specs/` 中写明理由，并在检查脚本里显式白名单。
+允许的例外必须在对应增量规格中写明理由，并在检查脚本里显式白名单。
 
 ### 5.2 职责与所有权
 
@@ -214,7 +214,7 @@ CMake 层面：每个模块是独立目标（`rd_capture`、`rd_codec` …），
 
 ### 6.1 消息与信封
 
-控制消息使用版本化 JSON 信封，字段与校验规则见 [protocol.md](protocol.md)。
+控制消息使用版本化 JSON 信封，字段与校验规则见 [控制协议](../protocol/README.md)。
 媒体数据不走 JSON，走 `transport/` 的二进制通道。
 
 ### 6.2 状态机
@@ -272,7 +272,7 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
 | 首次媒体连接 | 获批后 30 秒内完成，否则结束会话 |
 | 会话密钥 | 单会话有效，结束后作废，不跨会话复用 |
 
-数字调整须同步 `specs/`、协议配置与断线用例。
+数字调整须同步增量规格、协议配置与断线用例。
 
 ## 7. 安全模型
 
@@ -292,7 +292,7 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
 4. 确认后被控端原子写入信任名单，控制端保存被控端身份；该质询作废。
 
 6 位口令只有 20 位熵，不承担密码学根基；真正挡中间人的是短校验码——攻击者不在现场
-就无法让两台真机屏幕显示同一组数字。细节与规范化编码见 [protocol.md](protocol.md)。
+就无法让两台真机屏幕显示同一组数字。细节与规范化编码见 [控制协议](../protocol/README.md)。
 
 ### 7.3 传输加密与信任边界
 
@@ -360,7 +360,7 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
 
 ### 8.5 里程碑
 
-**M1 局域网纵向切片**（见 `specs/spec-lan-vertical-slice.md`）
+**M1 局域网纵向切片**（见 [里程碑规格](../increments/001-lan-vertical-slice/spec.md)）
 
 - 建立 CMake Presets + CTest 骨架、`src/platform/win` 采集与注入、`transport` 局域网直连、
   单会话状态机、输入队列与按压释放、统计写入。
@@ -380,16 +380,16 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
 
 ## 9. 架构图
 
-[![远程桌面目标架构](../assets/architecture.png)](../assets/architecture.png "点击查看高清 PNG")
+[![远程桌面目标架构](../../assets/architecture.png)](../../assets/architecture.png "点击查看高清 PNG")
 
-[查看高清 PNG（3102 × 2104）](../assets/architecture.png) · [可编辑的 draw.io 源文件](../assets/architecture.drawio)
+[查看高清 PNG（3102 × 2104）](../../assets/architecture.png) · [可编辑的 draw.io 源文件](../../assets/architecture.drawio)
 
 图中画的是本文第 3 节的分层与第 6.3 节的线程/队列边沿；层级编号与 5.1 的依赖表对应。
 
 维护约定：
 
 - 改图先改 `assets/architecture.drawio`，再从它导出同名 PNG（固定浅底、2× 缩放），
-  Markdown 只嵌 PNG。方法见 [drawio-architecture](../.agents/skills/drawio-architecture/SKILL.md)。
+  Markdown 只嵌 PNG。方法见 [drawio-architecture](../../.agents/skills/drawio-architecture/SKILL.md)。
 - 图与本文不一致时以本文为准，并重新绘图；不允许只改图不改文档。
 - 参考报告的图在 `assets/references/`，属于第三方观察记录，不随本项目架构改动。
 
@@ -403,7 +403,7 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
   并引入 JNI 桥与 Android 图形上下文；这属于新增平台与依赖，须先补规格并取得批准，
   且要说明线程模型如何映射到 Android UI 线程。本文不预设其实现方式。
 - **第三方依赖选型。** 加密库、编解码库、测试框架之外的库都需按 AGENTS.md §3 审批；
-  选型结果须回写本文件与 `specs/`。
+  选型结果须回写本文件与对应增量规格。
 - **拥塞控制与丢包恢复。** 自研传输的最大成本项；M1 只保证局域网，策略需在 M2 前定稿。
 - **多显示器与旋转。** M2 再定义，不从单屏实现推导。
 - **系统服务与锁屏场景。** 不在 M1，且不得从用户会话代理能力推导权限。
@@ -413,15 +413,15 @@ Requesting / Authorizing / Negotiating -> Rejected -> Idle
 
 本项目契约（按优先级）：
 
-- [protocol.md](protocol.md)：信封、消息、校验顺序、测试向量
+- [控制协议](../protocol/README.md)：信封、消息、校验顺序、测试向量
 - [threading.md](threading.md)：线程模型、队列策略、延迟预算
 - [platform-abstraction.md](platform-abstraction.md)：平台接口契约
-- [AGENTS.md](../AGENTS.md)：约束总纲
-- [specs/](../specs/)：功能级行为契约
+- [AGENTS.md](../../AGENTS.md)：约束总纲
+- [增量索引](../increments/README.md)：功能级行为契约、方案与任务
 
 第三方观察（`docs/references/`，非契约）：
 
-- [RUSTDESK-REFERENCE.md](references/RUSTDESK-REFERENCE.md)：RustDesk 安装包与公开源码观察
-- [CROSS-PLATFORM-REFERENCE.md](references/CROSS-PLATFORM-REFERENCE.md)：UU 远程 Windows 组件观察
+- [RUSTDESK-REFERENCE.md](../references/RUSTDESK-REFERENCE.md)：RustDesk 安装包与公开源码观察
+- [CROSS-PLATFORM-REFERENCE.md](../references/CROSS-PLATFORM-REFERENCE.md)：UU 远程 Windows 组件观察
 
 这两份只用于比较外部产品的职责边界，不构成本项目的技术选型依据。

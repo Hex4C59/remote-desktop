@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > 本文件是 AI 协作的强制约束，不是建议。任何代码变更必须首先满足本文件中的硬性规则。
-> 详细架构文档见 `docs/architecture.md`，远程桌面协议细节见 `docs/protocol.md`。
+> 详细架构文档见 `docs/architecture/overview.md`，远程桌面协议细节见 `docs/protocol/README.md`。
 
 ## 1. 项目一句话
 
@@ -32,8 +32,8 @@ ctest --preset debug -R capture --output-on-failure
 
 | 用例 | 依据 | 检查内容 |
 |---|---|---|
-| `spec.structure` | `specs/README.md` | 规格状态行、必需章节、验收用例编号、索引一致性 |
-| `arch.layers` | `docs/architecture.md` 5.1、`docs/threading.md` 第 1 节 | 依赖方向（DEP-01..05）、线程归属注释（THREAD-01/02） |
+| `spec.structure` | `docs/increments/README.md` | 增量编号、规格章节、验收编号、索引状态和文档顺序 |
+| `arch.layers` | `docs/architecture/overview.md` 5.1、`docs/architecture/threading.md` 第 1 节 | 依赖方向（DEP-01..05）、线程归属注释（THREAD-01/02） |
 
 单独跑：`ctest --preset debug -R "spec.structure|arch.layers" --output-on-failure`。
 这两条不通过，说明代码或规格已偏离文档所述约束，不得声称完成。
@@ -54,20 +54,22 @@ ctest --preset debug -R capture --output-on-failure
 
 **核心原则：没有获批的规格，不写功能性代码。**
 
-- 规格文件放在 `specs/` 下，命名 `spec-<feature>.md`。
+- 每个增量在 `docs/increments/<NNN>-<slug>/` 下登记，`spec.md`、`plan.md` 和 `tasks.md` 放在同一目录。
+- 新增或变更功能按 **规格 → 技术方案 → 任务 → TDD → 验收证据** 推进。方案可与规格草案一并评审，实施前须有获批规格。
+- 任务写明编号、改动路径和验证方式，分波次推进。任务清单末尾将规格验收编号映射到任务编号。
 - 规格必须包含：**接口契约**（类型、错误码、线程归属）、**不变量**（如“capture 线程绝不阻塞在编码器上”）、**验收测试场景**。
 - 实现前先更新或创建规格；实现过程中发现规格需要变更，先改规格，再改代码。
 - 规格不是一次性文档。功能上线后，规格继续锚定行为，后续修改必须同步更新规格。
 - 提出规格变更建议时必须给出**完整契约**：接口全貌（含既有声明的上下文）、不变量与错误路径、线程归属、验收场景编号、受影响的现有条款。禁止只给“最小补充”片段——片段无法表达完整语义，评审者也无从判断遗漏。
 
 **路由规则：**
-- 新功能 → 先写 `specs/spec-*.md`，评审通过后再进入 TDD。
+- 新功能 → 编写规格、方案和任务，规格获批后再进入 TDD。
 - Bug 修复 → 先写一个**失败的测试**复现问题；如果根因涉及架构或接口变更，同步补规格。
 
 **操作序列：** 完整回路见 [`.agents/skills/sdd-loop/SKILL.md`](.agents/skills/sdd-loop/SKILL.md)
-（判断任务类型 → 规格 → 红灯 → 实现 → 证据）。红绿重构细节在
+（判断任务类型 → 规格 → 方案 → 任务 → 红灯 → 实现 → 证据）。红绿重构细节在
 [`.agents/skills/tdd/SKILL.md`](.agents/skills/tdd/SKILL.md)。
-规格模板与状态机见 [`specs/README.md`](specs/README.md)。
+增量索引、模板与状态机见 [增量索引](docs/increments/README.md)。
 实施者不得自行把规格改成 `approved`，须由用户确认。
 
 ## 5. TDD：红 → 绿 → 重构
@@ -132,16 +134,17 @@ ctest --preset debug -R capture --output-on-failure
 - 禁止用“临时绕过”替代规格更新：任何绕过接口契约的 `friend`、全局变量、`#define private public` 都不得进入主分支。
 - 禁止在没有失败测试的情况下修复 Bug。
 - 禁止声称“完成”而不贴测试输出。
-- 禁止修改平台抽象层的公共接口而不更新 `docs/platform-abstraction.md`。
+- 禁止修改平台抽象层的公共接口而不更新 `docs/architecture/platform-abstraction.md`。
 
 ## 9. 文档索引（需要细节时读这些）
 
 | 文档 | 内容 |
 |---|---|
-| `docs/architecture.md` | 整体分层、依赖方向（含 DEP-01..05 判定规则）、模块职责、数据流 |
-| `docs/protocol.md` | 线缆格式、消息类型、版本兼容 |
-| `docs/threading.md` | 线程模型、八条交接边沿的判定规则、队列策略、延迟预算、评审清单 |
-| `docs/platform-abstraction.md` | 平台抽象层的接口契约、错误码与线程归属 |
-| `specs/README.md` | 规格命名、模板、审批状态与自动校验 |
-| `specs/` | 各功能的规格（SDD 的事实来源） |
+| `docs/README.md` | 文档导航 |
+| `docs/architecture/overview.md` | 整体分层、依赖方向（含 DEP-01..05 判定规则）、模块职责、数据流 |
+| `docs/protocol/README.md` | 线缆格式、消息类型、版本兼容 |
+| `docs/architecture/threading.md` | 线程模型、八条交接边沿的判定规则、队列策略、延迟预算、评审清单 |
+| `docs/architecture/platform-abstraction.md` | 平台抽象层的接口契约、错误码与线程归属 |
+| `docs/increments/README.md` | 增量索引、模板、审批状态与自动校验 |
+| `docs/increments/` | 各增量的规格、计划和任务 |
 | `tests/` | 测试的组织方式和运行方式 |

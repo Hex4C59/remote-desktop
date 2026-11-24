@@ -1,7 +1,7 @@
 // 职责：验证 include/remotedesktop/assert.h 的 Debug/Release 两种行为。
 // 线程归属：无（单线程测试）。
 //
-// 规格依据：specs/spec-screen-frame-handoff.md 第 4.1 节。
+// 规格依据：docs/increments/002-screen-frame-handoff/spec.md 第 4.1 节。
 //   不变量违例在 Debug 下必须 abort（由死亡测试验证）；
 //   在 Release 下必须只增加计数、不 abort（由计数用例验证）。
 //

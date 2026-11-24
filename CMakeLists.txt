@@ -71,7 +71,7 @@ enable_testing()
 # ---------------------------------------------------------------------------
 # 源码
 #
-# 当前只有库骨架，没有任何业务实现。模块按 docs/architecture.md 第 5 节逐步加入；
+# 当前只有库骨架，没有任何业务实现。模块按 docs/architecture/overview.md 第 5 节逐步加入；
 # 加入时在此处显式 add_subdirectory，不使用文件通配。
 # ---------------------------------------------------------------------------
 
@@ -81,9 +81,6 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
-# 规格结构自检：把 specs/README.md 的约定变成 CTest 用例。
-# 放在 BUILD_TESTING 之外，因为“规格先于代码”与是否构建测试无关。
-add_subdirectory(specs)
-
-# 仓库约束自检：docs/ 里的分层与线程归属规则。
+# 仓库约束自检：增量文档结构、分层与线程归属。
+# 放在 BUILD_TESTING 之外，便于单独运行。
 add_subdirectory(tools)

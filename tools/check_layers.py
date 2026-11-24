@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""检查 docs/architecture.md 5.1 与 docs/threading.md 的硬约束是否被违反。
+"""检查 docs/architecture/overview.md 5.1 与 docs/architecture/threading.md 的硬约束是否被违反。
 
 职责：把"文档里的约束"变成构建时能失败的检查。没有这个脚本，
 DEP-01..05 与线程归属只是散文，实现时会被忘掉。
@@ -10,7 +10,7 @@ DEP-01..05 与线程归属只是散文，实现时会被忘掉。
     python tools/check_layers.py           # 检查，违规时退出码 1
     python tools/check_layers.py --list    # 只列当前扫描到的模块层次
 
-检查项（编号与 architecture.md 5.1 对应）：
+检查项（编号与架构总览 5.1 对应）：
   DEP-01  include/ 不得包含 ../src 或指向 src 的路径
   DEP-02  src/platform/ 不得包含业务模块头文件
   DEP-03  同层模块不得互相 #include
@@ -36,7 +36,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # ---------------------------------------------------------------------------
-# 层次定义，与 docs/architecture.md 5.1 的表一致
+# 层次定义，与架构总览 5.1 的表一致
 # ---------------------------------------------------------------------------
 
 # 目录 -> 层次号（越小越靠下）。匹配使用路径前缀，最长前缀优先。
@@ -305,7 +305,7 @@ def main() -> int:
         for problem in problems:
             print(f"FAIL {problem}", file=sys.stderr)
         print(f"\n共 {len(problems)} 处违规", file=sys.stderr)
-        print("依据：docs/architecture.md 5.1、docs/threading.md 第 1 节", file=sys.stderr)
+        print("依据：docs/architecture/overview.md 5.1、docs/architecture/threading.md 第 1 节", file=sys.stderr)
         return 1
 
     print(f"OK 分层与线程归属检查通过（{len(files)} 个源文件）")

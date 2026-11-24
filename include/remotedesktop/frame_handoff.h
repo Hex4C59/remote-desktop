@@ -3,7 +3,7 @@
 //
 // 本文件是 FrameDesc / PixelFormat / Frame / FramePool / FrameSlot
 // 的唯一定义处，
-// 其他文档只能引用不得重述。规格：specs/spec-screen-frame-handoff.md 第 2 节。
+// 其他文档只能引用不得重述。规格：docs/increments/002-screen-frame-handoff/spec.md 第 2 节。
 
 #pragma once
 

@@ -1,6 +1,6 @@
 # 测试入口
 #
-# 组织方式见 AGENTS.md §5、docs/threading.md §5：
+# 组织方式见 AGENTS.md §5、docs/architecture/threading.md §5：
 #   tests/unit/<模块>/      与 src/<模块> 镜像，用 mock 平台接口
 #   tests/integration/      跨线程/跨模块链路
 #   tests/smoke/            构建与验证回路自检

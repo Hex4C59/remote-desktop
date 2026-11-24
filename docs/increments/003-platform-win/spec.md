@@ -4,8 +4,8 @@ status: draft
 approved-by: （待用户评审批准）
 
 本文定义 Windows 被控端平台层的两个能力：屏幕采集与输入注入。它们是
-[spec-lan-vertical-slice.md](spec-lan-vertical-slice.md) 第 5 节实现顺序的第 2 步。
-上游接口总纲见 [docs/platform-abstraction.md](../docs/platform-abstraction.md)，
+[局域网纵向切片](../001-lan-vertical-slice/spec.md) 第 5 节实现顺序的第 2 步。
+上游接口总纲见 [平台抽象](../../architecture/platform-abstraction.md)，
 本文在其基础上补齐 Windows 特有的错误语义、所有权与验收场景。
 
 **本规格不涉及**：会话状态检测（`SessionState`，另立规格）、渲染表面（控制端，另立规格）、
@@ -37,11 +37,11 @@ approved-by: （待用户评审批准）
 
 ### 2.1 消除 FrameDesc 重复定义（重要）
 
-[docs/platform-abstraction.md](../docs/platform-abstraction.md) 第 3 节与
-[spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) 第 2 节各自声明了
+[平台抽象](../../architecture/platform-abstraction.md) 第 3 节与
+[屏幕帧移交](../002-screen-frame-handoff/spec.md) 第 2 节各自声明了
 `FrameDesc`，字段不同。二者必须在实现前合并为**唯一定义**，否则会出现两个同名类型。
 
-合并结果即 [spec-screen-frame-handoff.md](spec-screen-frame-handoff.md) 第 2 节的定义，
+合并结果即 [屏幕帧移交](../002-screen-frame-handoff/spec.md) 第 2 节的定义，
 **该节是唯一定义处**，本节不重述字段。两份上游文档已回改为引用。
 
 采纳该版本的依据：`display_map_version` 是采集与注入都需要的字段（注入前要校验坐标映射
@@ -97,7 +97,7 @@ class ScreenCaptureWin {
 
 ### 2.3 错误码
 
-在 [docs/platform-abstraction.md](../docs/platform-abstraction.md) 第 2 节的
+在 [平台抽象](../../architecture/platform-abstraction.md) 第 2 节的
 `PlatformError` 上新增：
 
 | 枚举值 | 触发条件 | 调用方处理 |
@@ -261,7 +261,7 @@ M1 只允许可打印 ASCII（0x20–0x7E）；遇到其他码点返回 `kNotSup
 | --- | --- |
 | `ScreenCaptureWin` 构造/initialize | Capture 线程创建之前；仅 Capture 线程可调用 |
 | `acquire_frame` | 仅 Capture 线程 |
-| `ScreenCaptureWin` 析构 | Capture 线程退出之后；见 architecture.md 5.3 第 3 步 |
+| `ScreenCaptureWin` 析构 | Capture 线程退出之后；见架构总览 5.3 第 3 步 |
 | DXGI 设备与 duplication 对象 | 由采集器独占，不跨线程共享 |
 | staging texture | `initialize` 时分配，数量 1；不随帧数增长 |
 | `InputInjectorWin` 全部方法 | 仅 Input 线程 |
@@ -270,7 +270,7 @@ M1 只允许可打印 ASCII（0x20–0x7E）；遇到其他码点返回 `kNotSup
 | `display_map_version` 所有权 | SessionContext 持有并递增；采集器只读传入值，维护内部 `current_version_` 并回填到 `DisplayInfo`/`FrameDesc` |
 | 源文件实际路径 | `include/remotedesktop/platform/win/screen_capture_win.h`、`include/remotedesktop/platform/win/input_inject_win.h` |
 
-热路径约束（与 [docs/threading.md](../docs/threading.md) 第 4.3 节一致）：
+热路径约束（与 [线程模型](../../architecture/threading.md) 第 4.3 节一致）：
 
 - `acquire_frame` 与 `inject` 内禁止：动态分配、文件 I/O、日志格式化、异常。
 - `acquire_frame` 的 `ReleaseFrame()` 必须在返回前调用，不得把 DXGI 资源留到下一帧，
@@ -344,7 +344,7 @@ acquire_frame：
 | PWH-03 | 锁屏再解锁 | 锁屏期间返回 `kSecureDesktop`；解锁后重建可恢复 |
 | PWH-04 | 注入点击与输入 | 目标窗口收到正确坐标与字符 |
 | PWH-05 | 按住键时结束进程 | 按键不残留（由系统或析构释放兜底） |
-| PWH-06 | 采集耗时测量 | 单帧 acquire ≤ 6 ms（与 threading.md 4.2 的采集预算一致） |
+| PWH-06 | 采集耗时测量 | 单帧 acquire ≤ 6 ms（与线程模型 4.2 的采集预算一致） |
 
 PWH-06 只记录实测值，不据此宣称延迟达标；延迟验收在里程碑级规格。
 
@@ -357,11 +357,11 @@ PWH-06 只记录实测值，不据此宣称延迟达标；延迟验收在里程�
 | DXGI / D3D11 | 桌面采集 | Windows SDK 自带，无需第三方 | 不适用 |
 | `SendInput` | 输入注入 | user32，系统自带 | 不适用 |
 | GoogleTest | 测试 | 已引入 | 不适用 |
-| `spec-screen-frame-handoff.md` | `FrameDesc` 唯一定义、帧所有权 | `approved` | 已存在 |
-| `spec-lan-vertical-slice.md` | 里程碑与实现顺序 | `draft` | 已存在 |
-| `docs/platform-abstraction.md` | 平台接口总纲与错误码 | `draft` | 已存在（已回改为引用） |
-| `docs/threading.md` | 线程与队列约束 | `approved` | 已存在 |
-| `docs/architecture.md` | 分层、依赖方向、关断顺序 | `draft` | 已存在 |
+| [屏幕帧移交](../002-screen-frame-handoff/spec.md) | `FrameDesc` 唯一定义、帧所有权 | `approved` | 已存在 |
+| [局域网纵向切片](../001-lan-vertical-slice/spec.md) | 里程碑与实现顺序 | `draft` | 已存在 |
+| `docs/architecture/platform-abstraction.md` | 平台接口总纲与错误码 | `draft` | 已存在（已回改为引用） |
+| `docs/architecture/threading.md` | 线程与队列约束 | `approved` | 已存在 |
+| `docs/architecture/overview.md` | 分层、依赖方向、关断顺序 | `draft` | 已存在 |
 | `SessionState` 规格 | `kSecureDesktop` 的判定 | **阻塞：未创建** | 缺失 |
 
 不引入第三方采集库（如 DesktopDuplication 封装库）。理由：API 本身足够薄，
@@ -379,14 +379,14 @@ PWH-06 只记录实测值，不据此宣称延迟达标；延迟验收在里程�
 4. **输入注入的 DPI 感知。** `SendInput` 的绝对坐标依赖进程 DPI 感知级别；
    若进程未设 `DPI_AWARENESS_PER_MONITOR`，坐标会被系统缩放。需在平台初始化时
    明确设置并测试。
-5. **上游文档回改进度跟踪。** 本规格依赖 `docs/platform-abstraction.md` 与
-   `spec-screen-frame-handoff.md` 对 `FrameDesc` 采用引用而非重述。当前两者均已回改
+5. **上游文档回改进度跟踪。** 本规格依赖 `docs/architecture/platform-abstraction.md` 与
+   [屏幕帧移交规格](../002-screen-frame-handoff/spec.md) 对 `FrameDesc` 采用引用而非重述。当前两者均已回改
    （见 §6 依赖表「引用状态」列）；若后续任一处再次出现重述定义，须先改回引用
    再更新本规格，否则同一类型会出现多份互相矛盾的字段表。
 
 ## 7. 并发自检
 
-对照 [docs/threading.md](../docs/threading.md) 第 5 节的 T-01~T-09：
+对照 [线程模型](../../architecture/threading.md) 第 5 节的 T-01~T-09：
 
 | 编号 | 结论 |
 | --- | --- |
@@ -395,7 +395,7 @@ PWH-06 只记录实测值，不据此宣称延迟达标；延迟验收在里程�
 | T-03 | 不适用。本规格不新增队列；帧槽上限由 frame-handoff 规格定义 |
 | T-04 | 由 4.1 与第 3 节约束：acquire 与 inject 内禁止分配、I/O、日志格式化 |
 | T-05 | 是。`acquire_frame` 只等 DXGI（有 timeout），不等其他线程；`inject` 完全不等 |
-| T-06 | 是。关断顺序遵循 architecture.md 5.3，采集器析构在 Capture 线程退出之后 |
+| T-06 | 是。关断顺序遵循架构总览 5.3，采集器析构在 Capture 线程退出之后 |
 | T-07 | 是。新增文件必须有 `// Thread: capture only` 或 `// Thread: input only` |
 | T-08 | 否。本规格不新增线程 |
 | T-09 | 不适用。本规格不含延迟优化；PWH-06 只采集基线数据 |

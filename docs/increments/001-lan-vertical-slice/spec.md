@@ -4,11 +4,11 @@ status: draft
 approved-by: （待批准）
 
 里程碑级规格：描述 M1 的边界与整体验收，不直接授权单个功能的实现。
-具体功能的契约在各自的功能级规格中，见 [README.md](README.md) 的功能级规格说明。
+具体功能的契约在各自的功能级规格中，见 [规格目录](../README.md)。
 
-本文是 M1 范围内范围的唯一事实来源。架构背景见 [architecture.md](../docs/architecture.md)，
-线程与队列见 [threading.md](../docs/threading.md)，平台接口见
-[platform-abstraction.md](../docs/platform-abstraction.md)。
+本文是 M1 范围内范围的唯一事实来源。架构背景见 [架构总览](../../architecture/overview.md)，
+线程与队列见 [线程模型](../../architecture/threading.md)，平台接口见
+[平台抽象](../../architecture/platform-abstraction.md)。
 
 ## 1. 范围
 
@@ -47,7 +47,7 @@ struct SessionLimits {         // 来自平台与会话配置
 };
 ```
 
-状态迁移与不变量见 [architecture.md](../docs/architecture.md) 6.2。
+状态迁移与不变量见 [架构总览](../../architecture/overview.md) 6.2。
 所有迁移由 Session 串行执行器完成，其他线程只投递事件。
 
 ### 2.2 错误码
@@ -65,7 +65,7 @@ struct SessionLimits {         // 来自平台与会话配置
 
 ### 2.3 线程归属
 
-严格遵循 [threading.md](../docs/threading.md) 第 1 节：Capture / Encode / Network /
+严格遵循 [线程模型](../../architecture/threading.md) 第 1 节：Capture / Encode / Network /
 Session / Input / Decode / UI 各一个，不新增线程。本规格不引入新的线程或线程池。
 
 ## 3. 不变量
@@ -83,7 +83,7 @@ Session / Input / Decode / UI 各一个，不新增线程。本规格不引入�
 
 ## 4. 验收场景
 
-每条都须先有失败测试（[AGENTS.md §5](../AGENTS.md)）。测试用 mock 平台接口，
+每条都须先有失败测试（[AGENTS.md §5](../../../AGENTS.md)）。测试用 mock 平台接口，
 不依赖真实设备；真机验收单列。
 
 ### 4.1 单元/集成（可自动化）
@@ -113,7 +113,7 @@ Session / Input / Decode / UI 各一个，不新增线程。本规格不引入�
 | M1H-01 | 同一对机器连续 10 次会话 | 全部成功，每次都能看到真实桌面 |
 | M1H-02 | 鼠标与键盘操作 | 位置准确、按键无错乱、无残留按下 |
 | M1H-03 | 结束会话 / 拔网线 / 锁屏 | 输入立即停止，按压释放，可重新连接 |
-| M1H-04 | 局域网延迟测量 | 满足 [architecture.md](../docs/architecture.md) 8.3 的预算与覆盖率要求 |
+| M1H-04 | 局域网延迟测量 | 满足 [架构总览](../../architecture/overview.md) 8.3 的预算与覆盖率要求 |
 | M1H-05 | 1 小时会话 | 无崩溃、无按键残留、关闭后资源回收 |
 
 M1H-04 必须给出完整采集条件与原始数据路径；未跑完不得写“通过”。
@@ -148,9 +148,9 @@ ctest --preset debug -R <模块名> --output-on-failure
 
 ## 7. 线程与资源
 
-线程划分严格遵循 [threading.md](../docs/threading.md) 第 1 节，本里程碑不新增线程。
+线程划分严格遵循 [线程模型](../../architecture/threading.md) 第 1 节，本里程碑不新增线程。
 下表只列本里程碑涉及的所有权与上限；更细的帧移交契约在
-[spec-screen-frame-handoff.md](spec-screen-frame-handoff.md)。
+[屏幕帧移交](../002-screen-frame-handoff/spec.md)。
 
 | 资源 | 所有者（线程） | 释放位置 | 上限 / 溢出策略 |
 | --- | --- | --- | --- |
@@ -165,13 +165,13 @@ ctest --preset debug -R <模块名> --output-on-failure
 约束：
 
 - 池与队列的构造发生在会话启动阶段，销毁按
-  [architecture.md](../docs/architecture.md) 5.3 的顺序，两线程退出之后。
+  [架构总览](../../architecture/overview.md) 5.3 的顺序，两线程退出之后。
 - 热路径（Capture / Encode / Network / Input）禁止动态分配与同步文件 I/O。
-- 任何新增线程或线程池都属架构变更，须先改 [threading.md](../docs/threading.md) 并获批。
+- 任何新增线程或线程池都属架构变更，须先改 [线程模型](../../architecture/threading.md) 并获批。
 
 ### 7.1 风险
 
-- 传输层自研（见 [architecture.md](../docs/architecture.md) D1）：拥塞与丢包策略在局域网外不可用，
+- 传输层自研（见 [架构总览](../../architecture/overview.md) D1）：拥塞与丢包策略在局域网外不可用，
   M1 的结论不能外推到公网。
 - 编码器可用性依赖目标机型与驱动，须按实测记录，不按设备型号猜。
 - 真机延迟受显示器刷新率与测量工具影响；软件打点不能代替物理画面测量。
@@ -180,13 +180,13 @@ ctest --preset debug -R <模块名> --output-on-failure
 ## 8. 依赖与待决项
 
 依赖：M1 除 GoogleTest（测试期）外不引入第三方库。加密库、编解码库均未选型，
-引入前须按 [AGENTS.md §3](../AGENTS.md) 审批并回改本文件。
+引入前须按 [AGENTS.md §3](../../../AGENTS.md) 审批并回改本文件。
 
 待决项，未定前不实现：
 
 1. **控制端平台。** 本规格的验收表按控制端为 Windows 编写。若首版必须支持 Android，
    需增加 `src/platform/android/`、JNI 桥与图形上下文适配，并补规格说明线程映射与依赖引入；
-   这属于新增平台，须单独批准（见 [architecture.md](../docs/architecture.md) 第 10 节）。
-2. **加密库与编解码库选型。** 均属新增第三方依赖，须按 [AGENTS.md §3](../AGENTS.md) 审批。
+   这属于新增平台，须单独批准（见 [架构总览](../../architecture/overview.md) 第 10 节）。
+2. **加密库与编解码库选型。** 均属新增第三方依赖，须按 [AGENTS.md §3](../../../AGENTS.md) 审批。
 3. **视频编码格式。** 协议 v1 只列 `h264-baseline`；若目标机型不支持，须先改协议与本规格。
-4. **传输握手消息形状。** 待依赖与加密方案确定后补进 [protocol.md](../docs/protocol.md) 第 8 节。
+4. **传输握手消息形状。** 待依赖与加密方案确定后补进 [控制协议](../../protocol/README.md) 第 8 节。

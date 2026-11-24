@@ -2,13 +2,13 @@
 
 > **性质：第三方产品观察记录，不是本项目契约。**
 > 本目录（`docs/references/`）只存放对外部软件的调查，
-> 不构成技术选型依据，也不被 `specs/` 或 `src/` 引用。
-> 本项目的架构、线程与协议以 [../architecture.md](../architecture.md)、
-> [../threading.md](../threading.md)、[../protocol.md](../protocol.md) 为准。
+> 不构成技术选型依据，也不被 `docs/increments/` 或 `src/` 引用。
+> 本项目的架构、线程与协议以[架构总览](../architecture/overview.md)、
+> [线程模型](../architecture/threading.md)、[控制协议](../protocol/README.md)为准。
 
 本文保留 2026-11-16 对本机 RustDesk `1.4.9+67` 的安装包观察，
 并用官方公开源码交叉核对服务端、连接加密与 Windows 进程职责。
-本项目目标架构以 [architecture.md](../architecture.md) 为准。
+本项目目标架构以[架构总览](../architecture/overview.md)为准。
 本文与 [AGENTS.md](../../AGENTS.md) 的技术栈锁定不冲突：文中观察只用于比较职责边界，
 不构成对本项目传输、构建或语言的选型建议。
 
@@ -170,7 +170,7 @@ UI 与原生核心可以在同一进程通过绑定通信；这只是 UI 宿主�
 
 Flutter/Rust、Qt/WebView 或其他 UI 栈需要按当前团队、平台与原生渲染需求比较，
 不能仅以“更现代”决定替换。本项目已按 [AGENTS.md](../../AGENTS.md) 锁定 C++20 + CMake 并自研传输，
-该决定的代价（拥塞控制、丢包恢复、NAT 穿透）已在 [architecture.md](../architecture.md) 4.1 记录；
+该决定的代价（拥塞控制、丢包恢复、NAT 穿透）已在[架构总览](../architecture/overview.md) 4.1 记录；
 本文不据此主张改用 RustDesk 的技术栈。
 
 ## 8. 证据、许可证与相关参考
@@ -182,6 +182,6 @@ Flutter/Rust、Qt/WebView 或其他 UI 栈需要按当前团队、平台与原�
 - [RustDesk 官方仓库与许可证](https://github.com/rustdesk/rustdesk)
 - [RustDesk 官方服务端](https://github.com/rustdesk/rustdesk-server)
 - [hbb_common 官方仓库](https://github.com/rustdesk/hbb_common)
-- [architecture.md 关键决策](../architecture.md#4-关键决策)
-- [architecture.md 4.1：为什么不用 WebRTC](../architecture.md#41-为什么不用-webrtc)
+- [架构总览的关键决策](../architecture/overview.md#4-关键决策)
+- [为什么不用 WebRTC](../architecture/overview.md#41-为什么不用-webrtc)
 - [CROSS-PLATFORM-REFERENCE.md：UU 远程安装包观察](CROSS-PLATFORM-REFERENCE.md)

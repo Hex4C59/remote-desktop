@@ -4,15 +4,15 @@ status: approved
 approved-by: user, 2026-11-19（用户确认首个功能规格取“帧移交”）
 
 本文定义 Capture 线程与 Encode 线程之间唯一的帧传递通道。它是
-[AGENTS.md §6.1](../AGENTS.md) “Capture 线程绝不阻塞在编码器上”这一不变量的具体落地。
+[AGENTS.md §6.1](../../../AGENTS.md) “Capture 线程绝不阻塞在编码器上”这一不变量的具体落地。
 
-上游里程碑：[spec-lan-vertical-slice.md](spec-lan-vertical-slice.md)（状态 `draft`）。
+上游里程碑：[局域网纵向切片](../001-lan-vertical-slice/spec.md)（状态 `draft`）。
 本规格独立成立：它只描述进程内的内存与所有权契约，不涉及会话、传输或平台具体实现，
 因此可以在里程碑规格仍待定时先行批准。**批准本规格不授权实现会话、传输、输入或平台层。**
 
-架构背景见 [architecture.md](../docs/architecture.md) 5.2，线程模型见
-[threading.md](../docs/threading.md) 第 1–3 节，平台侧采集接口见
-[platform-abstraction.md](../docs/platform-abstraction.md) 第 3 节。
+架构背景见 [架构总览](../../architecture/overview.md) 5.2，线程模型见
+[线程模型](../../architecture/threading.md) 第 1–3 节，平台侧采集接口见
+[平台抽象](../../architecture/platform-abstraction.md) 第 3 节。
 
 ## 1. 范围
 
@@ -33,7 +33,7 @@ approved-by: user, 2026-11-19（用户确认首个功能规格取“帧移交”
 ## 2. 接口契约
 
 本节是 `FrameDesc` 与 `PixelFormat` 的**唯一定义**，其他文档只能引用不得重述。
-[spec-platform-win.md](spec-platform-win.md) 2.1 记录了与 docs 旧版本的合并决定。
+[Windows 平台适配](../003-platform-win/spec.md) 2.1 记录了与 docs 旧版本的合并决定。
 
 ```cpp
 // 职责：持有一次采集结果的元数据与像素视图。
@@ -161,7 +161,7 @@ class FramePool {
 //   - 整个生命周期内只有一个 Capture 发布者，禁止两个线程并发 publish()；
 //   - 禁止 publish()/try_acquire() 与清槽并发；
 //   - 清槽只能通过下面声明的 drain_for_shutdown()，在 Capture/Encode 线程
-//     都已 join 之后由关闭流程串行调用一次，见 architecture.md 5.3 与 FH-20。
+//     都已 join 之后由关闭流程串行调用一次，见架构总览 5.3 与 FH-20。
 // FrameSlot 不检测线程是否已退出：由调用方（会话关闭流程）保证 join 已完成；
 // 违反该前置条件属调用方错误，规格不要求 FrameSlot 在 Release 下识别它。
 // FrameSlot 只检测「重复清槽」：drain_for_shutdown() 第二次调用时 Debug 下
@@ -283,13 +283,13 @@ class FrameSlot {
 | 项 | 规则 |
 | --- | --- |
 | 池的构造 | 会话启动阶段，**Capture 与 Encode 线程均尚未创建之前**；容量为编译期常量 |
-| 池的销毁 | 按 [architecture.md](../docs/architecture.md) 5.3 第 3 步：两线程均已退出、槽已置空、所有帧已释放之后 |
+| 池的销毁 | 按 [架构总览](../../architecture/overview.md) 5.3 第 3 步：两线程均已退出、槽已置空、所有帧已释放之后 |
 | `publish()` | 仅 Capture 线程 |
 | `try_acquire()` | 仅 Encode 线程 |
 | `try_acquire_free()` | Capture 线程（开帧）；构造阶段也允许 |
 | `Frame::mutable_desc()` / `mutable_pixels()` | 仅 Capture 线程，且必须在 `publish()` 之前 |
 | `Frame::release()` | 持有该引用的线程（Capture 丢弃旧帧时在 Capture 线程，Encode 用完时在 Encode 线程） |
-| 队列类型 | 单槽覆盖式（容量 1，丢弃最旧），见 [threading.md](../docs/threading.md) 第 3 节 |
+| 队列类型 | 单槽覆盖式（容量 1，丢弃最旧），见 [线程模型](../../architecture/threading.md) 第 3 节 |
 | 热路径分配 | 禁止。所有缓冲在 `FramePool` 构造时一次分配 |
 | 热路径加锁 | 禁止。池的空闲链表与槽位均用原子操作 |
 

@@ -1,6 +1,6 @@
 # 源码入口
 #
-# 模块按 docs/architecture.md 第 5 节逐个加入，每个模块在自己的目录里定义目标。
+# 模块按 docs/architecture/overview.md 第 5 节逐个加入，每个模块在自己的目录里定义目标。
 # 当前内容：公共头文件 + 断言实现（供规格 FH-10/FH-11/FH-15 使用）。
 #
 # 目标命名与目录对应关系（后续加入时保持）：
@@ -13,7 +13,7 @@
 #   rd_telemetry  src/telemetry
 
 # 核心库：公共头文件的实现。目前只有断言计数。
-# 后续模块作为独立目标加进来，并按 docs/architecture.md 5.1 的依赖方向连接。
+# 后续模块作为独立目标加进来，并按 docs/architecture/overview.md 5.1 的依赖方向连接。
 add_library(rd STATIC
   assert.cpp
   frame_handoff.cpp)
