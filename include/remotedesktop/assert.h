@@ -33,25 +33,29 @@ namespace rd::detail {
 
 #ifndef NDEBUG
 
-#include <cstdio>
-#include <cstdlib>
+namespace rd::detail {
+  // Debug 下断言失败时的诊断输出与终止，只在 RD_ASSERT 宏内调用。
+  // message 为 nullptr 表示没有附加说明。
+  [[noreturn]] void abort_with_assert_message(const char* condition,
+                                              const char* message,
+                                              const char* file,
+                                              int line) noexcept;
+}  // namespace rd::detail
 
-#define RD_ASSERT(cond)                                                       \
-  do {                                                                        \
-    if (!(cond)) {                                                            \
-      std::fprintf(stderr, "RD_ASSERT failed: %s (%s:%d)\n", #cond, __FILE__, \
-                   __LINE__);                                                 \
-      std::abort();                                                           \
-    }                                                                         \
+#define RD_ASSERT(cond)                                                 \
+  do {                                                                  \
+    if (!(cond)) {                                                      \
+      ::rd::detail::abort_with_assert_message(#cond, nullptr, __FILE__, \
+                                              __LINE__);                \
+    }                                                                   \
   } while (false)
 
-#define RD_ASSERT_MSG(cond, msg)                                         \
-  do {                                                                   \
-    if (!(cond)) {                                                       \
-      std::fprintf(stderr, "RD_ASSERT failed: %s | %s (%s:%d)\n", #cond, \
-                   (msg), __FILE__, __LINE__);                           \
-      std::abort();                                                      \
-    }                                                                    \
+#define RD_ASSERT_MSG(cond, msg)                                      \
+  do {                                                                \
+    if (!(cond)) {                                                    \
+      ::rd::detail::abort_with_assert_message(#cond, (msg), __FILE__, \
+                                              __LINE__);              \
+    }                                                                 \
   } while (false)
 
 #else  // NDEBUG

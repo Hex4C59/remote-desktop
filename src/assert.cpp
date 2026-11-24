@@ -7,6 +7,11 @@
 
 #include <atomic>
 
+#ifndef NDEBUG
+#include <cstdlib>
+#include <iostream>
+#endif  // NDEBUG
+
 namespace rd {
   namespace {
 
@@ -27,6 +32,20 @@ namespace rd {
     void bump_suppressed_assert() noexcept {
       g_suppressed_asserts.fetch_add(1, std::memory_order_relaxed);
     }
+
+#ifndef NDEBUG
+
+    void abort_with_assert_message(const char* condition, const char* message,
+                                   const char* file, int line) noexcept {
+      std::cerr << "RD_ASSERT failed: " << condition;
+      if (message != nullptr) {
+        std::cerr << " | " << message;
+      }
+      std::cerr << " (" << file << ':' << line << ")\n";
+      std::abort();
+    }
+
+#endif  // NDEBUG
 
   }  // namespace detail
 }  // namespace rd

@@ -125,6 +125,7 @@ ctest --preset debug -R capture --output-on-failure
 - 智能指针优先；裸 `new/delete` 仅允许在极少数明确标注所有权转移的边界出现，且必须封装。
 - 公共接口的错误传递方式由规格定义（`std::expected` 或错误码），**不得在同一模块内混用异常和错误码**。
 - 命名：类型 `PascalCase`，函数/变量 `snake_case`，成员变量后缀 `_`，常量 `kPascalCase`。
+- 标准库优先使用 C++ 设施：输出用 `<iostream>`，不引入 `printf`/`scanf` 家族；C 兼容头一律用 `<c...>`（如 `<cstdint>`、`<cstdlib>`、`<cstddef>`），不用 `<...h>`。确需 C 接口（与系统 API 对接）时在调用处注释理由。
 - 每个新文件必须有简短的文件头注释，说明职责和线程归属（如 `// Thread: capture only`）。
 
 ## 8. 禁止事项（违反即回退）
