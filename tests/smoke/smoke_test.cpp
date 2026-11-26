@@ -53,5 +53,4 @@ namespace {
     EXPECT_NE(session, 0u);
     EXPECT_EQ(epoch, 1u);
   }
-
 }  // namespace

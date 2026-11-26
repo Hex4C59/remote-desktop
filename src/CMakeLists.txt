@@ -26,3 +26,5 @@ target_link_libraries(rd PUBLIC rd_compile_options)
 # 不需要等到某个源文件偶然包含它。
 add_library(rd_headers STATIC headers_check.cpp)
 target_link_libraries(rd_headers PRIVATE rd)
+
+add_subdirectory(platform)
