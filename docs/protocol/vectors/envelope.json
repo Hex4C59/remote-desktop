@@ -1,249 +1,174 @@
 {
   "protocol_version": 1,
-  "note": "虚构凭据，只用于信封与控制消息编解码。真实口令、密钥、屏幕内容与主机信息不得写入本文件。",
+  "note": "虚构凭据，只用于信封与控制消息编解码。公钥为 SPKI 占位值。每条向量独立，不能用来验证握手或消息顺序。",
   "vectors": [
     {
       "name": "质询（会话尚未建立）",
       "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"session.challenge\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"expires_in_ms\":30000}}",
-      "expect": {
-        "ok": true,
-        "type": "session.challenge",
-        "session": null,
-        "negotiation": null,
-        "seq": 1
-      }
+      "input": "{\"v\":1,\"type\":\"session.challenge\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"expires_in_ms\":30000}}",
+      "expect": {"ok": true, "type": "session.challenge", "session": null, "negotiation": null, "seq": 1}
     },
     {
-      "name": "配对请求（首次）",
+      "name": "配对请求",
       "direction": "client->server",
-      "note": "公钥与临时公钥是 91 字节 SPKI 占位值，签名 71 字节 DER，password_proof 32 字节，只用于信封解码",
-      "input": "{\"v\":1,\"type\":\"pair.request\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"device_id\":\"client-test-device\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"ephemeral_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"password_proof\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
-      "expect": {
-        "ok": true,
-        "type": "pair.request",
-        "session": null,
-        "negotiation": null,
-        "seq": 2
-      }
+      "input": "{\"v\":1,\"type\":\"pair.request\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"device_id\":\"2b0f0f3e-0000-4000-8000-000000000002\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\"}}",
+      "expect": {"ok": true, "type": "pair.request", "session": null, "negotiation": null, "seq": 1}
     },
     {
       "name": "配对受理",
       "direction": "server->client",
-      "note": "同上，字段长度均为占位值",
-      "input": "{\"v\":1,\"type\":\"pair.accept\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{\"device_id\":\"server-test-host\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"ephemeral_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\",\"password_proof\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
-      "expect": {
-        "ok": true,
-        "type": "pair.accept",
-        "session": null,
-        "negotiation": null,
-        "seq": 2
-      }
+      "input": "{\"v\":1,\"type\":\"pair.accept\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"device_id\":\"2b0f0f3e-0000-4000-8000-000000000003\",\"public_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw\"}}",
+      "expect": {"ok": true, "type": "pair.accept", "session": null, "negotiation": null, "seq": 1}
     },
     {
-      "name": "配对确认（用户已核对短校验码）",
+      "name": "被控端现场确认",
       "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"pair.confirm\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{}}",
-      "expect": {
-        "ok": true,
-        "type": "pair.confirm",
-        "session": null,
-        "negotiation": null,
-        "seq": 3
-      }
+      "input": "{\"v\":1,\"type\":\"pair.confirm\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{}}",
+      "expect": {"ok": true, "type": "pair.confirm", "session": null, "negotiation": null, "seq": 2}
     },
     {
-      "name": "会话请求（带签名）",
+      "name": "控制端已暂存配对身份",
       "direction": "client->server",
-      "note": "签名是 71 字节 DER 占位值；段落长度与字段名不影响信封解码",
-      "input": "{\"v\":1,\"type\":\"session.request\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"device_id\":\"client-test-device\",\"permissions\":[\"view\",\"mouse\",\"keyboard\"],\"signature\":\"MEUCIREREREREREREREREREREREREREREREREREREREREREREQIgIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\"}}",
-      "expect": {
-        "ok": true,
-        "type": "session.request",
-        "session": null,
-        "negotiation": null,
-        "seq": 3
-      }
+      "input": "{\"v\":1,\"type\":\"pair.ready\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{}}",
+      "expect": {"ok": true, "type": "pair.ready", "session": null, "negotiation": null, "seq": 2}
     },
     {
-      "name": "配对拒绝（口令错误）",
+      "name": "被控端已提交配对身份",
       "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"pair.reject\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{\"reason\":\"bad_password\"}}",
-      "expect": {
-        "ok": true,
-        "type": "pair.reject",
-        "session": null,
-        "negotiation": null,
-        "seq": 3
-      }
+      "input": "{\"v\":1,\"type\":\"pair.complete\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{}}",
+      "expect": {"ok": true, "type": "pair.complete", "session": null, "negotiation": null, "seq": 3}
     },
     {
-      "name": "会话拒绝（签名或质询无效）",
+      "name": "配对拒绝（短码不一致）",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"pair.reject\",\"session\":null,\"negotiation\":null,\"seq\":3,\"payload\":{\"reason\":\"code_mismatch\"}}",
+      "expect": {"ok": true, "type": "pair.reject", "session": null, "negotiation": null, "seq": 3}
+    },
+    {
+      "name": "会话请求（连接已认证）",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"session.request\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{\"challenge_id\":\"2b0f0f3e-0000-4000-8000-000000000001\",\"permissions\":[\"view\",\"mouse\",\"keyboard\"]}}",
+      "expect": {"ok": true, "type": "session.request", "session": null, "negotiation": null, "seq": 1}
+    },
+    {
+      "name": "会话拒绝（质询无效或已过期）",
       "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"session.reject\",\"session\":null,\"negotiation\":null,\"seq\":4,\"payload\":{\"reason\":\"bad_signature\"}}",
-      "expect": {
-        "ok": true,
-        "type": "session.reject",
-        "session": null,
-        "negotiation": null,
-        "seq": 4
-      }
+      "input": "{\"v\":1,\"type\":\"session.reject\",\"session\":null,\"negotiation\":null,\"seq\":2,\"payload\":{\"reason\":\"expired\"}}",
+      "expect": {"ok": true, "type": "session.reject", "session": null, "negotiation": null, "seq": 2}
+    },
+    {
+      "name": "会话受理（本机已批准）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"session.accept\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":1,\"payload\":{\"permissions\":[\"view\",\"mouse\",\"keyboard\"]}}",
+      "expect": {"ok": true, "type": "session.accept", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 1}
+    },
+    {
+      "name": "媒体参数协商（代次 1）",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"media.offer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":2,\"payload\":{\"codec\":\"h264-baseline\",\"width\":1280,\"height\":720,\"max_fps\":30,\"max_bitrate_bps\":4000000,\"keyframe_interval_frames\":60,\"display_map_version\":1}}",
+      "expect": {"ok": true, "type": "media.offer", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": 1, "seq": 2}
+    },
+    {
+      "name": "媒体接受，回显同一代次",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":1,\"payload\":{\"accept\":true}}",
+      "expect": {"ok": true, "type": "media.answer", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": 1, "seq": 1}
+    },
+    {
+      "name": "媒体拒绝（不支持编解码）",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":1,\"payload\":{\"accept\":false,\"reason\":\"unsupported_codec\"}}",
+      "expect": {"ok": true, "type": "media.answer", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": 1, "seq": 1}
+    },
+    {
+      "name": "首帧就绪",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"session.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":2,\"payload\":{}}",
+      "expect": {"ok": true, "type": "session.ready", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": 1, "seq": 2}
+    },
+    {
+      "name": "被控端发布输入代次",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"input.prepare\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":3,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.prepare", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 3}
+    },
+    {
+      "name": "控制端确认输入代次",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"input.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":3,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.ready", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 3}
+    },
+    {
+      "name": "被控端已启用输入门禁",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"input.enabled\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":4,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.enabled", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 4}
+    },
+    {
+      "name": "控制端请求暂停输入",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"input.pause\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":4,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.pause", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 4}
+    },
+    {
+      "name": "被控端已封闭输入代次",
+      "direction": "server->client",
+      "input": "{\"v\":1,\"type\":\"input.suspended\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":5,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.suspended", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 5}
+    },
+    {
+      "name": "控制端请求恢复输入",
+      "direction": "client->server",
+      "input": "{\"v\":1,\"type\":\"input.resume\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":5,\"payload\":{\"input_epoch\":1}}",
+      "expect": {"ok": true, "type": "input.resume", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 5}
+    },
+    {
+      "name": "保活请求",
+      "direction": "both",
+      "input": "{\"v\":1,\"type\":\"ping\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":8,\"payload\":{\"t\":123456}}",
+      "expect": {"ok": true, "type": "ping", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 8}
     },
     {
       "name": "保活应答",
       "direction": "both",
       "input": "{\"v\":1,\"type\":\"pong\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":9,\"payload\":{\"t\":123456}}",
-      "expect": {
-        "ok": true,
-        "type": "pong",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 9
-      }
+      "expect": {"ok": true, "type": "pong", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 9}
     },
     {
-      "name": "会话受理（同一 seq 双向独立计数）",
-      "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"session.accept\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":3,\"payload\":{\"permissions\":[\"view\",\"mouse\",\"keyboard\"]}}",
-      "expect": {
-        "ok": true,
-        "type": "session.accept",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 3
-      }
-    },
-    {
-      "name": "媒体参数协商（代次 1）",
-      "direction": "server->client",
-      "input": "{\"v\":1,\"type\":\"media.offer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":4,\"payload\":{\"codec\":\"h264-baseline\",\"width\":1280,\"height\":720,\"max_fps\":30,\"max_bitrate_bps\":4000000,\"keyframe_interval_frames\":60}}",
-      "expect": {
-        "ok": true,
-        "type": "media.offer",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": 1,
-        "seq": 4
-      }
-    },
-    {
-      "name": "媒体接受，回显同一代次",
-      "direction": "client->server",
-      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":4,\"payload\":{\"accept\":true}}",
-      "expect": {
-        "ok": true,
-        "type": "media.answer",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": 1,
-        "seq": 4
-      }
-    },
-    {
-      "name": "媒体拒绝（不支持编解码）",
-      "direction": "client->server",
-      "input": "{\"v\":1,\"type\":\"media.answer\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":1,\"seq\":5,\"payload\":{\"accept\":false,\"reason\":\"unsupported_codec\"}}",
-      "expect": {
-        "ok": true,
-        "type": "media.answer",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": 1,
-        "seq": 5
-      }
-    },
-    {
-      "name": "首帧就绪",
-      "direction": "client->server",
-      "input": "{\"v\":1,\"type\":\"session.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":6,\"payload\":{}}",
-      "expect": {
-        "ok": true,
-        "type": "session.ready",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 6
-      }
-    },
-    {
-      "name": "输入代次确认",
-      "direction": "client->server",
-      "input": "{\"v\":1,\"type\":\"input.ready\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":7,\"payload\":{\"input_epoch\":1}}",
-      "expect": {
-        "ok": true,
-        "type": "input.ready",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 7
-      }
-    },
-    {
-      "name": "保活（双向消息）",
-      "direction": "both",
-      "input": "{\"v\":1,\"type\":\"ping\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":8,\"payload\":{\"t\":123456}}",
-      "expect": {
-        "ok": true,
-        "type": "ping",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 8
-      }
-    },
-    {
-      "name": "bye（双向）",
+      "name": "结束会话",
       "direction": "both",
       "input": "{\"v\":1,\"type\":\"bye\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":9,\"payload\":{\"reason\":\"user\"}}",
-      "expect": {
-        "ok": true,
-        "type": "bye",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 9
-      }
+      "expect": {"ok": true, "type": "bye", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 9}
     },
     {
       "name": "error 回指序号",
       "direction": "both",
-      "input": "{\"v\":1,\"type\":\"error\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":10,\"payload\":{\"code\":\"stale_seq\",\"in_reply_to_seq\":8}}",
-      "expect": {
-        "ok": true,
-        "type": "error",
-        "session": "7f1a5c8e-0000-4000-8000-000000000001",
-        "negotiation": null,
-        "seq": 10
-      }
+      "input": "{\"v\":1,\"type\":\"error\",\"session\":\"7f1a5c8e-0000-4000-8000-000000000001\",\"negotiation\":null,\"seq\":10,\"payload\":{\"code\":\"permission_denied\",\"in_reply_to_seq\":8}}",
+      "expect": {"ok": true, "type": "error", "session": "7f1a5c8e-0000-4000-8000-000000000001", "negotiation": null, "seq": 10}
     },
     {
       "name": "主版本为 2",
       "direction": "both",
       "input": "{\"v\":2,\"type\":\"media.offer\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{}}",
-      "expect": {
-        "ok": false,
-        "code": "unsupported_version"
-      }
+      "expect": {"ok": false, "code": "unsupported_version"}
     },
     {
       "name": "缺少 seq",
       "direction": "both",
       "input": "{\"v\":1,\"type\":\"ping\",\"session\":null,\"negotiation\":null,\"payload\":{}}",
-      "expect": {
-        "ok": false,
-        "code": "malformed_envelope"
-      }
+      "expect": {"ok": false, "code": "malformed_envelope"}
     },
     {
       "name": "seq 小于 1",
       "direction": "both",
       "input": "{\"v\":1,\"type\":\"bye\",\"session\":null,\"negotiation\":null,\"seq\":0,\"payload\":{}}",
-      "expect": {
-        "ok": false,
-        "code": "malformed_envelope"
-      }
+      "expect": {"ok": false, "code": "malformed_envelope"}
     },
     {
       "name": "未知消息类型",
       "direction": "both",
       "input": "{\"v\":1,\"type\":\"offer\",\"session\":null,\"negotiation\":null,\"seq\":1,\"payload\":{}}",
-      "expect": {
-        "ok": false,
-        "code": "unsupported_type"
-      }
+      "expect": {"ok": false, "code": "unsupported_type"}
     }
   ]
 }

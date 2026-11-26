@@ -6,9 +6,9 @@ approved-by: user, 2026-11-19（用户确认首个功能规格取“帧移交”
 本文定义 Capture 线程与 Encode 线程之间唯一的帧传递通道。它是
 [AGENTS.md §6.1](../../../AGENTS.md) “Capture 线程绝不阻塞在编码器上”这一不变量的具体落地。
 
-上游里程碑：[局域网纵向切片](../001-lan-vertical-slice/spec.md)（状态 `draft`）。
-本规格独立成立：它只描述进程内的内存与所有权契约，不涉及会话、传输或平台具体实现，
-因此可以在里程碑规格仍待定时先行批准。**批准本规格不授权实现会话、传输、输入或平台层。**
+屏幕帧移交服务于第一阶段 [001 · Android 手机在局域网远控 Windows 电脑](../001-android-controls-windows-over-lan/spec.md)（状态 `approved`）。
+本文只定义进程内如何传递屏幕帧，以及交接前后由谁负责管理帧。本文的契约单独审批。
+**批准范围仅限本文定义的屏幕帧移交行为。**
 
 架构背景见 [架构总览](../../architecture/overview.md) 5.2，线程模型见
 [线程模型](../../architecture/threading.md) 第 1–3 节，平台侧采集接口见
@@ -30,7 +30,7 @@ approved-by: user, 2026-11-19（用户确认首个功能规格取“帧移交”
 - 跨进程或跨设备传递。
 - 纹理/GPU 零拷贝路径；本文只约束 CPU 缓冲，扩展须改本文件。
 
-## 2. 接口契约
+## 2. 接口约定
 
 本节是 `FrameDesc` 与 `PixelFormat` 的**唯一定义**，其他文档只能引用不得重述。
 [Windows 平台适配](../003-platform-win/spec.md) 2.1 记录了与 docs 旧版本的合并决定。

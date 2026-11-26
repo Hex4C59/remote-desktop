@@ -13,7 +13,7 @@ from pathlib import Path
 
 INCREMENTS_DIR = Path(__file__).resolve().parent.parent / "docs" / "increments"
 ALLOWED_STATUS = {"draft", "approved", "implemented", "superseded"}
-REQUIRED_SECTIONS = ["范围", "接口契约", "不变量", "线程与资源", "验收场景", "依赖与待决项"]
+REQUIRED_SECTIONS = ["范围", "接口约定", "不变量", "线程与资源", "验收场景", "依赖与待决项"]
 DOCUMENTS = ("spec.md", "plan.md", "tasks.md")
 INCREMENT_NAME = re.compile(r"(?P<number>[0-9]{3})-[a-z0-9]+(?:-[a-z0-9]+)*")
 STATUS_LINE = re.compile(r"status:\s*(\S+)\s*")

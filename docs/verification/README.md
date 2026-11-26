@@ -12,9 +12,11 @@
 | `RD_ASSERT` 或依赖其行为的代码 | Debug `core.assert.AssertDebug.*`、Release `core.assert.AssertRelease.*` | Debug 终止行为与 Release 计数行为 |
 | 帧池、单槽移交、帧写入视图 | `capture.frame_handoff.*`，见下表 | 两个构建配置中的帧所有权和写入约束 |
 | Android 投屏授权、生命周期、像素和尺寸处理 | `AC-01`～`AC-08` | 按 Android 任务清单执行自动化用例 |
-| Android 候选 APK | `ACH-01`～`ACH-04` | 按任务清单在 Android 14+ ARM64 真机验证授权、首帧和停止等行为，记录设备与产物 |
+| Android 被控端候选 APK | `ACH-01`～`ACH-04` | 按 004 在 Android 14+ ARM64 真机验证授权、首帧和停止等行为，记录设备与产物 |
+| Android 控制端 | `AN-01`～`AN-07` | 按 007 用固定 Gradle Wrapper 跑 `testDebugUnitTest` 和 `connectedDebugAndroidTest`，用 Debug CTest 验证共用 C++ |
+| M1 首发组合 | `ANH-01`～`ANH-03`、`M1H-01`～`M1H-06` | Android 10+ ARM64 真机与 Windows 电脑局域网直连。保存设备、构建标识、链路与原始证据到 `test-results/m1/` |
 
-[Android 画面采集任务与验收映射](../increments/004-android-screen-capture/tasks.md)
+[004 Android 被控端验收](../increments/004-android-screen-capture/tasks.md) · [007 Android 控制端验收](../increments/007-android-controller/tasks.md) · [001 M1 真机验收](../increments/001-android-controls-windows-over-lan/spec.md#42-真机验收)
 
 ```bash
 # 查看可运行的用例名

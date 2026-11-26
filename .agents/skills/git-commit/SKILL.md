@@ -17,9 +17,9 @@ description: 分析 Git 变更并生成 Conventional Commits 提交信息，按�
 
 ## 使用步骤
 
-1. 阅读[上游主 Skill](upstream/SKILL.md)，确认用户请求的范围是生成信息还是实际提交。
-2. 在用户指定的目标 Git 仓库中检查状态与 diff，根据实际改动生成提交信息。
-3. 按用户要求审查输出；仅在任务授权包含实际提交时执行对应 Git 操作。
+1. 阅读[上游主 Skill](upstream/SKILL.md)并检查目标仓库是否存在提交规范（如 `docs/git-commit-convention.md`、`COMMIT_CONVENTION.md`、`AGENTS.md`）；若存在，以目标仓库规范为准（包括语言、是否必填 body、scope 列表与提交前校验命令）。
+2. 在用户指定的目标 Git 仓库中检查 `git status --porcelain`、`git diff --staged` 与 `git diff`，排除无关改动与敏感凭据，根据实际改动生成提交信息。
+3. 按用户要求审查输出；仅在用户明确授权包含实际提交时执行对应 Git 操作。跨平台执行多段提交（subject + body）时优先使用多个 `-m` 参数（`git commit -m "<subject>" -m "<body>"`），以同时兼容 Windows PowerShell 与 Bash。
 
 ## 依赖与限制
 

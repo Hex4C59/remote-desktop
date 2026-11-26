@@ -2,17 +2,17 @@
 
 status: draft
 
-状态：接口契约草案，无实现。平台相关代码只允许出现在 `src/platform/{win,linux,mac}/`；
+平台相关代码位于 `src/platform/{win,linux,mac}/`。[007](../increments/007-android-controller/spec.md) 提议增加 `src/platform/android/`。
 业务与协议代码不得直接调用 `SendInput`、XTest、DXGI、Win32 窗口 API 或 Android API。
 
-本文定义接口契约（类型、错误码、线程归属），实现留空。接口变更必须与本文同步，
+本文说明各接口怎样调用、会返回什么结果或错误，以及应在哪个线程调用。接口变更必须与本文同步，
 且按 [AGENTS.md](../../AGENTS.md) 第 8 节的要求先改本文再改代码。
 
 ## 1. 目录与文件归属
 
 ```text
+include/remotedesktop/platform/platform.h  # 平台无关的公共接口声明与类型
 src/platform/
-  platform.h              # 平台无关的接口声明与类型（公共契约）
   win/
     screen_capture_win.cpp    # Thread: capture only
     input_inject_win.cpp      # Thread: input only
@@ -20,6 +20,7 @@ src/platform/
     display_info_win.cpp      # Thread: any（纯查询，不阻塞）
     render_surface_win.cpp    # Thread: ui only（控制端）
   linux/ mac/                  # 同构实现，后续
+  android/                     # 007 待评审的 Java UI、JNI 和平台解码适配
 tests/unit/platform/          # mock 实现，不依赖真实设备
 ```
 
@@ -27,7 +28,7 @@ tests/unit/platform/          # mock 实现，不依赖真实设备
 
 - `platform.h` 只包含标准库与项目自有类型，不包含任何平台头文件。
 - 每个实现文件头注释写明职责与线程归属。
-- 平台实现不抛出跨边界异常；错误通过 `std::expected<T, PlatformError>` 返回（见第 6 节）。
+- 平台实现不抛出跨边界异常，使用 §2 的 `PlatformResult<T>` 返回。
 - 平台实现不做日志格式化，只返回可上报的状态。
 
 ## 2. 错误类型
@@ -38,23 +39,31 @@ enum class PlatformError {
   kPermissionDenied,    // 系统权限不足
   kUnavailable,         // 设备/资源当下不可用（可能重试成功）
   kSessionNotInteractive, // 不在已登录未锁屏的交互会话
-  kDisplayChanged,      // 分辨率/DPI/拓扑变化，调用方须重建
+  kDisplayChanged,      // 分辨率/DPI/拓扑变化，调用方处理会话关闭或采集器重建
   kTimeout,             // 平台调用超时
   kNoNewFrame,          // 超时内画面无变化，不是错误
   kAlreadyInitialized,  // 重复 initialize
   kAccessLost,          // DXGI ACCESS_LOST：采集器不可用，须重建
   kSecureDesktop,       // 处于安全桌面或锁屏
+  kInputCleanupPending, // 释放未全部得到平台确认，保留待清理按压
+  kInvalidArgument,     // 调用参数或帧描述不合法
+  kRenderSurfaceLost,   // 图形设备或表面失效，需重建
   kInternal,            // 不可分类，须附上下文
 };
+
+template <typename T>
+using PlatformResult =
+    std::variant<std::conditional_t<std::is_void_v<T>, std::monostate, T>, PlatformError>;
 ```
 
-禁止用返回 `bool` + `errno` 或抛异常在平台边界表达失败。
+`PlatformResult<T>` 使用 C++20。成功返回值分支，`void` 成功返回 `std::monostate`。失败返回 `PlatformError` 分支。
+禁止通过异常跨平台边界。
 
 ## 3. 屏幕采集
 
 `FrameDesc` 的唯一定义在
 [屏幕帧移交规格](../increments/002-screen-frame-handoff/spec.md) 第 2 节，
-采集侧契约与 Windows 实现见 [Windows 平台适配规格](../increments/003-platform-win/spec.md) 2.1。
+采集接口的调用约定与 Windows 实现见 [Windows 平台适配规格](../increments/003-platform-win/spec.md) 2.1。
 
 ```cpp
 // FrameDesc / PixelFormat 的定义见屏幕帧移交规格第 2 节。
@@ -63,53 +72,46 @@ enum class PlatformError {
 class ScreenCapture {
  public:
   // Thread: capture only
-  virtual std::expected<void, PlatformError> initialize(const CaptureConfig&) = 0;
-  virtual std::expected<FrameDesc, PlatformError> acquire_frame(
+  virtual PlatformResult<void> initialize(const CaptureConfig&) = 0;
+  virtual PlatformResult<FrameDesc> acquire_frame(
       Frame* frame, std::chrono::milliseconds timeout) = 0;
-  virtual std::expected<DisplayInfo, PlatformError> display_info() const = 0;
+  virtual PlatformResult<DisplayInfo> display_info() const = 0;
   virtual ~ScreenCapture() = default;
 };
 ```
 
-契约：
+**怎样获取画面、会返回什么**
 
 - `acquire_frame` 是唯一阻塞点，且必须尊重 `timeout`；超时返回 `kTimeout`，不得无限等待。
 - 像素写入调用方提供的 `Frame`，采集器不持有帧引用；所有权仍归 `FramePool`。
-- 无画面变化返回 `kNoNewFrame`，与 `kTimeout` 区分（详见 Windows 平台适配规格 2.3）。
+- Windows 的 DXGI 等待在期限内无新帧时返回 `kTimeout`，调用方继续轮询。`kNoNewFrame` 保留给能单独确认无变化的其他后端。
 - 采集失败要区分“暂时无变化”（不是错误，返回无帧）与“设备丢失”（`kUnavailable`）。
-- DPI 或分辨率变化时返回 `kDisplayChanged`，由调用方重建采集器，不在内部静默适配。
+- DPI、分辨率或显示拓扑变化时报告 `kDisplayChanged`，由调用方按当前使用场景处理。M1 会话关闭后重新获取映射。
 - 不得在采集路径做缩放、色彩转换或编码。
 
 ## 4. 输入注入
 
-```cpp
-struct InputEvent {
-  InputKind kind;             // kPointerMove/kButton/kWheel/kKey/kText
-  uint16_t button_or_key;     // 平台无关键值，见 4.1
-  int32_t x, y;               // 绝对坐标（虚拟桌面坐标空间）
-  int32_t wheel_delta;
-  uint32_t display_map_version;
-  uint64_t pointer_seq;
-  uint64_t source_timestamp_ns;   // 控制端采集时刻
-  uint64_t inject_timestamp_ns;   // 被控端注入时刻
-  SessionId session;
-  uint32_t input_epoch;
-};
+[`InputEvent` 及相邻值类型](../increments/003-platform-win/spec.md#25-输入注入)的完整声明见 003，源码归属公共平台头。
 
+```cpp
 class InputInjector {
  public:
   // Thread: input only
-  virtual std::expected<void, PlatformError> inject(const InputEvent&) noexcept;
-  virtual void release_all_pressed() noexcept;   // 会话结束/断线时必调
+  virtual PlatformResult<void> inject(InputEvent&) noexcept = 0;
+  [[nodiscard]] virtual PlatformResult<void> release_all_pressed() noexcept = 0;
   virtual ~InputInjector() = default;
 };
 ```
 
-契约：
+**怎样发送输入、怎样清理按下状态**
 
-- `inject` 不阻塞等待渲染或网络；失败只返回错误，由调用方决定是否结束会话。
-- 注入前由调用方（Input 执行器）检查会话、`input_epoch` 与授权门禁；注入器不重复做业务判断。
-- 每次成功按下都由注入器记账，`release_all_pressed` 必须无遗漏地释放。
+- `inject` 由 Input 执行器在取得一次注入许可后调用，并回填被控端单调时钟的 `inject_timestamp_ns`。
+  注入器在返回前按实际效果记账，效果不明确时保留可能仍按下的项。具体规则见 [003 §2.7](../increments/003-platform-win/spec.md#27-平台效果与重试)。
+  普通注入返回错误时，Input 执行器在领取下一条事件前终止封闭门禁并请求 Session 关断。
+- `release_all_pressed` 由 Input 执行器调用，在普通输入门禁关闭后仍可使用，只处理本程序记账的按压。
+  平台确认释放的项从记录移除。仍有未确认项时返回 `kInputCleanupPending`，下一次调用仅处理剩余项。
+  成功表示记录确已清空。记录为空时重复调用直接成功。释放受桌面限制时保留记录，待交互桌面恢复后重试。
+  两个调用均不得等待渲染、网络或下一帧。归还会话槽位由 [001 §2.3](../increments/001-android-controls-windows-over-lan/spec.md#23-输入门禁与清理) 定义。
 - 坐标一律使用绝对虚拟桌面坐标 + `display_map_version`；由调用方换算，注入器不猜映射。
 - 键值使用项目自定义的枚举，不暴露平台虚拟键码。
 
@@ -123,21 +125,28 @@ class InputInjector {
 
 ```cpp
 enum class DesktopState { kInteractive, kLocked, kSecureDesktop, kLoggedOut, kUnknown };
+using LocalSessionGeneration = std::uint64_t;
+
+struct DesktopObservation {
+  LocalSessionGeneration generation;
+  std::uint64_t sequence;
+  DesktopState state;
+};
+using DesktopObserver = void (*)(void* context, DesktopObservation) noexcept;
 
 class SessionState {
  public:
-  // Thread: session only
-  virtual DesktopState query() const noexcept;
-  virtual std::expected<void, PlatformError> subscribe(std::function<void(DesktopState)>);  // 回调只投递事件
+  // Thread: session only. The platform event source dispatches the observer.
+  virtual PlatformResult<DesktopObservation> subscribe(
+      LocalSessionGeneration generation, DesktopObserver observer, void* context) noexcept = 0;
+  virtual void unsubscribe(LocalSessionGeneration generation) noexcept = 0;
   virtual ~SessionState() = default;
 };
 ```
 
-契约：
-
-- 非 `kInteractive` 一律结束会话，不得继续采集或注入。
-- `subscribe` 的回调**不得**在回调里做业务判断或阻塞；只能向 Session 执行器投递事件。
-- 不得把 SSH/Session 0 会话当成可采集桌面；`kUnknown` 按不可用处理。
+- `subscribe` 注册一个观察器并原子取得初始快照。序号从 1 开始，后续通知具有更高序号。重复订阅返回 `kAlreadyInitialized`，事件源不可用返回 `kUnavailable`，权限不足返回 `kPermissionDenied`，平台不支持返回 `kNotSupported`。失败不登记这次订阅。已能观察但当前状态未经证实，成功返回 `kUnknown`。
+- 回调可早于 `subscribe` 返回，所有通知保留订阅代次。`unsubscribe` 对无匹配代次幂等，已开始派发的回调允许迟到。回调上下文由端点持有至平台事件源退出并确认派发全部返回。
+- Session 消费同代次最新状态。初始不可交互、订阅失败或同代次非交互通知终止封闭门禁。通知先原子封闭，再写独立关断槽。恢复仅更新最新状态槽供清理重试。完整顺序、寿命和测试见 [005 桌面状态](../increments/005-windows-desktop-state/spec.md)。
 
 ## 6. 显示与 DP
 
@@ -150,25 +159,36 @@ struct DisplayInfo {
 };
 ```
 
-- 多显示器与旋转在 M2 定义，M1 只保证单显示器且 `display_map_version` 稳定。
-- 变化时单调递增版本，控制端发现版本不一致即重新获取。
-  版本回退属于 `kDisplayChanged`，不得继续注入旧坐标。
+- M1 支持单显示器。每次会话固定一个 `display_map_version`，由被控端通过 `media.offer` 通知控制端。
+- 映射变化时 Capture 通知 Session 结束会话。普通鼠标输入须匹配本次会话的固定版本。
+  本地按压释放独立于旧映射，参见 [001 §2.3](../increments/001-android-controls-windows-over-lan/spec.md#23-输入门禁与清理)。
+  重新授权后获取届时的映射。多显示器与旋转在 M2 定义。
 
 ## 7. 渲染表面（控制端）
 
 ```cpp
+struct VideoFrameView {
+  std::span<const std::byte> pixels;
+  std::uint32_t width, height;
+  std::size_t stride;
+};
+
+struct PresentedFrame {
+  std::uint32_t x, y, width, height;  // Destination rectangle in client pixels.
+};
+
 class RenderSurface {
  public:
   // Thread: ui only
-  virtual std::expected<void, PlatformError> present(const VideoFrame&) noexcept;
-  virtual void resize(uint32_t width, uint32_t height) noexcept;
+  virtual PlatformResult<PresentedFrame> present(const VideoFrameView&) noexcept = 0;
+  virtual PlatformResult<void> resize(std::uint32_t width, std::uint32_t height) noexcept = 0;
   virtual ~RenderSurface() = default;
 };
 ```
 
-- `VideoFrame` 的所有者由解码侧声明，`present` 不得保留引用到下一次调用之后。
-- UI 线程不做网络读取；网络到渲染之间经过有界的“最新帧”移交。
-- 渲染失败要区分“丢一帧可恢复”与“资源丢失需重建”。
+- `present` 借用解码侧的 BGRA8 SDR 像素至调用结束。显示矩形、错误和重建策略见 [006 渲染表面](../increments/006-windows-render-surface/spec.md)。
+- Windows Decode 通过一槽覆盖移交帧。UI 核验当前会话及协商代次后呈现，首帧确认以本地呈现成功为依据。
+- Android Surface 路径见 [007 的接口约定](../increments/007-android-controller/spec.md#2-接口约定)。UI 主线程管理 Surface 生命周期，Decode 持有用于系统解码的引用。仅当前表面代次的系统呈现回调可进入首帧槽，Decode 释放缓冲和引用后异步确认退出。
 
 ## 8. 测试约定
 

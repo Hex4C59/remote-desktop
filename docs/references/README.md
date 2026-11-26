@@ -8,7 +8,7 @@
 | 目录 / 文件 | 性质 | 是否约束实现 |
 | --- | --- | --- |
 | `docs/increments/` | 功能级行为契约 | 是。`status: approved` 才可动工 |
-| [架构总览](../architecture/overview.md)、[线程模型](../architecture/threading.md)、[平台抽象](../architecture/platform-abstraction.md)、[控制协议](../protocol/README.md) | 架构与接口契约 | 是，由 `ctest` 中的 `arch.layers` 检查 |
+| [架构总览](../architecture/overview.md)、[线程模型](../architecture/threading.md)、[平台抽象](../architecture/platform-abstraction.md)、[控制协议](../protocol/README.md) | 架构与接口约定 | 是，由 `ctest` 中的 `arch.layers` 检查 |
 | `docs/references/`（本目录） | 对外部产品的观察 | **否** |
 
 放进本目录的内容没有以下效力：

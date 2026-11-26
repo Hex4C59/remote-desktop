@@ -2,7 +2,7 @@
 
 ## 可编辑 XML
 
-每个页面用 `<diagram>` 包住 `<mxGraphModel>`。画布和分区先放在根层，服务卡片与连线放在其后。使用唯一的单元 ID，连线的 `source` 和 `target` 引用节点 ID。节点说明有多行时，可用子文本单元，说明会随卡片一起移动。
+每个页面用 `<diagram>` 包住 `<mxGraphModel>`。画布和分区先放在根层，服务卡片与连线放在其后。使用唯一的单元 ID，连线的 `source` 和 `target` 引用节点 ID。节点说明有多行时，使用纯文本换行（`&#xa;`）或子文本单元（说明会随卡片一起移动）。**严禁在样式中使用 `html=1` 或在 `value` 中写 `<br>`/`<b>`/`<font>` 等 HTML 标签**——否则本地查看器生成的 `<foreignObject>` 会撑爆 `svg.getBBox()`，导致 `export-png.mjs` 截图失败。
 
 ```xml
 <mxfile host="app.diagrams.net">

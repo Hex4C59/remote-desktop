@@ -2,12 +2,15 @@
 
 | 编号 | 增量 | 状态 | 范围 | 实施文档 |
 | --- | --- | --- | --- | --- |
-| 001 | [局域网纵向切片](001-lan-vertical-slice/spec.md) | `draft` | M1 交付边界、实现顺序与整体验收 | |
+| 001 | [Android 手机在局域网远控 Windows 电脑](001-android-controls-windows-over-lan/spec.md) | `approved` | 配对与电脑本机授权、手机查看实时桌面、触控与键盘操作、延迟与一小时稳定性验收 | [方案](001-android-controls-windows-over-lan/plan.md) · [任务](001-android-controls-windows-over-lan/tasks.md) |
 | 002 | [屏幕帧移交](002-screen-frame-handoff/spec.md) | `approved` | 帧所有权、缓冲池与单槽覆盖 | |
-| 003 | [Windows 平台适配](003-platform-win/spec.md) | `draft` | DXGI 画面采集与 SendInput 输入注入 | |
+| 003 | [Windows 平台适配](003-platform-win/spec.md) | `approved` | DXGI 画面采集与 SendInput 输入注入 | [方案](003-platform-win/plan.md) · [任务](003-platform-win/tasks.md) |
 | 004 | [Android 被控端画面采集](004-android-screen-capture/spec.md) | `draft` | 系统授权、真机像素取帧与资源回收 | [方案](004-android-screen-capture/plan.md) · [任务](004-android-screen-capture/tasks.md) |
+| 005 | [Windows 桌面状态观察](005-windows-desktop-state/spec.md) | `approved` | 初始快照、会话代次通知与输入关断 | [方案](005-windows-desktop-state/plan.md) · [任务](005-windows-desktop-state/tasks.md) |
+| 006 | [Windows 控制端渲染表面](006-windows-render-surface/spec.md) | `approved` | 解码帧借用、窗口呈现与首帧确认 | [方案](006-windows-render-surface/plan.md) · [任务](006-windows-render-surface/tasks.md) |
+| 007 | [Android 控制端](007-android-controller/spec.md) | `draft` | 实时画面、触控与键盘、焦点和表面生命周期 | [方案](007-android-controller/plan.md) · [任务](007-android-controller/tasks.md) |
 
-**下一个可用编号 005**
+**下一个可用编号 008**
 
 ## 目录与顺序
 
