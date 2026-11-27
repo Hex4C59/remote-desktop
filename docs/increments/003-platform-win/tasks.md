@@ -14,12 +14,15 @@
 
 ## 波次 2 · 其余平台行为
 
-- [ ] T004 按红绿循环补齐 DXGI 采集、探测、映射与释放分支（路径 `src/platform/win/screen_capture_win.cpp`、`tests/unit/platform/win/screen_capture_win_test.cpp`。验证 PW-01–08、PW-20。）
-- [ ] T005 接入原生 `SendInput` 后端，按红绿循环补齐键鼠、文本、映射与生命周期分支（路径 `src/platform/win/input_inject_win.cpp`、`tests/unit/platform/win/input_inject_win_test.cpp`。验证 PW-09–17、PW-19。PW-13 两个配置均须验证。）
+- [x] T004 按红绿循环补齐 DXGI 采集、探测、映射与释放分支（路径 `src/platform/win/screen_capture_win.cpp`、`tests/unit/platform/win/screen_capture_win_test.cpp`。验证 PW-01–08、PW-20。）
+- [x] T005 接入原生 `SendInput` 后端，按红绿循环补齐键鼠、文本、映射与生命周期分支（路径 `src/platform/win/input_inject_win.cpp`、`tests/unit/platform/win/input_inject_win_test.cpp`。验证 PW-09–17、PW-19。PW-13 两个配置均须验证。）
+
+波次 2 的红灯、绿灯和全量回归记录见 `test-results/platform-win/wave-2.md`。
 
 ## 最终波次 · 验收与证据
 
-- [ ] T006 运行全量 Debug CTest 和 Windows 平台实测。记录每条验收的被测版本、命令、结果与环境（路径 `tests/integration/`、`test-results/platform-win/`。验证 PWH-01–06 及回归。）
+- [ ] T006 验证单张纹理的非等待读回和 Windows 真机结果。先在 `tests/unit/platform/win/screen_capture_win_test.cpp` 保存 PW-22–26 的红灯，再实现在 `src/platform/win/` 的提交、轮询、交付和作废行为。运行目标和全量 Debug、Release CTest，在本机交互桌面运行 PWH-01–06。
+  - PW-22–26 和 Debug、Release 全量 CTest 已通过。候选在同一台 Windows 电脑通过 PWH-02–06，包括真实锁屏拒绝和解锁后重建采集。PWH-01 的 60 秒测量交付 1,393 帧，颜色全部正确，帧池全部归还，进程私有内存增加 216 KiB，未达标。原始日志和堆分配对照见本地记录 `test-results/platform-win/t006-readback.md`。 [真机运行说明](../../../tests/integration/platform/win/README.md)
 
 ## 验收覆盖
 
@@ -28,4 +31,5 @@
 | PW-18、PW-21 | T002、T003、T006 |
 | PW-01–08、PW-20 | T004、T006 |
 | PW-09–17、PW-19 | T005、T006 |
+| PW-22–26 | T006 |
 | PWH-01–06 | T006 |

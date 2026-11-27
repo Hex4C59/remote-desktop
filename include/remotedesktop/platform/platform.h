@@ -1,12 +1,15 @@
-// Platform contracts for input injection and desktop observation.
+// Screen capture, input injection and desktop observation contracts.
 // Thread: any (interfaces declare their owner below).
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <string_view>
 #include <type_traits>
 #include <variant>
+
+#include "remotedesktop/frame_handoff.h"
 
 namespace rd::platform {
 
@@ -20,6 +23,33 @@ namespace rd::platform {
   template <typename T>
   using PlatformResult = std::variant<
       std::conditional_t<std::is_void_v<T>, std::monostate, T>, PlatformError>;
+
+  struct CaptureConfig {
+    std::uint32_t requested_width{};
+    std::uint32_t requested_height{};
+    std::uint32_t max_fps{30};
+    std::uint32_t initial_display_map_version{1};
+  };
+
+  struct DisplayInfo {
+    std::uint32_t width{};
+    std::uint32_t height{};
+    std::uint16_t dpi{96};
+    float scale{1.0f};
+    std::uint32_t display_map_version{1};
+  };
+
+  class ScreenCapture {
+   public:
+    // Thread: capture only. A null Frame probes without copying pixels.
+    virtual PlatformResult<void> initialize(const CaptureConfig&) = 0;
+    // timeout bounds the wait for a new frame. Windows may return kTimeout
+    // earlier while a readback is in flight. The Frame is borrowed per call.
+    virtual PlatformResult<FrameDesc> acquire_frame(
+        Frame*, std::chrono::milliseconds) = 0;
+    virtual PlatformResult<DisplayInfo> display_info() const = 0;
+    virtual ~ScreenCapture() = default;
+  };
 
   enum class InputKind : std::uint8_t {
     kPointerMove, kButtonDown, kButtonUp, kWheel, kKeyDown, kKeyUp, kText,
@@ -37,6 +67,7 @@ namespace rd::platform {
     kArrowUp, kArrowDown, kArrowLeft, kArrowRight,
     kMinus, kEqual, kLeftBracket, kRightBracket, kBackslash,
     kSemicolon, kQuote, kComma, kPeriod, kSlash, kBackquote,
+    kCount,  // Mapping coverage boundary.
   };
   enum class MouseButton : std::uint8_t { kLeft, kRight, kMiddle };
   using SessionId = std::array<std::uint8_t, 16>;

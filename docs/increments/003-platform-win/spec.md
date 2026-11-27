@@ -55,8 +55,8 @@ approved-by: Hex4C59, 2026-11-24
 ### 2.2 屏幕采集
 
 ```cpp
-// 归属：include/remotedesktop/platform/win/screen_capture_win.h
-// Thread: capture only（initialize 与 acquire 均只允许 Capture 线程）
+// 声明位于 include/remotedesktop/platform/platform.h 与 win/screen_capture_win.h。
+// 构造、所有调用和销毁均归 Capture 线程。装配时绑定当前会话的桌面状态读取入口。
 
 struct CaptureConfig {
   std::uint32_t requested_width{};    // 0 表示使用显示器当前分辨率
@@ -69,20 +69,21 @@ struct CaptureConfig {
 class ScreenCaptureWin final : public ScreenCapture {
  public:
   ScreenCaptureWin();
+  explicit ScreenCaptureWin(DesktopStateReader desktop);
   ~ScreenCaptureWin() override;
 
-  // 首次调用会初始化 DXGI 设备与输出复制对象。重复调用返回 kAlreadyInitialized。
-  PlatformResult<void> initialize(const CaptureConfig& cfg) override;
+  // 初始化 DXGI、单张 staging 纹理和一个 D3D11 完成查询。
+  // 重复初始化在 Debug 断言，在 Release 返回 kAlreadyInitialized。
+  PlatformResult<void> initialize(const CaptureConfig& cfg) noexcept override;
 
-  // 等待新帧。给定 frame 时把像素写入该帧并返回其描述。
-  // frame 为空 = 只查询是否有新帧（探测模式）。成功时返回的 FrameDesc 描述当前
-  // 显示器的宽/高/stride/格式，但像素未写入，调用方不得读取像素指针。
-  // AcquireNextFrame 超时/无新帧时返回 kTimeout，调用方继续正常轮询。
+  // 成功时返回原采集时间戳和映射版本。给定 frame 时再写入 BGRA8 像素与描述。
+  // 空指针只取描述。只在空闲时使用 timeout 等待 DXGI 新帧。
+  // GPU 读回忙时可提前返回 kTimeout。调用方可换一个帧缓冲继续轮询。
   PlatformResult<FrameDesc> acquire_frame(
-      Frame* frame, std::chrono::milliseconds timeout) override;
+      Frame* frame, std::chrono::milliseconds timeout) noexcept override;
 
-  // 显示器信息，纯查询，不阻塞。
-  PlatformResult<DisplayInfo> display_info() const override;
+  // 查询最近确认的显示信息。
+  PlatformResult<DisplayInfo> display_info() const noexcept override;
 
   ScreenCaptureWin(const ScreenCaptureWin&) = delete;
   ScreenCaptureWin& operator=(const ScreenCaptureWin&) = delete;
@@ -90,6 +91,8 @@ class ScreenCaptureWin final : public ScreenCapture {
 
 // 错误码在 docs 的 PlatformError 基础上新增三项（见 2.3）
 ```
+
+公共返回类型 `PlatformResult<T>` 用值分支表示成功，`void` 成功用 `std::monostate`，错误用 `PlatformError`。初始化失败释放本次创建的资源。未初始化时，采集和查询返回 `kUnavailable`。`frame` 非空时须为本次调用借出的可写帧，成功前由调用方保有，调用结束后可立即归还帧池。探测返回宽、高、格式、stride、时间戳和映射版本，可用它确定缓冲区大小。后续像素交付使用实际映射的 stride。
 
 ### 2.3 错误码
 
@@ -99,24 +102,25 @@ class ScreenCaptureWin final : public ScreenCapture {
 | 枚举值 | 触发条件 | 调用方处理 |
 | --- | --- | --- |
 | `kAlreadyInitialized` | 重复 `initialize` | 编程错误，Debug 下断言 |
-| `kAccessLost` | DXGI 返回 `ACCESS_LOST`（分辨率/拓扑变化、切到安全桌面） | 销毁并重建采集器；一次采集周期内最多重建 3 次 |
+| `kAccessLost` | DXGI 返回 `ACCESS_LOST`（分辨率或拓扑变化、切到安全桌面） | 销毁并重建采集器，一次采集周期内最多重建 3 次 |
 | `kSecureDesktop` | 已确认处于安全桌面或锁屏 | 结束会话。DXGI `ACCESS_LOST` 单独返回 `kAccessLost`，桌面分类使用 [005](../005-windows-desktop-state/spec.md) |
 
 保留 docs 中已有的 `kSessionNotInteractive`、`kDisplayChanged`、`kTimeout`、`kUnavailable`、
 `kPermissionDenied`、`kNotSupported`、`kInternal`。
 
-`kTimeout` 的语义在此明确：`AcquireNextFrame` 在给定 timeout 内没有新帧时返回 `kTimeout`，
-它**不是失败**。调用方按正常轮询处理，不结束会话、不重建采集器。
+空闲时 `timeout` 是 `AcquireNextFrame` 等待新帧的上限。零和负值按零等待处理，超大值限制在最大有限等待。无新帧、受帧率上限限制、读回暂未完成或已过期时返回 `kTimeout`，保持输出像素和描述原值。调用方继续轮询，无需等满原先指定的 `timeout`。
+
+确认锁屏或安全桌面时返回 `kSecureDesktop`。未证实处于交互桌面时返回 `kSessionNotInteractive`。两种结果都使本次待交付帧作废。
+
+源图形错误、提交失败或释放失败时，本次帧作废。释放失败优先返回。完成查询或映射返回终止错误，或 DXGI 源帧释放失败时，保留该错误并要求销毁重建，后续调用不再向该对象提交拷贝。目标缓冲区不足返回 `kInvalidArgument`，解除映射后可继续采集。
 
 `kAccessLost` 与 `kDisplayChanged` 的区别与后续处理：
 
 - `kAccessLost`：DXGI 的运行时错误，采集器对象已不可用，必须销毁并重建。M1 远控在重建后须先确认
   采集映射仍与会话固定映射一致，再发布帧。发现映射变化时按 `kDisplayChanged` 关断。
-- `kDisplayChanged`：检测到映射变化，但采集器对象仍可用。本次调用不产出帧，
-  新版本号通过 `display_info()` 或下一次成功的 `acquire_frame` 可见。
+- `kDisplayChanged`：检测到映射变化时先推进版本，本次调用不产出帧。现有 duplication 仍可用且新模式能装入预分配纹理时，后续调用可继续取帧。新模式超出纹理范围时返回 `kDisplayChanged`，由调用方按重建规则处理。若 DXGI 随后报告 `ACCESS_LOST`，按 `kAccessLost` 处理。
   M1 远控发现映射变化即停止发布并交由 Session 结束会话，用户重新授权后使用当前映射。
-  单独使用采集器时，调用方可继续取帧，连续 3 次报告 `kDisplayChanged` 仍不恢复时应重建。
-  每次检测独立报告，采集器不维护 `kDisplayChanged` 计数器。
+  单独使用采集器时，连续 3 次报告 `kDisplayChanged` 仍无帧则重建。每次检测独立报告，连续次数由调用方统计。
 
 ### 2.4 DisplayInfo 与 display_map_version
 
@@ -137,10 +141,9 @@ struct DisplayInfo {
 
 - 采集器初始化时，`current_version_` 取自 `CaptureConfig::initial_display_map_version`
   （由 SessionContext 传入，默认为 1）。
-- `width`、`height`、`dpi` 任一发生变化时，采集器先 `++current_version_`，
-  再返回 `kDisplayChanged`；此后 `display_info()` 与 `FrameDesc.display_map_version`
-  都报告新值。**返回 `kDisplayChanged` 的那次调用不产出帧**，
-  新版本号通过 `display_info()` 或下一次成功的 `acquire_frame` 可见。
+- `width`、`height`、`dpi` 任一发生变化时，采集器先递增当前版本，
+  再返回 `kDisplayChanged`。本次调用没有帧，原映射下待交付的读回作废。
+  `display_info()` 立即报告新值，后续成功交付的帧带相应版本。
 - 版本只增不减；回退视为实现错误，Debug 下断言。
 - 采集器重建时由 SessionContext 传入当前版本作为起点，采集器**不重置为 1**，
   否则控制端无法区分“同一版本的新旧帧”。
@@ -250,10 +253,8 @@ class InputInjectorWin final : public InputInjector {
 
 ## 3. 不变量
 
-1. **采集不分配。** `acquire_frame` 不申请内存；像素直接写入调用方提供的 `Frame`。
-   DXGI 的 staging texture 在 `initialize` 时按最大分辨率分配一次。
-2. **acquire 可中断。** `timeout` 到期必须返回 `kTimeout`，不得无限等待下一帧。
-   `kTimeout` 表示“本次没等到新帧”，不是失败；调用方不得据此结束会话或重建采集器。
+1. **采集使用预分配资源。** 在 `initialize` 为当前模式分配一张 CPU 可读的 staging 纹理和一个完成查询。`acquire_frame` 把像素写入调用方提供的 `Frame`。
+2. **调用按有限等待或轮询推进。** 空闲时仅 DXGI 取帧可使用指定的有限等待。GPU 尚忙时立即返回 `kTimeout`，由调用方发起下一轮。
 3. **采集只读。** 采集路径不做缩放、色彩转换、编码、日志字符串拼接。
 4. **注入不阻塞。** `inject` 不等待渲染、网络或下一帧；只返回错误。
 5. **按压可追溯。** 按平台实际接受的事件顺序更新记账，包括整体失败的调用中已接受的前缀。
@@ -270,8 +271,7 @@ class InputInjectorWin final : public InputInjector {
 10. **探测模式无像素。** `frame == nullptr` 时返回的 `FrameDesc` 不含有效像素，
     调用方必须检查 frame 是否为空再决定是否读像素。
 
-11. **采集器不维护 `kDisplayChanged` 计数器。** 连续次数由调用方统计，
-    采集器每次报告独立。采集器的跨调用状态仅限于 `current_version_`（见 §2.4）。
+11. **最多一笔读回在途。** 采集器跨调用保留采集描述、提交时的映射版本、资源占用状态，以及最后一次成功的采集时间戳。`Frame*`、DXGI 源帧引用和映射指针仅在当次调用有效。作废的命令完成后才能重用 staging 纹理。
 
 ## 4. 线程与资源
 
@@ -281,7 +281,7 @@ class InputInjectorWin final : public InputInjector {
 | `acquire_frame` | 仅 Capture 线程 |
 | `ScreenCaptureWin` 析构 | Capture 线程确认本会话采集任务停止后，由 Capture 线程析构 |
 | DXGI 设备与 duplication 对象 | 由采集器独占，不跨线程共享 |
-| staging texture | `initialize` 时分配，数量 1；不随帧数增长 |
+| staging 纹理和完成查询 | 初始化时各分配一个，由 Capture 独占，仅用于一笔读回。停止采集后销毁时作废待交付描述，释放本对象持有的资源引用，已提交命令的资源生命周期由 D3D11 管理 |
 | `InputInjectorWin` 全部方法 | 仅 Input 线程 |
 | 按压状态表 | 注入器独占，无锁（单线程访问） |
 | 帧缓冲 | 由端点 `FramePool` 拥有，采集器只写入。会话结束时确认所有本会话帧已释放，端点退出时按 002 销毁池 |
@@ -291,33 +291,17 @@ class InputInjectorWin final : public InputInjector {
 热路径约束（与 [线程模型](../../architecture/threading.md) 第 4.3 节一致）：
 
 - `acquire_frame` 与 `inject` 内禁止：动态分配、文件 I/O、日志格式化、异常。
-- `acquire_frame` 的 `ReleaseFrame()` 必须在返回前调用，不得把 DXGI 资源留到下一帧，
-  否则 duplication 接口会因未释放而停止产出新帧。
+- 每次成功取得 DXGI 帧后恰好调用一次 `ReleaseFrame()`，并在本次 `acquire_frame` 返回前完成调用。
+- 每次成功映射 staging 纹理后恰好解绑一次，CPU 像素视图仅在映射期间有效。
 
-### 4.1 DXGI 采集流程与资源释放点
+### 4.1 提交桌面帧拷贝与读取像素
 
-```text
-initialize：
-  D3D11CreateDevice
-  → IDXGIOutput1::DuplicateOutput 得到 IDXGIOutputDuplication
-  → 按 display_info 的宽高创建 1 张 staging texture
+1. **空闲。** 检查桌面状态和映射，再取至多一帧。以最后一次成功交付的采集时间戳检查帧率上限。空指针探测只读取新帧描述并释放源帧。
+2. **提交。** `submit_readback()` 在 DXGI 源帧有效期间按顺序调用 `CopySubresourceRegion`、`End` 和一次 `Flush`，将拷贝及完成查询一同提交。随后调用 `ReleaseFrame`。释放成功后才可尝试读回。
+3. **待交付。** 重新核对桌面状态、尺寸和 DPI。每次调用至多查询一次完成状态和尝试一次映射。`poll_readback()` 用 `GetData` 和 `D3D11_ASYNC_GETDATA_DONOTFLUSH` 查询，`S_FALSE` 对应 `kTimeout`。查询就绪时，空指针探测可消费该笔描述。像素请求用 `D3D11_MAP_READ` 与 `D3D11_MAP_FLAG_DO_NOT_WAIT`，将 `DXGI_ERROR_WAS_STILL_DRAWING` 转为 `kTimeout`，保留该笔读回供重试。映射成功后按实际 stride 检查容量，再按行拷贝并解绑。交付时使用原采集时间戳和提交时的映射版本。
+4. **待丢弃。** 桌面失效、映射变化或原采集后达到 33 ms 仍未开始 CPU 拷贝时，作废本次结果。后续仅查询命令何时完成，完成后才重新接收拷贝。在这笔读回的查询或映射返回终止错误时，保留错误并等待调用方重建。
 
-acquire_frame：
-  AcquireNextFrame(timeout)
-    ├ 超时        → kTimeout
-    ├ ACCESS_LOST → kAccessLost
-    └ 成功
-        → IDXGIOutputDuplication::Map
-        → 检查 desc 是否与上次一致（宽/高/格式）
-            ├ 不一致 → release frame，返回 kDisplayChanged
-            └ 一致   → Map 的 CPU 指针按行拷贝进 Frame（含 stride 校正）
-        → Unmap
-        → ReleaseFrame()        ← 必须在返回前，否则下一帧拿不到
-        → 返回 FrameDesc
-```
-
-拷贝而非零拷贝：staging texture 是 CPU 可读的共享资源，DXGI 的 GPU 纹理不能直接被
-后续编码读取。M1 明确接受这次拷贝的代价，零拷贝路径需另行测量后立项。
+`now_ns()` 与采集时间戳使用同一单调时钟。读回等待和丢弃不推进最后一次成功交付的时间戳。Capture 可通过 `ScreenCaptureWin::readback_stats()` 查询本实例累计的提交、就绪、丢弃和暂忙次数。该查询返回计数副本。销毁时不等待查询结果。提交、释放和轮询顺序见技术方案。 [读回时序图](plan.md#采集与读回时序)
 
 ## 5. 验收场景
 
@@ -346,6 +330,11 @@ acquire_frame：
 | PW-19 | 组合键 Ctrl+C 按下后 release_all | 先释放 C 再释放 Ctrl，最终 `pressed_count()==0` |
 | PW-20 | stride 与实际宽度不匹配的帧 | 按 stride 逐行拷贝，`FrameDesc.stride` 如实反映 |
 | PW-21 | 锁屏时释放被拒绝。另测首项释放成功后下一项释放拒绝或效果不确定 | 返回 `kInputCleanupPending`，仅移除已确认项，未确认非修饰项存在时不释放修饰键。重试按顺序只处理剩余项，最后一次成功后重复调用无平台调用 |
+| PW-22 | 提交后查询忙，下一轮查询完成但映射忙，再换一块帧重试 | 两次 `kTimeout` 均保留目标描述和像素，以原采集时间戳和映射版本成功交付，stride 与像素一致。取帧、提交、释放各一次，映射和借出帧均已归还 |
+| PW-23 | 拷贝在途时用空指针探测，先遇到查询忙，再查询完成 | 先返回 `kTimeout`，就绪后获得本次描述，全程零次映射，下一次能探测更新的描述 |
+| PW-24 | 拷贝在途时分别改变尺寸或 DPI，或报告锁屏、未知及恢复 | 映射变化本次无帧且推进版本，桌面对应分类，作废结果不交付，原命令完成后才允许下一次拷贝 |
+| PW-25 | 模拟提交或释放失败、查询或映射失效，以及目标容量不足 | 成功取得的 DXGI 源帧释放一次，释放错误优先。终止错误保留并要求重建，容量不足解除映射后可继续取帧 |
+| PW-26 | 单调时钟达到 33 ms，随后查询完成并出现新帧 | 原帧作废，交付新帧的原始时间戳和版本。等待和丢弃不更新上次交付的采集时间戳 |
 
 `SendInput` 在单元测试中通过 `InputInjectorWin` 的可注入后端替换（构造时传入函数指针），
 不依赖真实鼠标键盘。mock 后端记录每次调用的事件序列供断言，其生命周期由测试 fixture
@@ -358,14 +347,14 @@ acquire_frame：
 
 | 编号 | 场景 | 预期 |
 | --- | --- | --- |
-| PWH-01 | 60 秒连续采集 | 无 `kAccessLost` 泄漏，帧率在设置上限内，内存不增长 |
+| PWH-01 | 同一窗口负载下连续采集 60 秒 | 交付正确像素，帧率在设置上限内，无 `kAccessLost`，帧池全部归还，同等预热后末次进程私有内存不高于初次 |
 | PWH-02 | 单独验证采集器时改变分辨率 | 收到 `kDisplayChanged`，丢弃本次结果，后续帧恢复。连续 3 次仍不恢复则重建后可继续采集。远控会话随映射变化关闭由 M1H-06 验证 |
 | PWH-03 | 锁屏再解锁 | 锁屏期间返回 `kSecureDesktop`；解锁后重建可恢复 |
 | PWH-04 | 注入点击与输入 | 目标窗口收到正确坐标与字符 |
 | PWH-05 | 按住键时经本地入口结束会话 | 平台确认释放，本机状态无残留按下，随后可重新连接 |
-| PWH-06 | 采集耗时测量 | 单帧 acquire ≤ 6 ms（与线程模型 4.2 的采集预算一致） |
+| PWH-06 | 同一窗口负载下用 `timeout=0ms` 轮询 60 秒 | 任一次调用 ≤ 6 ms，提交、未就绪和超时调用也计入样本。记录最小值、P95、最大值、超限次数、交付帧率、读回就绪与丢弃次数和交付帧龄，核对 33 ms 采集周期预算 |
 
-PWH-06 只记录单帧采集的实测耗时。整套远控的延迟是否达标，按 [001 真机验收](../001-android-controls-windows-over-lan/spec.md#42-真机验收) 的要求判断。
+PWH-06 测量本地采集。整套远控的延迟按 001 真机验收衡量。 [端到端验收](../001-android-controls-windows-over-lan/spec.md#42-真机验收)
 
 ## 6. 依赖与待决项
 
@@ -389,8 +378,7 @@ PWH-06 只记录单帧采集的实测耗时。整套远控的延迟是否达标�
 待决项，需用户决定后回改本文件：
 
 1. **真机的桌面状态覆盖。** PWH-03 依赖 [005](../005-windows-desktop-state/spec.md) 的观察结果。真机须验证锁屏、解锁及状态未知的分类。
-2. **staging texture 改为双缓冲。** 单张 texture 在拷贝期间无法接收新帧，
-   60 FPS 下是否够用需实测（PWH-06）。若不够，需改本规格并重新验收。
+2. **单张 staging 纹理的吞吐与帧龄。** PWH-06 使用真实桌面确认一次在途读回足以维持当前采集负载。记录查询忙、映射忙和过期丢弃的观测结果。
 3. **新会话的坐标换算。** `display_map_version` 对齐按 [控制协议 §4.3](../../protocol/README.md#43-媒体参数协商)，
    会话内映射变化按 [001 §2.3](../001-android-controls-windows-over-lan/spec.md#23-输入门禁与清理) 关断。
    控制端输入规格基于 [007 Android 呈现](../007-android-controller/spec.md#23-触控键盘与生命周期) 或 [006 Windows 呈现](../006-windows-render-surface/spec.md) 的视频矩形定义绝对坐标换算。
@@ -412,8 +400,8 @@ PWH-06 只记录单帧采集的实测耗时。整套远控的延迟是否达标�
 | T-02 | 是。本规格不新增跨线程边沿；帧经 ① 帧槽移交，注入从 Input 执行器调用 |
 | T-03 | 不适用。本规格不新增队列；帧槽上限由 frame-handoff 规格定义 |
 | T-04 | 由 4.1 与第 3 节约束：acquire 与 inject 内禁止分配、I/O、日志格式化 |
-| T-05 | 是。`acquire_frame` 只等 DXGI（有 timeout），不等其他线程；`inject` 完全不等 |
+| T-05 | 空闲取帧使用有限的 DXGI 等待，GPU 读回使用完成查询和非等待映射，注入直接返回平台结果 |
 | T-06 | 是。关闭输入和停止会话任务后由所属线程释放会话资源，按压未确认释放时保留清理状态 |
 | T-07 | 是。新增文件必须有 `// Thread: capture only` 或 `// Thread: input only` |
 | T-08 | 否。本规格不新增线程 |
-| T-09 | 不适用。本规格不含延迟优化；PWH-06 只采集基线数据 |
+| T-09 | 同等窗口负载下对照每次调用耗时、交付帧率及帧龄，记录到 `test-results/platform-win/` |

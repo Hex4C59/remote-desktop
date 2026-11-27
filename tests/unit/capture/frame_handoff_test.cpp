@@ -132,6 +132,27 @@ TEST(FramePoolTest, ReleasingAllRestoresCapacity) {
   EXPECT_EQ(pool.free_count(), 3u);
 }
 
+// FH-08, FH-23: each lease starts writable and owns one reference.
+TEST(FramePoolTest, ReacquiredPublishedFrameResetsOwnership) {
+  rd::FramePool pool(1, kFrameBytes);
+  rd::FrameSlot slot;
+  auto* first = pool.try_acquire_free();
+  ASSERT_NE(first, nullptr);
+  slot.publish(first);
+  auto* published = slot.try_acquire();
+  ASSERT_EQ(published, first);
+  published->release();
+  ASSERT_EQ(pool.free_count(), 1u);
+
+  auto* reused = pool.try_acquire_free();
+  ASSERT_EQ(reused, first);
+  EXPECT_NE(reused->mutable_desc(), nullptr);
+  EXPECT_EQ(reused->mutable_pixels().size(), kFrameBytes);
+  reused->release();
+  EXPECT_EQ(pool.in_use(), 0u);
+  EXPECT_EQ(pool.free_count(), 1u);
+}
+
 // FH-23：发布前可写，缓冲长度为 frame_bytes。
 TEST(FrameWriteViewTest, WritableBeforePublish) {
   rd::FramePool pool(1, kFrameBytes);

@@ -62,8 +62,9 @@ using PlatformResult =
 ## 3. 屏幕采集
 
 `FrameDesc` 的唯一定义在
-[屏幕帧移交规格](../increments/002-screen-frame-handoff/spec.md) 第 2 节，
-采集接口的调用约定与 Windows 实现见 [Windows 平台适配规格](../increments/003-platform-win/spec.md) 2.1。
+[屏幕帧移交规格](../increments/002-screen-frame-handoff/spec.md) 第 2 节，源码为
+`include/remotedesktop/frame_handoff.h`。`CaptureConfig` 和 `DisplayInfo` 的字段及默认值见
+[Windows 平台适配规格 §2](../increments/003-platform-win/spec.md#2-接口约定)，与 `ScreenCapture` 一起由 `platform.h` 声明。
 
 ```cpp
 // FrameDesc / PixelFormat 的定义见屏幕帧移交规格第 2 节。
@@ -82,10 +83,12 @@ class ScreenCapture {
 
 **怎样获取画面、会返回什么**
 
-- `acquire_frame` 是唯一阻塞点，且必须尊重 `timeout`；超时返回 `kTimeout`，不得无限等待。
-- 像素写入调用方提供的 `Frame`，采集器不持有帧引用；所有权仍归 `FramePool`。
-- Windows 的 DXGI 等待在期限内无新帧时返回 `kTimeout`，调用方继续轮询。`kNoNewFrame` 保留给能单独确认无变化的其他后端。
-- 采集失败要区分“暂时无变化”（不是错误，返回无帧）与“设备丢失”（`kUnavailable`）。
+- Windows 空闲取帧使用 `timeout` 作为 DXGI 等待上限。等待无新帧、GPU 读回暂忙或读回已过期时返回 `kTimeout`，调用方继续轮询。
+- 像素写入调用方提供的 `Frame`，采集器不持有帧引用，所有权仍归 `FramePool`。
+- 调用者可以传入空帧指针探测新帧。成功时只获取描述，可用其中的 stride 计算帧池缓冲区大小。若已有一笔读回，探测等到查询就绪后消费该笔描述。
+- Windows 适配器在装配时绑定当前会话代次的桌面状态读取入口。Capture 和 Input 读取 [005](../increments/005-windows-desktop-state/spec.md) 发布的快照，热路径无需查询 Session。没有绑定读取入口时，桌面状态为 `kUnknown`。
+- Windows 采集跨调用只保留一笔读回和它的描述。源帧每次调用内释放，交付时使用原采集时间戳。桌面失效、映射变化或达到 33 ms 仍未开始 CPU 拷贝时作废该笔结果，命令完成后可重用纹理。 [Windows 读回约定](../increments/003-platform-win/spec.md#41-提交桌面帧拷贝与读取像素)
+- `kNoNewFrame` 保留给能单独确认无变化的其他后端。DXGI 报告 `kAccessLost` 时须重建。Windows 读回出现终止错误时保留原错误，销毁并重建后再尝试。
 - DPI、分辨率或显示拓扑变化时报告 `kDisplayChanged`，由调用方按当前使用场景处理。M1 会话关闭后重新获取映射。
 - 不得在采集路径做缩放、色彩转换或编码。
 
@@ -118,7 +121,7 @@ class InputInjector {
 ### 4.1 键值枚举
 
 自定义 `Key` 枚举（`kA`…`kZ`、`k0`…`k9`、`kF1`…`kF12`、修饰键、导航键、`kNone`）。
-平台实现负责枚举到平台键码或扫描码的映射表；映射表必须有单元测试覆盖完整性，
+平台实现负责枚举到平台键码或扫描码的映射表。单元测试用末尾的 `Key::kCount` 标记键值的覆盖范围。
 新增键值须同时改规格与两端映射表。
 
 ## 5. 会话与桌面状态

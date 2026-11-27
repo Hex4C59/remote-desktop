@@ -12,3 +12,8 @@ add_subdirectory(smoke)
 add_subdirectory(unit/core)
 add_subdirectory(unit/capture)
 add_subdirectory(unit/platform/win)
+
+option(RD_WINDOWS_DESKTOP_TESTING "构建需要本机交互桌面的验收程序" OFF)
+if(WIN32 AND RD_WINDOWS_DESKTOP_TESTING)
+  add_subdirectory(integration/platform/win)
+endif()

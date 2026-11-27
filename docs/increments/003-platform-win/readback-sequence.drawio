@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Windows 桌面读回">
+    <mxGraphModel page="1" pageWidth="1118" pageHeight="789" background="#f8fafc">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="在一张纹理上读回 Windows 桌面" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontSize=25;fontStyle=1;align=left;fontColor=#14233c;">
+          <mxGeometry as="geometry" x="24" y="12" width="1050" height="36" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" vertex="1" value="时间从上到下。实线为调用，虚线为返回状态或帧。" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontSize=14;align=left;fontColor=#435670;">
+          <mxGeometry as="geometry" x="24" y="50" width="1050" height="25" />
+        </mxCell>
+        <mxCell id="submit" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=3;fillColor=#eef5ff;strokeColor=#c0d3ee;">
+          <mxGeometry as="geometry" x="24" y="140" width="1050" height="204" />
+        </mxCell>
+        <mxCell id="deliver" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=3;fillColor=#edf7f4;strokeColor=#bbdcd0;">
+          <mxGeometry as="geometry" x="24" y="355" width="1050" height="200" />
+        </mxCell>
+        <mxCell id="discard" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=3;fillColor=#fff7e8;strokeColor=#ead3a5;">
+          <mxGeometry as="geometry" x="24" y="566" width="1050" height="194" />
+        </mxCell>
+        <mxCell id="caller" parent="1" vertex="1" value="调用方" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=14;fillColor=#1d3a58;strokeColor=#1d3a58;fontColor=#ffffff;fontSize=14;fontStyle=1;">
+          <mxGeometry as="geometry" x="49" y="87" width="202" height="40" />
+        </mxCell>
+        <mxCell id="caller-life" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;fillColor=#8ca0b5;strokeColor=none;">
+          <mxGeometry as="geometry" x="149.5" y="127" width="1" height="629" />
+        </mxCell>
+        <mxCell id="capture" parent="1" vertex="1" value="Capture 采集器" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=14;fillColor=#1d3a58;strokeColor=#1d3a58;fontColor=#ffffff;fontSize=14;fontStyle=1;">
+          <mxGeometry as="geometry" x="319" y="87" width="202" height="40" />
+        </mxCell>
+        <mxCell id="capture-life" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;fillColor=#8ca0b5;strokeColor=none;">
+          <mxGeometry as="geometry" x="419.5" y="127" width="1" height="629" />
+        </mxCell>
+        <mxCell id="dxgi" parent="1" vertex="1" value="DXGI 源帧" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=14;fillColor=#1d3a58;strokeColor=#1d3a58;fontColor=#ffffff;fontSize=14;fontStyle=1;">
+          <mxGeometry as="geometry" x="589" y="87" width="202" height="40" />
+        </mxCell>
+        <mxCell id="dxgi-life" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;fillColor=#8ca0b5;strokeColor=none;">
+          <mxGeometry as="geometry" x="689.5" y="127" width="1" height="629" />
+        </mxCell>
+        <mxCell id="d3d11" parent="1" vertex="1" value="D3D11 查询与纹理" style="fontFamily=Microsoft YaHei;html=0;rounded=1;arcSize=14;fillColor=#1d3a58;strokeColor=#1d3a58;fontColor=#ffffff;fontSize=14;fontStyle=1;">
+          <mxGeometry as="geometry" x="859" y="87" width="202" height="40" />
+        </mxCell>
+        <mxCell id="d3d11-life" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;fillColor=#8ca0b5;strokeColor=none;">
+          <mxGeometry as="geometry" x="959.5" y="127" width="1" height="629" />
+        </mxCell>
+        <mxCell id="submit-title" parent="1" vertex="1" value="1   空闲时取帧并提交" style="fontFamily=Microsoft YaHei;html=0;rectangle;fillColor=#eef5ff;strokeColor=none;align=left;fontSize=15;fontStyle=1;fontColor=#263b55;">
+          <mxGeometry as="geometry" x="35" y="149" width="205" height="24" />
+        </mxCell>
+        <mxCell id="deliver-title" parent="1" vertex="1" value="2   查询就绪后交付" style="fontFamily=Microsoft YaHei;html=0;rectangle;fillColor=#edf7f4;strokeColor=none;align=left;fontSize=15;fontStyle=1;fontColor=#263b55;">
+          <mxGeometry as="geometry" x="35" y="364" width="205" height="24" />
+        </mxCell>
+        <mxCell id="discard-title" parent="1" vertex="1" value="3   失效时作废并回收纹理" style="fontFamily=Microsoft YaHei;html=0;rectangle;fillColor=#fff7e8;strokeColor=none;align=left;fontSize=15;fontStyle=1;fontColor=#263b55;">
+          <mxGeometry as="geometry" x="35" y="575" width="205" height="24" />
+        </mxCell>
+        <mxCell id="requesta" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="197.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="requestb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="197.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="request" parent="1" edge="1" source="requesta" target="requestb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="request-label" parent="1" vertex="1" value="acquire_frame(Frame*, timeout)" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="175" width="262" height="20" />
+        </mxCell>
+        <mxCell id="acquirea" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="223.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="acquireb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="689.5" y="223.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="acquire" parent="1" edge="1" source="acquirea" target="acquireb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="acquire-label" parent="1" vertex="1" value="AcquireNextFrame" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="201" width="262" height="20" />
+        </mxCell>
+        <mxCell id="enqueuea" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="256.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="enqueueb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="959.5" y="256.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="enqueue" parent="1" edge="1" source="enqueuea" target="enqueueb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="enqueue-label" parent="1" vertex="1" value="源帧有效期间拷贝 → End → Flush" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="234" width="532" height="20" />
+        </mxCell>
+        <mxCell id="releasea" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="290.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="releaseb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="689.5" y="290.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="release" parent="1" edge="1" source="releasea" target="releaseb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="release-label" parent="1" vertex="1" value="ReleaseFrame" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="268" width="262" height="20" />
+        </mxCell>
+        <mxCell id="busya" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="323.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="busyb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="323.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="busy" parent="1" edge="1" source="busya" target="busyb" style="strokeWidth=1.5;strokeColor=#425872;endArrow=block;endFill=1;dashed=1;dashPattern=4 4;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="busy-label" parent="1" vertex="1" value="查询忙时返回 kTimeout" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="301" width="262" height="20" />
+        </mxCell>
+        <mxCell id="retrya" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="411.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="retryb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="411.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="retry" parent="1" edge="1" source="retrya" target="retryb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="retry-label" parent="1" vertex="1" value="下一次 acquire_frame" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="389" width="262" height="20" />
+        </mxCell>
+        <mxCell id="querya" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="436.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="queryb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="959.5" y="436.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="query" parent="1" edge="1" source="querya" target="queryb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="query-label" parent="1" vertex="1" value="核对桌面和映射后查询完成状态" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="414" width="532" height="20" />
+        </mxCell>
+        <mxCell id="mapa" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="472.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="mapb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="959.5" y="472.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="map" parent="1" edge="1" source="mapa" target="mapb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="map-label" parent="1" vertex="1" value="就绪后非等待 Map，复制并 Unmap" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="450" width="532" height="20" />
+        </mxCell>
+        <mxCell id="publisha" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="528.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="publishb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="528.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="publish" parent="1" edge="1" source="publisha" target="publishb" style="strokeWidth=1.5;strokeColor=#425872;endArrow=block;endFill=1;dashed=1;dashPattern=4 4;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="publish-label" parent="1" vertex="1" value="原时间戳与映射版本" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="506" width="262" height="20" />
+        </mxCell>
+        <mxCell id="probe-note" parent="1" vertex="1" value="空指针探测就绪后只取描述。" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#285548;fontSize=13;align=left;">
+          <mxGeometry as="geometry" x="735" y="495" width="255" height="24" />
+        </mxCell>
+        <mxCell id="invalida" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="623.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="invalidb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="623.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="invalid" parent="1" edge="1" source="invalida" target="invalidb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="invalid-label" parent="1" vertex="1" value="轮询时发现桌面、映射或帧龄变化" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="601" width="262" height="20" />
+        </mxCell>
+        <mxCell id="dropa" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="653.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="dropb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="149.5" y="653.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="drop" parent="1" edge="1" source="dropa" target="dropb" style="strokeWidth=1.5;strokeColor=#425872;endArrow=block;endFill=1;dashed=1;dashPattern=4 4;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="drop-label" parent="1" vertex="1" value="对应错误，无帧" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="154" y="631" width="262" height="20" />
+        </mxCell>
+        <mxCell id="draina" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="697.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="drainb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="959.5" y="697.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="drain" parent="1" edge="1" source="draina" target="drainb" style="strokeWidth=1.5;strokeColor=#264764;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="drain-label" parent="1" vertex="1" value="后续轮询只查询旧命令是否完成" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="675" width="532" height="20" />
+        </mxCell>
+        <mxCell id="reusea" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="959.5" y="737.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="reuseb" parent="1" vertex="1" value="" style="fontFamily=Microsoft YaHei;html=0;opacity=0;">
+          <mxGeometry as="geometry" x="419.5" y="737.5" width="1" height="1" />
+        </mxCell>
+        <mxCell id="reuse" parent="1" edge="1" source="reusea" target="reuseb" style="strokeWidth=1.5;strokeColor=#425872;endArrow=block;endFill=1;dashed=1;dashPattern=4 4;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="reuse-label" parent="1" vertex="1" value="完成后允许下一笔拷贝" style="fontFamily=Microsoft YaHei;html=0;text;strokeColor=none;fillColor=none;verticalAlign=middle;fontColor=#14233c;fontSize=13;">
+          <mxGeometry as="geometry" x="424" y="715" width="532" height="20" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

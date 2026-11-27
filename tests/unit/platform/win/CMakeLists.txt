@@ -6,6 +6,10 @@ add_executable(platform_win_input_tests input_inject_win_test.cpp)
 target_link_libraries(platform_win_input_tests PRIVATE rd_platform GTest::gmock_main)
 gtest_discover_tests(platform_win_input_tests TEST_PREFIX "platform.win.input_inject.")
 
+add_executable(platform_win_capture_tests screen_capture_win_test.cpp)
+target_link_libraries(platform_win_capture_tests PRIVATE rd_platform GTest::gmock_main)
+gtest_discover_tests(platform_win_capture_tests TEST_PREFIX "platform.win.screen_capture.")
+
 add_executable(platform_win_desktop_tests session_state_win_test.cpp)
 target_link_libraries(platform_win_desktop_tests PRIVATE rd_platform GTest::gmock_main)
 gtest_discover_tests(platform_win_desktop_tests TEST_PREFIX "platform.win.desktop_state.")

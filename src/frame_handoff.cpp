@@ -108,8 +108,11 @@ namespace rd {
       if (free_head_.compare_exchange_weak(head, desired,
                                            std::memory_order_acq_rel,
                                            std::memory_order_acquire)) {
+        auto* frame = frames_ + index;
+        frame->refs_.store(1, std::memory_order_relaxed);
+        frame->published_.store(false, std::memory_order_relaxed);
         in_use_.fetch_add(1, std::memory_order_relaxed);
-        return frames_ + index;
+        return frame;
       }
     }
   }

@@ -6,4 +6,8 @@
 
 #include <remotedesktop/assert.h>
 #include <remotedesktop/frame_handoff.h>
+#include <remotedesktop/platform/platform.h>
+#include <remotedesktop/platform/win/desktop_state_reader.h>
+#include <remotedesktop/platform/win/input_inject_win.h>
+#include <remotedesktop/platform/win/screen_capture_win.h>
 #include <remotedesktop/version.h>

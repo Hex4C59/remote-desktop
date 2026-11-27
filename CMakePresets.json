@@ -33,6 +33,15 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "windows-desktop",
+      "displayName": "Windows 交互桌面验收 (Ninja)",
+      "description": "003 真机验收。运行前登录并解锁 Windows 桌面。",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/windows-desktop",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": { "RD_WINDOWS_DESKTOP_TESTING": "ON" }
     }
   ],
   "buildPresets": [
@@ -43,6 +52,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "windows-desktop",
+      "configurePreset": "windows-desktop"
     }
   ],
   "testPresets": [
@@ -65,6 +78,13 @@
       "execution": {
         "noTestsAction": "error"
       }
+    },
+    {
+      "name": "windows-desktop",
+      "configurePreset": "windows-desktop",
+      "filter": { "include": { "label": "^windows-desktop$" } },
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "jobs": 1 }
     }
   ]
 }
