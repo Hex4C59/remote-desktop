@@ -41,7 +41,15 @@
       "inherits": "release",
       "binaryDir": "${sourceDir}/build/windows-desktop",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
-      "cacheVariables": { "RD_WINDOWS_DESKTOP_TESTING": "ON" }
+      "cacheVariables": { "RD_WINDOWS_DESKTOP_TESTING": "ON", "RD_WINDOWS_CAPTURE_DIAGNOSTICS": "OFF" }
+    },
+    {
+      "name": "windows-desktop-diagnostics",
+      "displayName": "Windows 采集资源释放诊断 (Ninja)",
+      "description": "003 PWH-08。独立构建，启用 SDK 调试层及资源命名。",
+      "inherits": "windows-desktop",
+      "binaryDir": "${sourceDir}/build/windows-desktop-diagnostics",
+      "cacheVariables": { "RD_WINDOWS_CAPTURE_DIAGNOSTICS": "ON" }
     }
   ],
   "buildPresets": [
@@ -56,6 +64,10 @@
     {
       "name": "windows-desktop",
       "configurePreset": "windows-desktop"
+    },
+    {
+      "name": "windows-desktop-diagnostics",
+      "configurePreset": "windows-desktop-diagnostics"
     }
   ],
   "testPresets": [
@@ -82,7 +94,14 @@
     {
       "name": "windows-desktop",
       "configurePreset": "windows-desktop",
-      "filter": { "include": { "label": "^windows-desktop$" } },
+      "filter": { "include": { "label": "^windows-(desktop|capture-stability)$" } },
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "jobs": 1 }
+    },
+    {
+      "name": "windows-desktop-diagnostics",
+      "configurePreset": "windows-desktop-diagnostics",
+      "filter": { "include": { "label": "^windows-capture-diagnostics$" } },
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "jobs": 1 }
     }

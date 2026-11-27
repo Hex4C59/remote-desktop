@@ -9,7 +9,9 @@
 - [ ] T001 核对 [001 规格](spec.md) 的审批记录，评审 [007 Android 控制端](../007-android-controller/spec.md) 规格、方案及任务，记录已批准的 [003 Windows 平台](../003-platform-win/spec.md) 和 [005 桌面状态](../005-windows-desktop-state/spec.md) 作为被控端前置（路径 `docs/increments/`、`docs/architecture/`。验证 `spec.structure` 和审批状态。）
   - 001 的 Android 修订已获批，007 待评审。
 - [ ] T002 按 [003 任务](../003-platform-win/tasks.md) 和 [005 波次 1](../005-windows-desktop-state/tasks.md) 验证平台能力和关断前置条件（路径 `src/platform/win/`、`tests/unit/platform/win/`。先以 mock 记录 PW-18、PW-21、DS-01–03、DS-06 观察器断言的红灯，再验证平台实现。M1U-30 的完整门禁交错由 T006 验证。）
-  - 003 的 PW-18、PW-21 和 005 的 DS-01–03、DS-06 观察器断言已完成 mock 红绿循环，证据 `test-results/m1-t002.md`。005 T004 的原生桌面事件源证据见 `test-results/005-t004.md`。003 候选在同一构建通过 PWH-02–06，包括真实锁屏和解锁恢复。平台前置还需 PWH-01 的 60 秒采集私有内存达标。原始结果见本地记录 `test-results/platform-win/t006-readback.md`。
+  - 003 的 PW-18、PW-21 和 005 的 DS-01–03、DS-06 观察器断言已完成 mock 红绿循环，证据 `test-results/m1-t002.md`。005 T004 的原生桌面事件源证据见 `test-results/005-t004.md`。先前候选的 PWH-02–06（含实际锁屏/解锁）记录保留在 `test-results/platform-win/t006-readback.md`。
+  - 2026-11-27 按已批准的新预算复验：三次 60 秒及连续 600 秒的内存均达标，但第二次 60 秒和 600 秒存在像素断言失败，PWH-04/05 的光标位置断言失败，PWH-08 缺少 duplication 的 SDK 在用报告。PWH-02、实际锁屏/解锁的 PWH-03 及 Debug 95/95、Release 96/96 已通过；尚不能关闭平台前置。完整原始记录与构建散列见 `test-results/platform-win/t006-budget-revision.md`。
+  - 2026-11-28 同一最终构建复验：PWH-01/06 三进程 3/3、PWH-04/05 通过；PWH-07、PWH-08 及最终构建上的 PWH-02/03 仍待执行，平台前置保持开放。
 
 ## 波次 2 · 安全连接、本机授权与仅查看
 

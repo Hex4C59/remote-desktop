@@ -18,6 +18,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(RD_WARNINGS_AS_ERRORS "把编译器警告当作错误（CI 与本地验证默认开启）" ON)
+option(RD_WINDOWS_CAPTURE_DIAGNOSTICS
+  "仅独立 Windows 诊断构建启用 D3D11/DXGI 调试层和资源名称" OFF)
+if(RD_WINDOWS_CAPTURE_DIAGNOSTICS AND NOT WIN32)
+  message(FATAL_ERROR "RD_WINDOWS_CAPTURE_DIAGNOSTICS requires Windows")
+endif()
 
 add_library(rd_compile_options INTERFACE)
 target_compile_features(rd_compile_options INTERFACE cxx_std_20)

@@ -8,6 +8,9 @@
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+#include <dxgi1_3.h>
+#endif
 #include <shellscalingapi.h>
 #include <windows.h>
 #include <wrl/client.h>
@@ -15,6 +18,14 @@
 namespace rd::platform::win {
   namespace {
     using Microsoft::WRL::ComPtr;
+
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+    template <typename T, std::size_t N>
+    HRESULT name_resource(T* object, const char (&name)[N]) noexcept {
+      return object->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                   static_cast<UINT>(N - 1), name);
+    }
+#endif
 
     PlatformError capture_error(HRESULT result) noexcept {
       switch (result) {
@@ -87,8 +98,14 @@ namespace rd::platform::win {
                                 HMONITOR& monitor) noexcept {
       ComPtr<IDXGIFactory1> factory;
       // The COM API takes an interface ID and a type-erased output pointer.
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+      auto result = CreateDXGIFactory2(
+          DXGI_CREATE_FACTORY_DEBUG, IID_IDXGIFactory1,
+          reinterpret_cast<void**>(factory.GetAddressOf()));
+#else
       auto result = CreateDXGIFactory1(
           IID_IDXGIFactory1, reinterpret_cast<void**>(factory.GetAddressOf()));
+#endif
       if (FAILED(result)) {
         return result;
       }
@@ -139,10 +156,20 @@ namespace rd::platform::win {
 
         ComPtr<ID3D11Device> device;
         ComPtr<ID3D11DeviceContext> context;
-        result = D3D11CreateDevice(
-            adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-            D3D11_CREATE_DEVICE_SINGLETHREADED, nullptr, 0, D3D11_SDK_VERSION,
-            device.GetAddressOf(), nullptr, context.GetAddressOf());
+        // Request no driver workers for this Capture-owned, copy-only device.
+        // Hardware drivers may ignore the request; native acceptance verifies
+        // both private-memory growth and the cost of command submission.
+        constexpr UINT kDeviceFlags =
+            D3D11_CREATE_DEVICE_SINGLETHREADED |
+            D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+            | D3D11_CREATE_DEVICE_DEBUG
+#endif
+            ;
+        result = D3D11CreateDevice(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN,
+                                   nullptr, kDeviceFlags, nullptr, 0,
+                                   D3D11_SDK_VERSION, device.GetAddressOf(),
+                                   nullptr, context.GetAddressOf());
         if (FAILED(result)) {
           return capture_error(result);
         }
@@ -188,6 +215,15 @@ namespace rd::platform::win {
         if (FAILED(result)) {
           return capture_error(result);
         }
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+        if (FAILED(name_resource(device.Get(), "rd.capture.device")) ||
+            FAILED(name_resource(context.Get(), "rd.capture.context")) ||
+            FAILED(name_resource(duplication.Get(), "rd.capture.duplication")) ||
+            FAILED(name_resource(staging.Get(), "rd.capture.staging")) ||
+            FAILED(name_resource(completion.Get(), "rd.capture.completion"))) {
+          return PlatformError::kInternal;
+        }
+#endif
         // Determine the pitch once so a descriptor-only probe does not copy or
         // map a frame.
         D3D11_MAPPED_SUBRESOURCE mapped{};

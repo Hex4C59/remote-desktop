@@ -11,6 +11,8 @@
 | CMake、测试接线、公共头文件 | `smoke.*` | 测试可发现、可运行，公共头文件可用 |
 | `RD_ASSERT` 或依赖其行为的代码 | Debug `core.assert.AssertDebug.*`、Release `core.assert.AssertRelease.*` | Debug 终止行为与 Release 计数行为 |
 | 帧池、单槽移交、帧写入视图 | `capture.frame_handoff.*`，见下表 | 两个构建配置中的帧所有权和写入约束 |
+| Windows 采样判定及原生资源报告解析 | 003 `PW-27`、`PW-28` | 预算边界、峰值回落、净减少、缺失/乱序记录，以及命名资源的缺失、残留、重复地址 |
+| Windows 采集提交与资源释放 | 003 `PWH-01`～`PWH-08` | 三个独立 60 秒进程、一次 600 秒持续采集及独立诊断构建十轮释放；全部通过才关闭 T006 |
 | Android 投屏授权、生命周期、像素和尺寸处理 | `AC-01`～`AC-08` | 按 Android 任务清单执行自动化用例 |
 | Android 被控端候选 APK | `ACH-01`～`ACH-04` | 按 004 在 Android 14+ ARM64 真机验证授权、首帧和停止等行为，记录设备与产物 |
 | Android 控制端 | `AN-01`～`AN-07` | 按 007 用固定 Gradle Wrapper 跑 `testDebugUnitTest` 和 `connectedDebugAndroidTest`，用 Debug CTest 验证共用 C++ |
@@ -54,6 +56,12 @@ ctest --preset release --output-on-failure
 ## 属性测试与复现
 
 先从已批准的规格确定要检查的不变量。以 `FH-09` 为例，生成合法的帧发布、取得和释放序列，按规格在每步结束的快照检查池容量守恒，并在清理后检查容量恢复。保存失败输入、种子、复现命令和被测版本。能缩减输入时保留最小反例，并把有效反例加入固定回归用例。
+
+## Windows 内存验收口径
+
+003 在 2026-11-27 明确批准进程提交预算：原 40 帧预热后，PWH-01 的每个 60 秒进程和 PWH-07 的一次 600 秒采集，末样相对首样净增最多 64 KiB，逐秒样本的最大增量最多 256 KiB。三个固定的 PWH-01/06 独立进程均须通过。保存实际采样时间，不从原始 `PrivateUsage` 扣除估计的运行库开销，末样在排序、打印和销毁前获取。
+
+提交预算不能独立证明无泄漏。项目热路径分配或引用泄漏须修复；PWH-08 在独立诊断构建中检查十轮正常/在途销毁，确认在用资源确被识别、作用域结束后两秒内无项目命名对象残留，帧池归零。诊断能力不足或缺少报告均保持开放。PWH-06 的全部调用 ≤ 6 ms 仍在原 60 秒窗口判定，PWH-07 另存长时间统计。 [完整 Windows 条款](../increments/003-platform-win/spec.md#52-真机testsintegration需交互式桌面) · [运行说明](../../tests/integration/platform/win/README.md)
 
 ## 记录实际验收
 

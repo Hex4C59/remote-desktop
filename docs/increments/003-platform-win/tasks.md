@@ -21,8 +21,10 @@
 
 ## 最终波次 · 验收与证据
 
-- [ ] T006 验证单张纹理的非等待读回和 Windows 真机结果。先在 `tests/unit/platform/win/screen_capture_win_test.cpp` 保存 PW-22–26 的红灯，再实现在 `src/platform/win/` 的提交、轮询、交付和作废行为。运行目标和全量 Debug、Release CTest，在本机交互桌面运行 PWH-01–06。
-  - PW-22–26 和 Debug、Release 全量 CTest 已通过。候选在同一台 Windows 电脑通过 PWH-02–06，包括真实锁屏拒绝和解锁后重建采集。PWH-01 的 60 秒测量交付 1,393 帧，颜色全部正确，帧池全部归还，进程私有内存增加 216 KiB，未达标。原始日志和堆分配对照见本地记录 `test-results/platform-win/t006-readback.md`。 [真机运行说明](../../../tests/integration/platform/win/README.md)
+- [ ] T006 验证单张纹理的非等待读回和 Windows 真机结果。保留 PW-22–26 红绿；按 2026-11-27 获批修订增加 PW-27 采样判定与 PW-28 报告解析红绿。运行目标和全量 Debug、Release CTest；同一交付构建完成三个独立进程的 PWH-01/06、600 秒 PWH-07 和 PWH-02–05，独立诊断构建完成十轮 PWH-08。全部通过后才收口。
+  - 原零增长条款下，Git `95bf60b` 增加 408 KiB，线程选项候选独立复跑增加 28 KiB。旧失败与成功均保留在 `test-results/platform-win/t006-closeout.md`。修订批准仅改变验收条款，不代表新用例已经通过。帧率、像素、33 ms 帧龄和 6 ms 调用要求继续适用。 [真机运行说明](../../../tests/integration/platform/win/README.md)
+  - 2026-11-27 本轮新规则实测：旧策略用相同采样器复现 60 秒净增 384 KiB 的断言 RED；候选三个固定进程均满足内存及 6 ms 预算，但第二次像素失败；600 秒净增 8 KiB、采样峰值增量 108 KiB，仍有像素失败。PWH-02 和实际锁屏/解锁的 PWH-03 通过，PWH-04/05 在初始光标位置失败。SDK 十轮报告在开启线程追踪、包含内部引用后仍缺少在用的 duplication，PWH-08 为诊断能力阻塞。Debug 95/95、Release 96/96 通过。全部原始样本、失败、构建散列和后续条件见 `test-results/platform-win/t006-budget-revision.md`；T006 保持开放。
+  - 2026-11-28 同一最终构建 `9d9760a7` 复验：PWH-01/06 三进程 3/3 通过，PWH-04/05 通过；另一次三进程批次因人工拖动测试窗口成为无效运行，不计入。一次 60 秒样本有 1 帧交付帧龄 33.44 ms，当前用例只记录而未断言，收口前需按规格确认判定口径。PWH-07、PWH-08 及最终构建上的 PWH-02/03 仍待执行，T006 保持开放。
 
 ## 验收覆盖
 
@@ -31,5 +33,5 @@
 | PW-18、PW-21 | T002、T003、T006 |
 | PW-01–08、PW-20 | T004、T006 |
 | PW-09–17、PW-19 | T005、T006 |
-| PW-22–26 | T006 |
-| PWH-01–06 | T006 |
+| PW-22–28 | T006 |
+| PWH-01–08 | T006 |

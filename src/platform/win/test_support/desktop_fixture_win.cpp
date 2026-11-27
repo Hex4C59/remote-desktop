@@ -34,6 +34,31 @@ namespace rd::platform::win::test {
     }
   }  // namespace
 
+  DesktopAcceptanceLock::DesktopAcceptanceLock() noexcept {
+    const auto mutex = CreateMutexW(
+        nullptr, FALSE, L"Local\\RemoteDesktop.WindowsDesktopAcceptance");
+    if (mutex == nullptr) {
+      return;
+    }
+    const auto status = WaitForSingleObject(mutex, 0);
+    if (status == WAIT_OBJECT_0 || status == WAIT_ABANDONED) {
+      mutex_ = mutex;
+    } else {
+      CloseHandle(mutex);
+    }
+  }
+
+  DesktopAcceptanceLock::~DesktopAcceptanceLock() {
+    if (mutex_ != nullptr) {
+      ReleaseMutex(mutex_);
+      CloseHandle(mutex_);
+    }
+  }
+
+  bool DesktopAcceptanceLock::acquired() const noexcept {
+    return mutex_ != nullptr;
+  }
+
   struct DesktopWindow::Window {
     HINSTANCE instance{GetModuleHandleW(nullptr)};
     HWND hwnd{};
@@ -184,6 +209,63 @@ namespace rd::platform::win::test {
 
   bool DesktopWindow::owns_screen_point(Point point) const noexcept {
     return WindowFromPoint(POINT{point.x, point.y}) == window_->hwnd;
+  }
+
+  bool DesktopWindow::place_on_primary(Point client_point) noexcept {
+    const auto monitor = MonitorFromPoint(POINT{}, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO primary{};
+    primary.cbSize = sizeof(primary);
+    RECT rect{};
+    if (!GetMonitorInfoW(monitor, &primary) ||
+        !GetWindowRect(window_->hwnd, &rect)) {
+      return false;
+    }
+    const auto width = rect.right - rect.left;
+    const auto height = rect.bottom - rect.top;
+    const auto& work = primary.rcWork;
+    if (width > work.right - work.left || height > work.bottom - work.top) {
+      return false;
+    }
+    const std::array<LONG, 3> xs{
+        work.right - width, work.left + (work.right - work.left - width) / 2,
+        work.left};
+    const std::array<LONG, 3> ys{
+        work.top, work.top + (work.bottom - work.top - height) / 2,
+        work.bottom - height};
+    for (const auto y : ys) {
+      for (const auto x : xs) {
+        if (!SetWindowPos(window_->hwnd, HWND_TOPMOST, x, y, 0, 0,
+                          SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW)) {
+          continue;
+        }
+        UpdateWindow(window_->hwnd);
+        const auto point = screen_point(client_point);
+        const auto placed = bounds();
+        if (point && placed && placed->primary_visible &&
+            owns_screen_point(*point)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  std::optional<WindowBounds> DesktopWindow::bounds() const noexcept {
+    const auto monitor = MonitorFromPoint(POINT{}, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO primary{};
+    primary.cbSize = sizeof(primary);
+    RECT rect{};
+    if (!GetMonitorInfoW(monitor, &primary) ||
+        !GetWindowRect(window_->hwnd, &rect)) {
+      return std::nullopt;
+    }
+    const auto& work = primary.rcWork;
+    return WindowBounds{
+        {rect.left, rect.top},
+        {rect.right, rect.bottom},
+        IsWindowVisible(window_->hwnd) && !IsIconic(window_->hwnd) &&
+            rect.left >= work.left && rect.top >= work.top &&
+            rect.right <= work.right && rect.bottom <= work.bottom};
   }
 
   std::uint32_t DesktopWindow::dpi() const noexcept {

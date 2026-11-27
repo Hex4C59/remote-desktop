@@ -1,4 +1,4 @@
-// PWH-01–06 on the interactive Windows desktop with a dedicated test window.
+// PWH-01–08 on the interactive Windows desktop with a dedicated test window.
 // Thread: none
 #include <algorithm>
 #include <array>
@@ -9,11 +9,14 @@
 #include <span>
 #include <string_view>
 #include <thread>
-#include <vector>
 
 #include <gtest/gtest.h>
 
+#include "capture_measurement.h"
 #include "desktop_fixture_win.h"
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+#include "capture_resource_diagnostics_win.h"
+#endif
 #include "remotedesktop/platform/win/desktop_event_source_win.h"
 #include "remotedesktop/platform/win/input_inject_win.h"
 #include "remotedesktop/platform/win/screen_capture_win.h"
@@ -25,7 +28,6 @@ namespace rd::platform::win::test {
     constexpr std::uint32_t kStartVersion = 5;
     constexpr std::uint32_t kMaxFps = 30;
     constexpr Point kClientPoint{64, 64};
-    constexpr Point kCapturePoint{192, 112};
     constexpr std::array<std::uint32_t, 2> kTestColors{0x2250ac, 0xbe492a};
 
     constexpr auto kRunDuration = 60s;
@@ -239,6 +241,24 @@ namespace rd::platform::win::test {
         return ok(injector.inject(event)) && event.inject_timestamp_ns > 0;
       }
 
+      void measure_capture(std::chrono::seconds duration,
+                           bool enforce_acquire_budget) {
+        DesktopWindow window{enforce_acquire_budget
+                                 ? L"Remote Desktop PWH-01 / PWH-06"
+                                 : L"Remote Desktop PWH-07"};
+        ASSERT_TRUE(window.ready());
+        ScreenCaptureWin capture{desktop_.reader()};
+        ASSERT_TRUE(start(capture, kStartVersion));
+        run_capture_measurement(
+            capture, window,
+            {duration, 1s, 65'536, 262'144, kMaxFps, kStartVersion,
+             enforce_acquire_budget},
+            [](void* context) noexcept {
+              static_cast<DesktopBinding*>(context)->pump();
+            },
+            &desktop_);
+      }
+
       void measure_memory(MemoryLoad load);
 
       DesktopBinding desktop_;
@@ -384,6 +404,113 @@ namespace rd::platform::win::test {
       EXPECT_EQ(committed, footprint->heap_committed);
     }
 
+#if defined(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+    TEST_F(DesktopAcceptance, Pwh08NativeResourcesReleased) {
+      ASSERT_TRUE(
+          report_capture_resources({0, "baseline", "none", 0, 0, 0, 0, 0}));
+      DesktopWindow window{L"Remote Desktop PWH-08", WindowUse::kCapture};
+      ASSERT_TRUE(window.ready());
+      WindowAnimation animation{Clock::now()};
+      for (std::uint32_t cycle = 1; cycle <= 10; ++cycle) {
+        const bool pending_mode = cycle % 2 == 0;
+        const auto mode = pending_mode ? "pending" : "delivered";
+        std::uint64_t submitted = 0;
+        std::uint64_t ready = 0;
+        {
+          ScreenCaptureWin capture{desktop_.reader()};
+          ASSERT_TRUE(start(capture, kStartVersion));
+          const auto probe = next_frame(capture, nullptr, window);
+          const auto* desc = std::get_if<FrameDesc>(&probe);
+          ASSERT_NE(desc, nullptr);
+          FramePool pool{1,
+                         static_cast<std::size_t>(desc->stride) * desc->height};
+          for (std::size_t frame = 0; frame < kWarmupFrames + 100; ++frame) {
+            FrameLease lease{pool.try_acquire_free()};
+            ASSERT_NE(lease, nullptr);
+            ASSERT_TRUE(std::holds_alternative<FrameDesc>(
+                next_frame(capture, lease.get(), window)));
+          }
+          if (pending_mode) {
+            const auto deadline = Clock::now() + 4s;
+            bool pending = false;
+            while (Clock::now() < deadline) {
+              desktop_.pump();
+              window.pump();
+              animation.tick(window, Clock::now());
+              FrameLease lease{pool.try_acquire_free()};
+              ASSERT_NE(lease, nullptr);
+              const auto result = capture.acquire_frame(lease.get(), 0ms);
+              if (const auto* error = std::get_if<PlatformError>(&result)) {
+                ASSERT_EQ(*error, PlatformError::kTimeout);
+              }
+              const auto stats = capture.readback_stats();
+              if (stats.submitted > stats.ready) {
+                pending = true;
+                break;
+              }
+              std::this_thread::sleep_for(1ms);
+            }
+            ASSERT_TRUE(pending);
+          }
+          const auto stats = capture.readback_stats();
+          submitted = stats.submitted;
+          ready = stats.ready;
+          ASSERT_EQ(pool.in_use(), 0u);
+          ASSERT_TRUE(report_capture_resources(
+              {cycle, "active", mode, 0, 0, pool.in_use(), submitted, ready}));
+        }
+        const auto released = Clock::now();
+        std::uint32_t attempt = 0;
+        do {
+          const auto elapsed =
+              std::chrono::duration_cast<std::chrono::nanoseconds>(
+                  Clock::now() - released)
+                  .count();
+          ASSERT_TRUE(report_capture_resources(
+              {cycle, "released", mode, attempt++,
+               static_cast<std::uint64_t>(elapsed), 0, submitted, ready}));
+          desktop_.pump();
+          window.pump();
+          std::this_thread::sleep_for(100ms);
+        } while (Clock::now() - released < 2s);
+      }
+    }
+#endif
+
+    TEST_F(DesktopAcceptance, MemoryControlObserver) {
+      const auto warmup_end = Clock::now() + 2s;
+      while (Clock::now() < warmup_end) {
+        desktop_.pump();
+        std::this_thread::sleep_for(1ms);
+      }
+      std::array<std::uint64_t, 5> memory{};
+      std::cout << "observer-only control PID=" << process_id()
+                << " duration_s=60" << std::endl;
+      const auto initial = private_bytes();
+      ASSERT_TRUE(initial.has_value());
+      memory[0] = *initial;
+      std::size_t index = 1;
+      const auto begin = Clock::now();
+      while (Clock::now() < begin + kRunDuration) {
+        desktop_.pump();
+        if (index < memory.size() - 1 &&
+            Clock::now() - begin >= kMemorySampleInterval * index) {
+          const auto sample = private_bytes();
+          ASSERT_TRUE(sample.has_value());
+          memory[index++] = *sample;
+        }
+        std::this_thread::sleep_for(1ms);
+      }
+      const auto final = private_bytes();
+      ASSERT_TRUE(final.has_value());
+      memory.back() = *final;
+      std::cout << "Observer-only private_bytes=";
+      for (const auto bytes : memory) {
+        std::cout << ' ' << bytes;
+      }
+      std::cout << '\n';
+    }
+
     TEST_F(DesktopAcceptance, MemoryControlPaint) {
       measure_memory(MemoryLoad::kPaint);
     }
@@ -400,21 +527,6 @@ namespace rd::platform::win::test {
       measure_memory(MemoryLoad::kPixels);
     }
 
-    struct DurationSummary {
-      double min_ms{};
-      double p95_ms{};
-      double max_ms{};
-      std::size_t above_budget{};
-    };
-
-    DurationSummary summarize(std::span<double> values, double budget_ms) {
-      const auto above_budget = std::ranges::count_if(
-          values, [budget_ms](double ms) { return ms > budget_ms; });
-      std::ranges::sort(values);
-      return {values.front(), values[(95 * values.size() + 99) / 100 - 1],
-              values.back(), static_cast<std::size_t>(above_budget)};
-    }
-
     TEST_F(DesktopAcceptance, Pwh01CaptureWindowStaysPassive) {
       {
         DesktopWindow capture{L"Remote Desktop capture window"};
@@ -427,169 +539,11 @@ namespace rd::platform::win::test {
     }
 
     TEST_F(DesktopAcceptance, Pwh01And06ContinuousCaptureAndAcquireTime) {
-      DesktopWindow window{L"Remote Desktop PWH-01 / PWH-06"};
-      ASSERT_TRUE(window.ready());
-      ScreenCaptureWin capture{desktop_.reader()};
-      ASSERT_TRUE(start(capture, kStartVersion));
-      const auto display_result = capture.display_info();
-      const auto* display = std::get_if<DisplayInfo>(&display_result);
-      ASSERT_NE(display, nullptr);
-      EXPECT_EQ(display->dpi, window.dpi());
-      const auto probe = next_frame(capture, nullptr, window);
-      const auto* probe_desc = std::get_if<FrameDesc>(&probe);
-      ASSERT_NE(probe_desc, nullptr);
-      FramePool pool{
-          1, static_cast<std::size_t>(probe_desc->stride) * probe_desc->height};
-      for (int count = 0; count < kWarmupFrames; ++count) {
-        const FrameLease frame{pool.try_acquire_free()};
-        ASSERT_TRUE(std::holds_alternative<FrameDesc>(
-            next_frame(capture, frame.get(), window)));
-      }
-      const auto pixel = window.screen_point(kCapturePoint);
-      ASSERT_TRUE(pixel.has_value());
-      ASSERT_GE(pixel->x, 0);
-      ASSERT_GE(pixel->y, 0);
-      ASSERT_LT(static_cast<std::uint32_t>(pixel->x), display->width);
-      ASSERT_LT(static_cast<std::uint32_t>(pixel->y), display->height);
-      std::array<std::uint64_t, 5> memory{};
-      std::vector<double> timings(60'001);
-      std::array<double, 60 * kMaxFps + 1> ages{};
-      std::size_t calls = 0;
-      std::size_t slow_deliveries = 0;
-      std::cout << "capture " << display->width << 'x' << display->height
-                << " dpi=" << display->dpi << " pitch=" << probe_desc->stride
-                << " configured_fps=" << kMaxFps
-                << " acquire_timeout_ms=0 duration_s=60" << std::endl;
-      const auto initial_memory = private_bytes();
-      ASSERT_TRUE(initial_memory.has_value());
-      memory[0] = *initial_memory;
-      std::size_t memory_index = 1;
-      std::size_t frames = 0;
-      std::size_t timeouts = 0;
-      std::size_t pattern_matches = 0;
-      std::size_t occluded_mismatches = 0;
-      std::optional<std::uint32_t> first_mismatch;
-      std::uint64_t last_timestamp = 0;
-      const auto before_readback = capture.readback_stats();
-      const auto begin = Clock::now();
-      const auto end = begin + kRunDuration;
-      WindowAnimation animation{begin};
-      while (Clock::now() < end) {
-        window.pump();
-        desktop_.pump();
-        const auto now = Clock::now();
-        animation.tick(window, now);
-        {
-          const FrameLease frame{pool.try_acquire_free()};
-          ASSERT_NE(frame.get(), nullptr);
-          const auto started = Clock::now();
-          const auto result = capture.acquire_frame(frame.get(), 0ms);
-          const auto finished = Clock::now();
-          const auto elapsed_ms =
-              std::chrono::duration<double, std::milli>(finished - started)
-                  .count();
-          ASSERT_LT(calls, timings.size());
-          timings[calls++] = elapsed_ms;
-          if (const auto* desc = std::get_if<FrameDesc>(&result)) {
-            ASSERT_LT(frames, ages.size());
-            const auto delivered_ns =
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    finished.time_since_epoch())
-                    .count();
-            ASSERT_GE(static_cast<std::uint64_t>(delivered_ns),
-                      desc->capture_timestamp_ns);
-            ages[frames++] =
-                static_cast<double>(static_cast<std::uint64_t>(delivered_ns) -
-                                    desc->capture_timestamp_ns) /
-                1'000'000.0;
-            slow_deliveries += elapsed_ms > 6.0;
-            ASSERT_EQ(desc->display_map_version, kStartVersion);
-            ASSERT_GT(desc->capture_timestamp_ns, last_timestamp);
-            if (last_timestamp != 0) {
-              ASSERT_GE(desc->capture_timestamp_ns - last_timestamp,
-                        33'333'334U);
-            }
-            last_timestamp = desc->capture_timestamp_ns;
-            const auto i = static_cast<std::size_t>(pixel->y) * desc->stride +
-                           static_cast<std::size_t>(pixel->x) * 4;
-            const auto pixels = frame->pixels();
-            ASSERT_LT(i + 2, pixels.size());
-            const auto rgb =
-                (std::to_integer<std::uint32_t>(pixels[i + 2]) << 16) |
-                (std::to_integer<std::uint32_t>(pixels[i + 1]) << 8) |
-                std::to_integer<std::uint32_t>(pixels[i]);
-            if (rgb == kTestColors[0] || rgb == kTestColors[1]) {
-              ++pattern_matches;
-            } else {
-              occluded_mismatches += !window.owns_screen_point(*pixel);
-              if (!first_mismatch) {
-                first_mismatch = rgb;
-              }
-            }
-          } else {
-            const auto error = std::get<PlatformError>(result);
-            ASSERT_EQ(error, PlatformError::kTimeout)
-                << "Unexpected capture error=" << static_cast<int>(error);
-            ++timeouts;
-          }
-        }
-        if (memory_index < memory.size() - 1 &&
-            now - begin >= kMemorySampleInterval * memory_index) {
-          const auto sample = private_bytes();
-          ASSERT_TRUE(sample.has_value());
-          memory[memory_index++] = *sample;
-        }
-        std::this_thread::sleep_for(1ms);
-      }
-      const auto seconds =
-          std::chrono::duration<double>(Clock::now() - begin).count();
-      const auto final_memory = private_bytes();
-      ASSERT_TRUE(final_memory.has_value());
-      memory.back() = *final_memory;
-      const auto fps = static_cast<double>(frames) / seconds;
-      std::cout << "PWH-01 seconds=" << seconds << " frames=" << frames
-                << " fps=" << fps << " timeouts=" << timeouts
-                << " pattern_matches=" << pattern_matches
-                << " pool_in_use=" << pool.in_use() << " private_bytes=";
-      for (const auto bytes : memory) {
-        std::cout << ' ' << bytes;
-      }
-      std::cout << '\n';
-      if (first_mismatch) {
-        std::cout << "PWH-01 pixel mismatch first_rgb=" << *first_mismatch
-                  << " occluded=" << occluded_mismatches
-                  << " pixel=" << pixel->x << ',' << pixel->y << '\n';
-      }
-      EXPECT_EQ(pattern_matches, frames);
-      EXPECT_GE(seconds, 60.0);
-      EXPECT_LE(fps, static_cast<double>(kMaxFps));
-      EXPECT_EQ(pool.free_count(), 1U);
-      EXPECT_LE(*final_memory, *initial_memory);
-      ASSERT_GT(frames, 0U);
+      measure_capture(60s, true);
+    }
 
-      const auto latency = summarize(std::span{timings}.first(calls), 6.0);
-      const auto age = summarize(std::span{ages}.first(frames), 33.0);
-      std::cout << "PWH-06 calls=" << calls << " delivered=" << frames
-                << " min_ms=" << latency.min_ms << " p95_ms=" << latency.p95_ms
-                << " max_ms=" << latency.max_ms
-                << " above_6_ms=" << latency.above_budget
-                << " slow_deliveries=" << slow_deliveries << '\n';
-      std::cout << "PWH-06 frame_age_min_ms=" << age.min_ms
-                << " frame_age_p95_ms=" << age.p95_ms
-                << " frame_age_max_ms=" << age.max_ms
-                << " age_above_33_ms=" << age.above_budget << '\n';
-      const auto after_readback = capture.readback_stats();
-      std::cout << "PWH-06 readback_submitted="
-                << after_readback.submitted - before_readback.submitted
-                << " readback_ready="
-                << after_readback.ready - before_readback.ready
-                << " readback_discarded="
-                << after_readback.discarded - before_readback.discarded
-                << " query_busy="
-                << after_readback.query_busy - before_readback.query_busy
-                << " map_busy="
-                << after_readback.map_busy - before_readback.map_busy << '\n';
-      EXPECT_LE(latency.max_ms, 6.0);
+    TEST_F(DesktopAcceptance, Pwh07ContinuousCaptureMemoryStability) {
+      measure_capture(600s, false);
     }
 
     TEST_F(DesktopAcceptance, Pwh02ResolutionChange) {
@@ -799,6 +753,16 @@ namespace rd::platform::win::test {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  // Test discovery inspects names without opening a desktop acceptance session.
+  if (GTEST_FLAG_GET(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+  const rd::platform::win::test::DesktopAcceptanceLock desktop_lock;
+  if (!desktop_lock.acquired()) {
+    std::cerr << "Desktop acceptance is already running, or its named mutex "
+                 "could not be acquired.\n";
+    return 1;
+  }
   if (!rd::platform::win::test::use_physical_pixel_coordinates()) {
     std::cerr
         << "Windows per-monitor DPI mode is required for desktop acceptance.\n";

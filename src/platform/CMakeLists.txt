@@ -13,4 +13,7 @@ if(WIN32)
     win/desktop_signals_win.cpp
     win/input_system_win.cpp)
   target_link_libraries(rd_platform PRIVATE d3d11 dxgi dxguid shcore user32 wtsapi32)
+  if(RD_WINDOWS_CAPTURE_DIAGNOSTICS)
+    target_compile_definitions(rd_platform PRIVATE RD_WINDOWS_CAPTURE_DIAGNOSTICS=1)
+  endif()
 endif()

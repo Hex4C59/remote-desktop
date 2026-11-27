@@ -36,6 +36,25 @@ namespace rd::platform::win::test {
 
   enum class WindowUse { kCapture, kInput };
 
+  struct WindowBounds {
+    Point top_left;
+    Point bottom_right;
+    bool primary_visible{};
+  };
+
+  // A process-wide desktop acceptance owner, acquired without waiting.
+  class DesktopAcceptanceLock {
+   public:
+    DesktopAcceptanceLock() noexcept;
+    ~DesktopAcceptanceLock();
+    bool acquired() const noexcept;
+    DesktopAcceptanceLock(const DesktopAcceptanceLock&) = delete;
+    DesktopAcceptanceLock& operator=(const DesktopAcceptanceLock&) = delete;
+
+   private:
+    void* mutex_{};
+  };
+
   class DesktopWindow {
    public:
     explicit DesktopWindow(const wchar_t* title,
@@ -48,6 +67,8 @@ namespace rd::platform::win::test {
     void paint(std::uint32_t rgb) noexcept;
     std::optional<Point> screen_point(Point client_point) const noexcept;
     bool owns_screen_point(Point point) const noexcept;
+    bool place_on_primary(Point client_point) noexcept;
+    std::optional<WindowBounds> bounds() const noexcept;
     std::uint32_t dpi() const noexcept;
     void pump() noexcept;
     bool post_close() noexcept;

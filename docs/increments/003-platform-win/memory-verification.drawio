@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Windows 内存与资源验收">
+    <mxGraphModel page="1" pageWidth="1440" pageHeight="1100" background="#f8fafc">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="怎样验收 Windows 采集内存与资源释放" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;shape=text;strokeColor=none;fillColor=none;align=left;fontSize=27;fontStyle=1;">
+          <mxGeometry as="geometry" x="24" y="12" width="1380" height="44" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" vertex="1" value="进程提交预算与资源释放分别核对；原始样本不扣估计开销；40 帧预热保持一致。" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;shape=text;strokeColor=none;fillColor=none;align=left;fontSize=16;">
+          <mxGeometry as="geometry" x="24" y="59" width="1380" height="30" />
+        </mxCell>
+        <mxCell id="release-zone" parent="1" vertex="1" value="" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;fillColor=#edf5ff;strokeColor=#b7cde8;dashed=1;">
+          <mxGeometry as="geometry" x="24" y="215" width="680" height="730" />
+        </mxCell>
+        <mxCell id="diagnostic-zone" parent="1" vertex="1" value="" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;fillColor=#edf9f4;strokeColor=#b6d9c9;dashed=1;">
+          <mxGeometry as="geometry" x="750" y="215" width="666" height="730" />
+        </mxCell>
+        <mxCell id="release-title" parent="1" vertex="1" value="普通 Release：四个独立采集进程" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;shape=text;strokeColor=none;fillColor=none;align=left;fontSize=19;fontStyle=1;">
+          <mxGeometry as="geometry" x="45" y="230" width="640" height="40" />
+        </mxCell>
+        <mxCell id="diagnostic-title" parent="1" vertex="1" value="独立诊断构建：单个测试进程" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;shape=text;strokeColor=none;fillColor=none;align=left;fontSize=19;fontStyle=1;">
+          <mxGeometry as="geometry" x="773" y="230" width="620" height="40" />
+        </mxCell>
+        <mxCell id="launcher" parent="1" vertex="1" value="本轮启动器：禁止并发验收&#10;记录 Git / 二进制 SHA、位置、全部成功与失败" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;fillColor=#1e3a58;strokeColor=#1e3a58;fontColor=#ffffff;fontStyle=1;">
+          <mxGeometry as="geometry" x="450" y="110" width="540" height="66" />
+        </mxCell>
+        <mxCell id="release-window" parent="1" vertex="1" value="测试窗口 / 桌面观察&#10;预热前定位；尺寸与两色绘制固定；所有交付帧验像素" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="65" y="295" width="600" height="76" />
+        </mxCell>
+        <mxCell id="capture" parent="1" vertex="1" value="Capture 采集器&#10;只创建一张 staging 和一个查询&#10;源帧在每次返回前释放&#10;只有一次 40 帧预热" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="65" y="425" width="280" height="132" />
+        </mxCell>
+        <mxCell id="sampler" parent="1" vertex="1" value="预分配测量器&#10;三次 60 秒 + 一次 600 秒&#10;每秒：实际时间 + PrivateUsage&#10;末样早于排序、输出和销毁" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="385" y="425" width="280" height="132" />
+        </mxCell>
+        <mxCell id="release-d3d" parent="1" vertex="1" value="D3D11 / DXGI&#10;单笔在途；非等待 Map&#10;原始时间戳；33 ms 帧龄&#10;分钟边界不重建或重新预热" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="65" y="625" width="280" height="125" />
+        </mxCell>
+        <mxCell id="budget" parent="1" vertex="1" value="内存预算（两种时长相同）&#10;末次净增 ≤ 64 KiB&#10;采样最大增量 ≤ 256 KiB&#10;保存逐秒值与每分钟变化" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="385" y="625" width="280" height="125" />
+        </mxCell>
+        <mxCell id="release-check" parent="1" vertex="1" value="普通构建逐项判定&#10;像素正确、帧率不超上限、无访问丢失、帧池归还&#10;PWH-06：原 60 秒窗口的所有调用 ≤ 6 ms&#10;三个独立进程须全部通过；十分钟另外通过" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="65" y="805" width="600" height="108" />
+        </mxCell>
+        <mxCell id="diag-window" parent="1" vertex="1" value="测试窗口 / 桌面观察&#10;同样的预热与绘制；驱动十轮资源创建和停止" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="790" y="295" width="586" height="76" />
+        </mxCell>
+        <mxCell id="resource-scope" parent="1" vertex="1" value="Capture 资源作用域&#10;设备 / 上下文 / duplication / staging / 完成查询&#10;每轮：描述 → 40 帧预热 → 至少 100 帧交付&#10;正常交付与一笔读回在途时销毁交替覆盖" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="790" y="425" width="586" height="132" />
+        </mxCell>
+        <mxCell id="diag-d3d" parent="1" vertex="1" value="D3D11 / DXGI 调试层&#10;初始化时命名 rd.capture.*&#10;普通 Release 关闭&#10;生产析构不等待" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="790" y="625" width="270" height="125" />
+        </mxCell>
+        <mxCell id="sdk" parent="1" vertex="1" value="SDK 诊断器（测试进程）&#10;基线 → 在用 → 作用域结束后&#10;最多两秒观察异步释放&#10;CDB 在外部进程收集报告" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1100" y="625" width="276" height="125" />
+        </mxCell>
+        <mxCell id="resource-check" parent="1" vertex="1" value="十轮逐项判定&#10;帧池在用 = 0；五类名称在用时可识别&#10;销毁后无项目命名资源；数量不随轮次累积&#10;能力缺失、报告缺失或仍有残留均失败" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="790" y="805" width="586" height="108" />
+        </mxCell>
+        <mxCell id="evidence" parent="1" vertex="1" value="统一证据：全部运行、逐秒内存、每分钟变化、逐轮对象报告、构建与设备信息&#10;全部门槛通过后才关闭 003 T006 / 001 T002，并登记 003 implemented" style="html=0;fontFamily=Microsoft YaHei;fontColor=#172b45;fontSize=15;rounded=1;arcSize=8;fillColor=#ffffff;strokeColor=#94a9c1;strokeWidth=1.5;fillColor=#1e3a58;strokeColor=#1e3a58;fontColor=#ffffff;fontStyle=1;">
+          <mxGeometry as="geometry" x="200" y="1000" width="1040" height="74" />
+        </mxCell>
+        <mxCell id="launch-release" parent="1" edge="1" source="launcher" target="release-window" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.15;exitY=1;entryX=0.95;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="531" y="195" />
+              <mxPoint x="635" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="launch-diag" parent="1" edge="1" source="launcher" target="diag-window" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.85;exitY=1;entryX=0.95;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="909" y="195" />
+              <mxPoint x="1347" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="window-capture" parent="1" edge="1" source="release-window" target="capture" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.24;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="window-sampler" parent="1" edge="1" source="release-window" target="sampler" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.77;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="capture-d3d" parent="1" edge="1" source="capture" target="release-d3d" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="sampler-budget" parent="1" edge="1" source="sampler" target="budget" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="capture-sampler" parent="1" edge="1" source="capture" target="sampler" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="driver-check" parent="1" edge="1" source="release-d3d" target="release-check" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.24;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="budget-check" parent="1" edge="1" source="budget" target="release-check" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.77;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="diag-create" parent="1" edge="1" source="diag-window" target="resource-scope" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="scope-driver" parent="1" edge="1" source="resource-scope" target="diag-d3d" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.23;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="scope-sdk" parent="1" edge="1" source="resource-scope" target="sdk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.77;exitY=1;entryX=0.5;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="report" parent="1" edge="1" source="diag-d3d" target="sdk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="sdk-check" parent="1" edge="1" source="sdk" target="resource-check" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.77;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="release-evidence" parent="1" edge="1" source="release-check" target="evidence" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.16;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="diag-evidence" parent="1" edge="1" source="resource-check" target="evidence" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=20;exitX=0.5;exitY=1;entryX=0.85;entryY=0;strokeColor=#476581;strokeWidth=1.5;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
